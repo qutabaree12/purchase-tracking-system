@@ -16,7 +16,6 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Gestion des utilisateurs</h1>
       <DataTable columns={columns} data={users} />
     </div>
   )

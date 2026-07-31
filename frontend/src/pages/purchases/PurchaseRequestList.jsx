@@ -19,8 +19,7 @@ export default function PurchaseRequestList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Demandes d'achat</h1>
+      <div className="flex justify-end">
         <button onClick={() => navigate('/purchases/request/new')} className="btn-primary">+ Nouvelle demande</button>
       </div>
       <DataTable columns={columns} data={data} onEdit={(r) => navigate(`/purchases/request/${r.id}`)} />

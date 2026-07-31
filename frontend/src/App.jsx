@@ -9,6 +9,7 @@ import PurchaseRequestList from './pages/purchases/PurchaseRequestList'
 import PurchaseRequest from './pages/purchases/PurchaseRequest'
 import PurchaseOrderList from './pages/purchases/PurchaseOrderList'
 import PurchaseOrder from './pages/purchases/PurchaseOrder'
+import Regroupement from './pages/purchases/Regroupement'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="purchases/orders" element={<PurchaseOrderList />} />
             <Route path="purchases/order/new" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />
+            <Route path="purchases/regroupement" element={<Regroupement />} />
           </Route>
         </Routes>
       </AuthProvider>

@@ -19,8 +19,7 @@ export default function PurchaseOrderList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Bons de commande</h1>
+      <div className="flex justify-end">
         <button onClick={() => navigate('/purchases/order/new')} className="btn-primary">+ Nouveau bon</button>
       </div>
       <DataTable columns={columns} data={data} onEdit={(o) => navigate(`/purchases/order/${o.id}`)} />

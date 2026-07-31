@@ -51,7 +51,6 @@ export default function PurchaseOrder() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Bon de commande</h1>
       <form onSubmit={handleSubmit} className="card">
         <div className="card-body space-y-4">
           <PurchaseOrderForm

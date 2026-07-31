@@ -19,7 +19,6 @@ export default function PurchaseRequest() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Nouvelle demande d'achat</h1>
       <form onSubmit={handleSubmit} className="card">
         <div className="card-body space-y-4">
           <FormField label="Titre" name="title" value={form.title} onChange={handleChange} required />

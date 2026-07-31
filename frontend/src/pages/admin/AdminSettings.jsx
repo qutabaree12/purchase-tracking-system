@@ -1,7 +1,6 @@
 export default function AdminSettings() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Paramètres</h1>
       <div className="card">
         <div className="card-body space-y-4">
           <div className="grid grid-cols-1 gap-4">
