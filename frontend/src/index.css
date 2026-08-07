@@ -17,19 +17,26 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed;
-    border-radius: 8px;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold transition-all duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed;
+    border-radius: 12px;
     line-height: 1;
   }
   .btn-primary {
     @apply btn text-white;
     background-color: #007a33;
   }
+  
   .btn-primary:hover {
     background-color: #006429;
+    transform: translateY(-1px);
   }
+  
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  
   .btn-primary:focus-visible {
-    box-shadow: 0 0 0 3px rgba(0, 122, 51, 0.35);
+    box-shadow: 0 0 0 4px rgba(0,122,51,.15);
   }
   .btn-secondary {
     @apply btn;
@@ -58,24 +65,31 @@
     background-color: #006429;
   }
   .input {
-    @apply block w-full px-3 py-2 text-sm bg-white disabled:bg-gray-100 focus:outline-none;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
+    @apply block w-full px-4 py-3 text-sm bg-white transition-all duration-200 disabled:bg-gray-100 focus:outline-none;
+    border: 1px solid #d6dbe3;
+    border-radius: 12px;
     color: #212529;
   }
+  
+  .input:hover {
+    border-color: #b8c2cc;
+  }
+  
   .input:focus {
-    border-color: #1a2b5c;
-    box-shadow: 0 0 0 3px rgba(26, 43, 92, 0.08);
+    border-color: #007a33;
+    box-shadow: 0 0 0 4px rgba(0,122,51,.12);
   }
   .label {
-    @apply block font-medium mb-1;
-    font-size: 12px;
-    color: #6c757d;
+    @apply block mb-2;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f6b7a;
   }
   .card {
     @apply bg-white;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
+    border: 1px solid #edf0f2;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.06);
   }
   .card-header {
     @apply px-6 py-4 border-b border-brand-line;
