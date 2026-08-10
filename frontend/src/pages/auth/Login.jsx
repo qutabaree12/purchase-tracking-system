@@ -3,9 +3,11 @@ import { required, email as emailValidator, composeValidators } from '../../util
 import { useNavigate } from 'react-router-dom'
 import Logo from '../../components/common/Logo'
 import FormField from '../../components/common/FormField'
-
+import {useAuth} from '../../context/AuthContext'
 
 export default function Login() {
+  const { login } = useAuth()
+
   const navigate = useNavigate()
   // State: stores what the user types in each field
   const [email, setEmail] = useState('')
@@ -17,7 +19,7 @@ export default function Login() {
     password:""
   })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
 
     e.preventDefault()
 
@@ -37,12 +39,19 @@ export default function Login() {
       return 
     }
 
-    console.log({
-      email,
-      password,
-    })
+    try {
 
-    navigate('/admin')
+        await login(email, password)
+
+        navigate("/admin")
+
+    }
+
+    catch {
+
+      alert("Utilisateur inconnu")
+
+    }
   }
 
   return (

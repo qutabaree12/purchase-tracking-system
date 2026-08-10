@@ -10,6 +10,7 @@ import PurchaseRequest from './pages/purchases/PurchaseRequest'
 import PurchaseOrderList from './pages/purchases/PurchaseOrderList'
 import PurchaseOrder from './pages/purchases/PurchaseOrder'
 import Regroupement from './pages/purchases/Regroupement'
+import Profile from './pages/Profile'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="purchases/orders" element={<PurchaseOrderList />} />
             <Route path="purchases/order/new" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="purchases/regroupement" element={<Regroupement />} />
           </Route>
         </Routes>

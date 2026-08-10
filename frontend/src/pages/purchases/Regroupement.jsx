@@ -69,27 +69,46 @@ export default function Regroupement() {
   )
 
   useEffect(() => {
-    const fetchRegroupement = async () => {
-      try {
-        const res = await api.post('/regroupement/')
-        setPaniers(res.data.paniers.map((p) => ({ ...p, inclus: true, fournisseur_id: null })))
-      } catch {
-        setPaniers(mockPaniers)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchRegroupement()
-  }, [])
-
-  useEffect(() => {
     setTitle('Regroupement des demandes')
     setSubtitle(
       `${paniers.length} catégorie${paniers.length > 1 ? 's' : ''} — ${
         paniers.reduce((sum, p) => sum + p.produits.length, 0)
       } produits`
     )
+  
+    return () => {
+      setTitle('')
+      setSubtitle('')
+    }
   }, [paniers, setTitle, setSubtitle])
+
+
+  useEffect(() => {
+    setActions(
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => navigate('/purchases/requests')}
+          className="btn-secondary"
+        >
+          Retour
+        </button>
+  
+        <button
+          onClick={handleGenerer}
+          disabled={generating}
+          className="btn-primary"
+        >
+          {generating
+            ? 'Génération en cours...'
+            : 'Générer le bon de commande'}
+        </button>
+      </div>
+    )
+  
+    return () => {
+      setActions(null)
+    }
+  }, [generating, paniers, navigate, setActions])
 
   const handleTogglePanier = (index) => {
     setPaniers((prev) =>
