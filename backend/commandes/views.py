@@ -1,0 +1,124 @@
+import datetime
+
+from django.db import models
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from demandes.models import DemandeAchat, LigneDemandeAchat
+from .models import BonDeCommande, LigneBonDeCommande
+from .serializers import BonDeCommandeSerializer
+
+
+def _regrouper_par_categorie(lignes):
+    """Regroupe les lignes par catégorie et somme les quantités."""
+    paniers = {}
+    for ligne in lignes:
+        produit = ligne.id_produit
+        categorie = produit.id_categorie
+        if categorie.pk not in paniers:
+            paniers[categorie.pk] = {
+                'categorie': categorie.nom_categorie,
+                'produits': {},
+            }
+        prix = float(ligne.prix_unit or produit.prix_unit or 0)
+        entry = paniers[categorie.pk]['produits']
+        if produit.pk in entry:
+            entry[produit.pk]['quantite'] += ligne.qte
+        else:
+            entry[produit.pk] = {
+                'produit_id': produit.pk,
+                'nom': produit.nom_produit,
+                'prix_unitaire': prix,
+                'quantite': ligne.qte,
+            }
+    return [
+        {'categorie': p['categorie'], 'produits': list(p['produits'].values())}
+        for p in paniers.values()
+    ]
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def regroupement(request):
+    """POST /api/regroupement/
+    Regroupe les demandes acceptées (ou celles passées en body {ids_da})
+    par catégorie de produit → paniers.
+    """
+    ids_da = request.data.get('ids_da')
+    demandes = DemandeAchat.objects.filter(statut=DemandeAchat.Statut.APPROUVEE)
+    if ids_da:
+        demandes = demandes.filter(id_da__in=ids_da)
+
+    lignes = (
+        LigneDemandeAchat.objects
+        .filter(id_da__in=demandes)
+        .select_related('id_produit__id_categorie')
+    )
+    paniers = _regrouper_par_categorie(lignes)
+    return Response({'paniers': paniers})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generer_bons_commande(request):
+    """POST /api/bons-commande/generer/
+    Body : { paniers: [{ fournisseur_id, produits: [{produit_id, quantite, prix_unitaire}] }] }
+    → crée un BonDeCommande par panier (par fournisseur).
+    """
+    paniers = request.data.get('paniers', [])
+    if not paniers:
+        return Response({'detail': 'Aucun panier fourni.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    bons = []
+    # num_ligne_bc n'est pas auto-incrémenté en base → numérotation manuelle
+    next_num_ligne = (LigneBonDeCommande.objects.aggregate(m=models.Max('num_ligne_bc'))['m'] or 0) + 1
+
+    for panier in paniers:
+        fournisseur_id = panier.get('fournisseur_id')
+        produits = panier.get('produits', [])
+        if not fournisseur_id or not produits:
+            continue
+
+        montant = sum(
+            float(p.get('prix_unitaire', 0)) * float(p.get('quantite', 0))
+            for p in produits
+        )
+
+        # id_da est NOT NULL en base : on récupère une demande approuvée
+        # qui contient l'un des produits du panier (la 1ère trouvée).
+        id_da = panier.get('id_da')
+        if not id_da:
+            premiere_ligne = (
+                LigneDemandeAchat.objects
+                .filter(id_produit_id__in=[p['produit_id'] for p in produits])
+                .exclude(id_da__statut=DemandeAchat.Statut.REFUSEE)
+                .first()
+            )
+            id_da = premiere_ligne.id_da_id if premiere_ligne else None
+
+        bc = BonDeCommande.objects.create(
+            id_da_id=id_da,
+            id_acheteur=request.user,
+            id_fournisseur_id=fournisseur_id,
+            date_creation=datetime.date.today(),
+            montant=montant,
+            status=BonDeCommande.Statut.EN_COURS,
+        )
+        for p in produits:
+            LigneBonDeCommande.objects.create(
+                num_ligne_bc=next_num_ligne,
+                id_bc=bc,
+                num_produit_id=p['produit_id'],
+                qte=p['quantite'],
+            )
+            next_num_ligne += 1
+        bons.append(BonDeCommandeSerializer(bc).data)
+
+    return Response({'bons_de_commande': bons}, status=status.HTTP_201_CREATED)
+
+
+class BonDeCommandeViewSet(viewsets.ModelViewSet):
+    queryset = BonDeCommande.objects.select_related('id_acheteur', 'id_fournisseur').prefetch_related('lignes__num_produit')
+    serializer_class = BonDeCommandeSerializer
