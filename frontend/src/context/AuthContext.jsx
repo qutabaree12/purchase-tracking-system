@@ -76,7 +76,7 @@ const MOCK_USER = {
   id_emp: 1,
   full_name: 'Sara Meziane',
   email: 'sara.meziane@algerietelecom.dz',
-  role: 'acheteur', // Change le rôle ici pour tester
+  role: 'acheteur' // Change le rôle ici pour tester
 }
 
 export function AuthProvider({ children }) {
