@@ -1,15 +1,20 @@
 import { useState } from 'react'
 import { required, email as emailValidator, composeValidators } from '../../utils/validation'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { getRoleAccess } from '../../constants/roles'
 import Logo from '../../components/common/Logo'
 import FormField from '../../components/common/FormField'
 
 
 export default function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   // State: stores what the user types in each field
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   // state: stores the error message to display if login fails
   const [error, setError] = useState({
@@ -17,32 +22,33 @@ export default function Login() {
     password:""
   })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
 
     e.preventDefault()
 
-    setError({
-      email: "",
-      password: ""
-    })
-    
+    setError({ email: "", password: "" })
+    setSubmitError('')
 
-    //const emailError = composeValidators(required, emailValidator)(email)
     const emailError = required(email) || emailValidator(email)
     const passwordError = required(password)
 
-
     if (emailError || passwordError) {
       setError({ email: emailError, password: passwordError })
-      return 
+      return
     }
 
-    console.log({
-      email,
-      password,
-    })
-
-    navigate('/admin')
+    setLoading(true)
+    try {
+      const userData = await login(email, password)
+      navigate(getRoleAccess(userData.role).home)
+    } catch (err) {
+      const message = err.response?.data?.detail
+        || err.response?.data?.non_field_errors?.[0]
+        || 'Email ou mot de passe incorrect.'
+      setSubmitError(Array.isArray(message) ? message[0] : message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -61,6 +67,11 @@ export default function Login() {
             <p className="text-gray-500 mt-3 text-sm">
             Accédez à votre espace sécurisé</p>
           </div>
+          {submitError && (
+            <div className="mb-4 px-4 py-3 rounded-lg text-sm bg-red-50 border border-red-200 text-red-700">
+              {submitError}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-5">
               <FormField
                 label="Email"
@@ -82,7 +93,8 @@ export default function Login() {
                 error={error.password}
               />
             <button type="submit"
-              className="btn-primary w-full mt-2">Se connecter</button>
+              disabled={loading}
+              className="btn-primary w-full mt-2">{loading ? 'Connexion...' : 'Se connecter'}</button>
           </form>
         </div>
       </div>

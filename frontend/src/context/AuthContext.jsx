@@ -7,12 +7,13 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(() => localStorage.getItem('token'))
 
-  const login = useCallback(async (email, password) => {
-    const res = await api.post('/auth/login', { email, password })
-    const { token: newToken, user: userData } = res.data
+  const login = useCallback(async (email, mot_de_passe) => {
+    const res = await api.post('/auth/login', { email, mot_de_passe })
+    const { access: newToken, user: userData } = res.data
     localStorage.setItem('token', newToken)
     setToken(newToken)
     setUser(userData)
+    return userData
   }, [])
 
   const logout = useCallback(() => {

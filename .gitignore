@@ -5,3 +5,10 @@ frontend/dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Python / Django
+__pycache__/
+*.py[cod]
+backend/staticfiles/
+.venv/
+venv/

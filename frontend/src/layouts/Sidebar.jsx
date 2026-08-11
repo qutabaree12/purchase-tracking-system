@@ -1,15 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { getRoleAccess } from '../constants/roles'
 import Logo from '../components/common/Logo'
-
-const navigation = [
-  { name: 'Tableau de bord', path: '/admin' },
-  { name: "Demandes d'achat", path: '/purchases/requests', badge: 3 },
-  { name: 'Regroupement', path: '/purchases/regroupement' },
-  { name: 'Bons de commande', path: '/purchases/orders' },
-  { name: 'Utilisateurs', path: '/admin/users' },
-  { name: 'Paramètres', path: '/admin/settings' },
-]
 
 function initials(name = '') {
   return name
@@ -23,6 +15,7 @@ function initials(name = '') {
 
 export default function Sidebar() {
   const { user } = useAuth()
+  const navigation = getRoleAccess(user?.role).nav
 
   return (
     <aside className="w-[230px] fixed left-0 top-0 h-screen flex flex-col bg-brand-navy text-white z-40">

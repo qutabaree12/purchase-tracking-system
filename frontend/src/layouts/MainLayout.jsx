@@ -1,9 +1,28 @@
-import { Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LayoutProvider } from '../context/LayoutContext'
+import { useAuth } from '../context/AuthContext'
+import { getRoleAccess, isPathAllowed } from '../constants/roles'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 
 export default function MainLayout() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { user, isAuthenticated } = useAuth()
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true })
+      return
+    }
+    if (!isPathAllowed(user?.role, location.pathname)) {
+      navigate(getRoleAccess(user?.role).home, { replace: true })
+    }
+  }, [isAuthenticated, user, location.pathname, navigate])
+
+  if (!isAuthenticated) return null
+
   return (
     <LayoutProvider>
       <div className="min-h-screen bg-brand-page">
