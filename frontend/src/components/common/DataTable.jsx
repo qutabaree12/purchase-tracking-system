@@ -7,6 +7,7 @@ export default function DataTable({
   onEdit,
   onDelete,
   onReject,
+  onAssign,
 }) {
   const [sortKey, setSortKey] = useState('')
   const [sortDir, setSortDir] = useState('asc')
@@ -71,7 +72,7 @@ export default function DataTable({
                 </th>
               ))}
 
-              {(onEdit || onDelete || onReject) && (
+              {(onEdit || onDelete || onReject || onAssign) && (
                 <th className="px-4 py-3 text-left font-medium text-gray-600">
                   Actions
                 </th>
@@ -88,7 +89,7 @@ export default function DataTable({
                 <td
                   colSpan={
                     columns.length +
-                    (onEdit || onDelete || onReject ? 1 : 0)
+                    (onEdit || onDelete || onReject || onAssign ? 1 : 0)
                   }
                   className="px-4 py-8 text-center text-gray-500"
                 >
@@ -114,7 +115,7 @@ export default function DataTable({
                     </td>
                   ))}
 
-                  {(onEdit || onDelete || onReject) && (
+                  {(onEdit || onDelete || onReject || onAssign) && (
 
                     <td className="px-4 py-3">
 
@@ -144,6 +145,15 @@ export default function DataTable({
                             className="text-orange-600 hover:text-orange-800 text-sm font-medium"
                           >
                             Refuser
+                          </button>
+                        )}
+
+                        {onAssign && (
+                          <button
+                            onClick={() => onAssign(item)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            Choisir un acheteur
                           </button>
                         )}
 

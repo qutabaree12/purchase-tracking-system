@@ -10,6 +10,7 @@ import PurchaseRequest from './pages/purchases/PurchaseRequest'
 import PurchaseOrderList from './pages/purchases/PurchaseOrderList'
 import PurchaseOrder from './pages/purchases/PurchaseOrder'
 import Regroupement from './pages/purchases/Regroupement'
+import DemandesApprouvees from './pages/purchases/DemandesApprouvees'
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="admin/users" element={<AdminUsers />} />
             <Route path="admin/settings" element={<AdminSettings />} />
             <Route path="purchases/requests" element={<PurchaseRequestList />} />
+            <Route path="purchases/approved-requests" element={<DemandesApprouvees />} />
             <Route path="purchases/request/new" element={<PurchaseRequest />} />
             <Route path="purchases/request/:id" element={<PurchaseRequest />} />
             <Route path="purchases/orders" element={<PurchaseOrderList />} />

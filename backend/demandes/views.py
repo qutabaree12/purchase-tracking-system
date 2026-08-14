@@ -44,6 +44,20 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(demande).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
+    def assigner_acheteur(self, request, pk=None):
+        """POST /api/demandes/{pk}/assigner_acheteur/  { acheteur_id }"""
+        demande = self.get_object()
+        acheteur_id = request.data.get('acheteur_id')
+        if not acheteur_id:
+            return Response(
+                {'detail': 'Veuillez choisir un acheteur.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        demande.id_acheteur_id = acheteur_id
+        demande.save()
+        return Response(self.get_serializer(demande).data)
+
+    @action(detail=True, methods=['post'])
     def accepter(self, request, pk=None):
         demande = self.get_object()
         demande.statut = DemandeAchat.Statut.APPROUVEE

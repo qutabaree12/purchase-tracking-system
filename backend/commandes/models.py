@@ -42,6 +42,21 @@ class BonDeCommande(models.Model):
         verbose_name = 'Bon de commande'
         verbose_name_plural = 'Bons de commande'
         managed = True
+        constraints = [
+            models.UniqueConstraint(
+                fields=['id_fournisseur', 'date_creation', 'id_acheteur'],
+                name='unique_bc_fournisseur_jour_acheteur',
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['id_fournisseur', 'date_creation', 'id_acheteur'],
+                name='unique_bc_fournisseur_jour_acheteur',
+                violation_error_message=(
+                    'Un bon de commande existe déjà pour ce fournisseur aujourd\'hui.'
+                ),
+            ),
+        ]
 
     def __str__(self):
         return f"BC-{self.id_bc}"

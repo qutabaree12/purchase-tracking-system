@@ -69,17 +69,23 @@ export default function Regroupement() {
   )
 
   useEffect(() => {
-    const fetchRegroupement = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.post('/regroupement/')
+        const [res, resFour] = await Promise.all([
+          api.post('/regroupement/'),
+          api.get('/fournisseurs/'),
+        ])
         setPaniers(res.data.paniers.map((p) => ({ ...p, inclus: true, fournisseur_id: null })))
+        setFournisseurs(
+          resFour.data.map((f) => ({ id: f.id_fournisseur, nom: f.nom_fournisseur }))
+        )
       } catch {
         setPaniers(mockPaniers)
       } finally {
         setLoading(false)
       }
     }
-    fetchRegroupement()
+    fetchData()
   }, [])
 
   useEffect(() => {
@@ -147,8 +153,8 @@ export default function Regroupement() {
     try {
       await api.post('/bons-commande/generer/', { paniers: paniersValides })
       navigate('/purchases/orders')
-    } catch {
-      setError('Erreur lors de la génération. Veuillez réessayer.')
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Erreur lors de la génération. Veuillez réessayer.')
     } finally {
       setGenerating(false)
     }

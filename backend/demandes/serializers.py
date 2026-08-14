@@ -14,11 +14,12 @@ class LigneDemandeAchatSerializer(serializers.ModelSerializer):
 
 class DemandeAchatSerializer(serializers.ModelSerializer):
     demandeur_nom = serializers.CharField(source='id_demandeur.full_name', read_only=True)
+    acheteur_nom = serializers.CharField(source='id_acheteur.full_name', read_only=True, default=None)
     lignes = LigneDemandeAchatSerializer(many=True, read_only=True)
 
     class Meta:
         model = DemandeAchat
         fields = [
             'id_da', 'numero_da', 'dot', 'id_demandeur', 'demandeur_nom',
-            'date_creation', 'objet', 'statut', 'lignes',
+            'id_acheteur', 'acheteur_nom', 'date_creation', 'objet', 'statut', 'lignes',
         ]

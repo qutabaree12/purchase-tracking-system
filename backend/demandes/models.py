@@ -21,6 +21,14 @@ class DemandeAchat(models.Model):
         db_column='id_demandeur',
         related_name='demandes',
     )
+    id_acheteur = models.ForeignKey(
+        Employe,
+        on_delete=models.SET_NULL,
+        db_column='id_acheteur',
+        null=True,
+        blank=True,
+        related_name='demandes_assignees',
+    )
     date_creation = models.DateField()
     objet = models.CharField(max_length=255)
     statut = models.CharField(max_length=20, choices=Statut.choices, default=Statut.EN_COURS)

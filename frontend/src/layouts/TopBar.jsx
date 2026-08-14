@@ -7,6 +7,7 @@ const defaultTitles = [
   { match: '/admin/settings', title: 'Paramètres' },
   { match: '/admin', title: 'Tableau de bord' },
   { match: '/purchases/regroupement', title: 'Regroupement des demandes' },
+  { match: '/purchases/approved-requests', title: 'Demandes Approuvées' },
   { match: '/purchases/request/new', title: "Nouvelle demande d'achat" },
   { match: '/purchases/requests', title: "Demandes d'achat" },
   { match: '/purchases/order/new', title: 'Nouveau bon de commande' },

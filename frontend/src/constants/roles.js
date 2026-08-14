@@ -5,7 +5,7 @@ export const ROLE_ACCESS = {
       { name: 'Tableau de bord', path: '/admin' },
       { name: 'Utilisateurs', path: '/admin/users' },
     ],
-    prefixes: ['/admin'],
+    paths: ['/admin', '/admin/users'],
   },
   'chef département': {
     home: '/purchases/requests',
@@ -20,10 +20,12 @@ export const ROLE_ACCESS = {
   acheteur: {
     home: '/purchases/regroupement',
     nav: [
+      { name: "Demandes d'achat", path: '/purchases/requests' },
+      { name: 'Demandes Approuvées', path: '/purchases/approved-requests' },
       { name: 'Regroupement', path: '/purchases/regroupement' },
       { name: 'Bons de commande', path: '/purchases/orders' },
     ],
-    prefixes: ['/purchases/regroupement', '/purchases/order'],
+    prefixes: ['/purchases/regroupement', '/purchases/order', '/purchases/request', '/purchases/approved-requests'],
   },
   transitaire: {
     home: '/purchases/orders',
@@ -33,16 +35,17 @@ export const ROLE_ACCESS = {
   directeur: {
     home: '/admin',
     nav: [{ name: 'Tableau de bord', path: '/admin' }],
-    prefixes: ['/admin'],
+    paths: ['/admin'],
   },
 }
 
 export function getRoleAccess(role) {
-  return ROLE_ACCESS[role] || { home: '/', nav: [], prefixes: [] }
+  return ROLE_ACCESS[role] || { home: '/', nav: [], paths: [], prefixes: [] }
 }
 
 export function isPathAllowed(role, pathname) {
-  const { prefixes } = getRoleAccess(role)
-  if (prefixes.length === 0) return false
-  return prefixes.some((p) => pathname === p || pathname.startsWith(p + '/'))
+  const { paths, prefixes } = getRoleAccess(role)
+  if (paths && paths.some((p) => pathname === p)) return true
+  if (prefixes && prefixes.some((p) => pathname === p || pathname.startsWith(p + '/') || pathname.startsWith(p + 's'))) return true
+  return false
 }
