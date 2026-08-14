@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import api from '../services/api'
 
 const AuthContext = createContext(null)
@@ -6,6 +6,33 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(() => localStorage.getItem('token'))
+  const [loading, setLoading] = useState(() => !!localStorage.getItem('token'))
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token')
+    if (!storedToken) {
+      setLoading(false)
+      return
+    }
+    let active = true
+    api
+      .get('/auth/me')
+      .then((res) => {
+        if (active) setUser(res.data)
+      })
+      .catch(() => {
+        if (active) {
+          localStorage.removeItem('token')
+          setToken(null)
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const login = useCallback(async (email, mot_de_passe) => {
     const res = await api.post('/auth/login', { email, mot_de_passe })
@@ -23,7 +50,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, loading }}>
       {children}
     </AuthContext.Provider>
   )

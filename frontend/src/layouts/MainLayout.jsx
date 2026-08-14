@@ -9,9 +9,10 @@ import TopBar from './TopBar'
 export default function MainLayout() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, loading } = useAuth()
 
   useEffect(() => {
+    if (loading) return
     if (!isAuthenticated) {
       navigate('/login', { replace: true })
       return
@@ -19,9 +20,9 @@ export default function MainLayout() {
     if (!isPathAllowed(user?.role, location.pathname)) {
       navigate(getRoleAccess(user?.role).home, { replace: true })
     }
-  }, [isAuthenticated, user, location.pathname, navigate])
+  }, [isAuthenticated, user, loading, location.pathname, navigate])
 
-  if (!isAuthenticated) return null
+  if (loading || !isAuthenticated) return null
 
   return (
     <LayoutProvider>

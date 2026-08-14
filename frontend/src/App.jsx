@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { getRoleAccess } from './constants/roles'
 import MainLayout from './layouts/MainLayout'
 import Login from './pages/auth/Login'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -12,6 +13,13 @@ import PurchaseOrder from './pages/purchases/PurchaseOrder'
 import Regroupement from './pages/purchases/Regroupement'
 import DemandesApprouvees from './pages/purchases/DemandesApprouvees'
 
+function HomeRedirect() {
+  const { user, isAuthenticated } = useAuth()
+  if (!isAuthenticated || !user) return <Navigate to="/login" replace />
+  const home = getRoleAccess(user.role).home || '/login'
+  return <Navigate to={home} replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -19,7 +27,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>
-            <Route index element={<AdminDashboard />} />
+            <Route index element={<HomeRedirect />} />
             <Route path="admin" element={<AdminDashboard />} />
             <Route path="admin/users" element={<AdminUsers />} />
             <Route path="admin/settings" element={<AdminSettings />} />

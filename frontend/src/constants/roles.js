@@ -18,7 +18,7 @@ export const ROLE_ACCESS = {
     prefixes: ['/purchases/request'],
   },
   acheteur: {
-    home: '/purchases/regroupement',
+    home: '/purchases/requests',
     nav: [
       { name: "Demandes d'achat", path: '/purchases/requests' },
       { name: 'Demandes Approuvées', path: '/purchases/approved-requests' },
