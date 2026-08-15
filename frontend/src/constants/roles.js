@@ -43,9 +43,31 @@ export function getRoleAccess(role) {
   return ROLE_ACCESS[role] || { home: '/', nav: [], paths: [], prefixes: [] }
 }
 
-export function isPathAllowed(role, pathname) {
+/*export function isPathAllowed(role, pathname) {
   const { paths, prefixes } = getRoleAccess(role)
   if (paths && paths.some((p) => pathname === p)) return true
   if (prefixes && prefixes.some((p) => pathname === p || pathname.startsWith(p + '/') || pathname.startsWith(p + 's'))) return true
+  return false
+}*/
+
+export function isPathAllowed(role, pathname) {
+  if (pathname === '/profile') return true
+
+  const { paths, prefixes } = getRoleAccess(role)
+
+  if (paths && paths.some((p) => pathname === p)) return true
+
+  if (
+    prefixes &&
+    prefixes.some(
+      (p) =>
+        pathname === p ||
+        pathname.startsWith(p + '/') ||
+        pathname.startsWith(p + 's')
+    )
+  ) {
+    return true
+  }
+
   return false
 }

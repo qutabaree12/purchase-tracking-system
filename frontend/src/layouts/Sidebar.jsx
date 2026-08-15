@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getRoleAccess } from '../constants/roles'
 import Logo from '../components/common/Logo'
@@ -13,8 +13,11 @@ function initials(name = '') {
     .toUpperCase()
 }
 
+
+
 export default function Sidebar() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const navigation = getRoleAccess(user?.role).nav
 
   return (
@@ -62,7 +65,10 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-3 border-t border-white/10">
-        <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 text-left">
+        <button
+          type="button"
+          onClick={() => navigate('/profile')}
+          className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 text-left">
           <span className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold text-white"
             style={{ backgroundColor: '#007a33' }}>
             {initials(user?.full_name) || 'U'}
