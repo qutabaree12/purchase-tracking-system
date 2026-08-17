@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
-from .models import Categorie, Fournisseur, Produit
-
-
-class CategorieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Categorie
-        fields = '__all__'
+from .models import Fournisseur, Produit
 
 
 class FournisseurSerializer(serializers.ModelSerializer):
@@ -16,7 +10,9 @@ class FournisseurSerializer(serializers.ModelSerializer):
 
 
 class ProduitSerializer(serializers.ModelSerializer):
-    categorie_nom = serializers.CharField(source='categorie.nom_categorie', read_only=True)
+    fournisseur_nom = serializers.CharField(
+        source='id_fournisseur.nom_fournisseur', read_only=True
+    )
 
     class Meta:
         model = Produit

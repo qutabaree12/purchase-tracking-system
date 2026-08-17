@@ -1,57 +1,24 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../../services/api'
 import { useLayout } from '../../context/LayoutContext'
+import { useAuth } from '../../context/AuthContext'
 import PanierCard from '../../components/purchases/PanierCard'
+import { mockRegroupement, mockGenererBonsCommande, MOCK_FOURNISSEURS } from '../../constants/mockDemandes'
 
-const mockFournisseurs = [
-  { id: 1, nom: 'HP Algérie' },
-  { id: 2, nom: 'Bureau Plus' },
-  { id: 3, nom: 'Green Supply' },
-  { id: 4, nom: 'Paper & Co' },
-]
-
-const mockPaniers = [
-  {
-    categorie: 'Bureautique',
-    inclus: true,
-    fournisseur_id: 1,
-    produits: [
-      { produit_id: 1, nom: 'PC Portable', quantite: 21, prix_unitaire: 150000 },
-      { produit_id: 2, nom: 'Clavier', quantite: 3, prix_unitaire: 5000 },
-      { produit_id: 3, nom: 'Souris', quantite: 15, prix_unitaire: 2500 },
-    ],
-  },
-  {
-    categorie: 'Mobilier',
-    inclus: true,
-    fournisseur_id: 2,
-    produits: [
-      { produit_id: 4, nom: 'Bureau', quantite: 3, prix_unitaire: 80000 },
-      { produit_id: 5, nom: 'Chaise', quantite: 8, prix_unitaire: 25000 },
-    ],
-  },
-  {
-    categorie: 'Plantes',
-    inclus: true,
-    fournisseur_id: 3,
-    produits: [
-      { produit_id: 6, nom: 'Plante verte', quantite: 7, prix_unitaire: 3000 },
-    ],
-  },
-  {
-    categorie: 'Papeterie',
-    inclus: true,
-    fournisseur_id: 4,
-    produits: [
-      { produit_id: 7, nom: 'Stylo', quantite: 4, prix_unitaire: 500 },
-      { produit_id: 8, nom: 'Cahier', quantite: 10, prix_unitaire: 1200 },
-    ],
-  },
-]
+const mockFournisseurs = Object.entries(MOCK_FOURNISSEURS).map(([id, f]) => ({
+  id: Number(id),
+  nom: f.nom,
+}))
 
 export default function Regroupement() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const idsParam = searchParams.get('ids')
+  const idsDa = idsParam
+    ? idsParam.split(',').map((s) => Number(s.trim())).filter(Boolean)
+    : []
+  const { user } = useAuth()
   const { setTitle, setSubtitle, setActions } = useLayout()
   const [paniers, setPaniers] = useState([])
   const [fournisseurs, setFournisseurs] = useState(mockFournisseurs)
@@ -59,6 +26,7 @@ export default function Regroupement() {
   const [error, setError] = useState(null)
   const [selectAll, setSelectAll] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [usingMock, setUsingMock] = useState(false)
 
   const totalEstime = useMemo(
     () =>
@@ -72,15 +40,17 @@ export default function Regroupement() {
     const fetchData = async () => {
       try {
         const [res, resFour] = await Promise.all([
-          api.post('/regroupement/'),
+          api.post('/regroupement/', idsDa.length ? { ids_da: idsDa } : {}),
           api.get('/fournisseurs/'),
         ])
-        setPaniers(res.data.paniers.map((p) => ({ ...p, inclus: true, fournisseur_id: null })))
+        setUsingMock(false)
+        setPaniers(res.data.paniers.map((p) => ({ ...p, inclus: true })))
         setFournisseurs(
           resFour.data.map((f) => ({ id: f.id_fournisseur, nom: f.nom_fournisseur }))
         )
       } catch {
-        setPaniers(mockPaniers)
+        setUsingMock(true)
+        setPaniers(mockRegroupement(user))
       } finally {
         setLoading(false)
       }
@@ -91,7 +61,7 @@ export default function Regroupement() {
   useEffect(() => {
     setTitle('Regroupement des demandes')
     setSubtitle(
-      `${paniers.length} catégorie${paniers.length > 1 ? 's' : ''} — ${
+      `${paniers.length} fournisseur${paniers.length > 1 ? 's' : ''} — ${
         paniers.reduce((sum, p) => sum + p.produits.length, 0)
       } produits`
     )
@@ -142,7 +112,7 @@ export default function Regroupement() {
 
     for (const p of paniersValides) {
       if (!p.fournisseur_id) {
-        setError(`Veuillez choisir un fournisseur pour le panier "${p.categorie}".`)
+        setError(`Veuillez choisir un fournisseur pour le panier "${p.fournisseur_nom || p.fournisseur_id}".`)
         return
       }
     }
@@ -151,7 +121,11 @@ export default function Regroupement() {
     setError(null)
 
     try {
-      await api.post('/bons-commande/generer/', { paniers: paniersValides })
+      if (usingMock) {
+        mockGenererBonsCommande(paniersValides)
+      } else {
+        await api.post('/bons-commande/generer/', { paniers: paniersValides })
+      }
       navigate('/purchases/orders')
     } catch (err) {
       setError(err.response?.data?.detail || 'Erreur lors de la génération. Veuillez réessayer.')
@@ -190,7 +164,7 @@ export default function Regroupement() {
       <div className="space-y-4">
         {paniers.map((panier, index) => (
           <PanierCard
-            key={panier.categorie}
+            key={panier.fournisseur_id ?? panier.categorie}
             panier={panier}
             fournisseurs={fournisseurs}
             index={index}

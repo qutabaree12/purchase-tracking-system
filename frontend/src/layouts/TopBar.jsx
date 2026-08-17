@@ -15,6 +15,8 @@ const defaultTitles = [
 ]
 
 function defaultTitleFor(pathname) {
+  if (pathname.includes('/fiche')) return "Fiche Demande d'Achat"
+  if (/^\/purchases\/request\/\d+$/.test(pathname)) return "Demande d'achat"
   const hit = defaultTitles.find((t) => pathname.startsWith(t.match))
   return hit ? hit.title : ''
 }
@@ -24,7 +26,7 @@ export default function TopBar() {
   const { title, subtitle, actions } = useLayout()
   const [notifOpen, setNotifOpen] = useState(false)
 
-  const pageTitle = title || defaultTitleFor(location.pathname)
+  const pageTitle = defaultTitleFor(location.pathname) || title
 
   return (
     <header className="bg-white border-b border-brand-line shadow-sm px-6 py-4 flex items-center justify-between gap-4"

@@ -5,7 +5,7 @@ export default function PanierCard({ panier, fournisseurs, index, onToggle, onFo
     <div className={`bg-white rounded-[10px] overflow-hidden transition-all ${
       panier.inclus ? 'border border-brand-line shadow-sm' : 'border border-brand-line opacity-60'
     }`}>
-      {/* En-tête catégorie */}
+      {/* En-tête fournisseur */}
       <div className="px-5 py-4 flex items-center justify-between" style={{ backgroundColor: '#1a2b5c' }}>
         <div className="flex items-center gap-3">
           <label className="relative inline-flex items-center justify-center w-4 h-4 cursor-pointer">
@@ -28,7 +28,7 @@ export default function PanierCard({ panier, fournisseurs, index, onToggle, onFo
               <path d="M5 13l4 4L19 7" />
             </svg>
           </label>
-          <h3 className="font-bold text-white">{panier.categorie}</h3>
+          <h3 className="font-bold text-white">{panier.fournisseur_nom || `Fournisseur ${panier.fournisseur_id}`}</h3>
           <span className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
             ({panier.produits.length} produits)
           </span>
@@ -117,7 +117,7 @@ export default function PanierCard({ panier, fournisseurs, index, onToggle, onFo
 
       {/* Sous-total */}
       <div className="px-5 py-3 flex items-center justify-between" style={{ backgroundColor: '#f8f9fa', borderTop: '1px solid #e9ecef' }}>
-        <span className="text-[13px] text-gray-500">Sous-total catégorie</span>
+        <span className="text-[13px] text-gray-500">Sous-total fournisseur</span>
         <span className="text-[16px] font-bold text-brand-navy tabular-nums">{totalPanier.toLocaleString()} DZD</span>
       </div>
     </div>

@@ -12,19 +12,22 @@ from .models import BonDeCommande, LigneBonDeCommande
 from .serializers import BonDeCommandeSerializer
 
 
-def _regrouper_par_categorie(lignes):
-    """Regroupe les lignes par catégorie et somme les quantités."""
+def _regrouper_par_fournisseur(lignes):
+    """Regroupe les lignes par fournisseur du produit et somme les quantités."""
     paniers = {}
     for ligne in lignes:
         produit = ligne.id_produit
-        categorie = produit.id_categorie
-        if categorie.pk not in paniers:
-            paniers[categorie.pk] = {
-                'categorie': categorie.nom_categorie,
+        fournisseur = produit.id_fournisseur
+        if not fournisseur:
+            continue
+        if fournisseur.pk not in paniers:
+            paniers[fournisseur.pk] = {
+                'fournisseur_id': fournisseur.pk,
+                'fournisseur_nom': fournisseur.nom_fournisseur,
                 'produits': {},
             }
         prix = float(ligne.prix_unit or produit.prix_unit or 0)
-        entry = paniers[categorie.pk]['produits']
+        entry = paniers[fournisseur.pk]['produits']
         if produit.pk in entry:
             entry[produit.pk]['quantite'] += ligne.qte
         else:
@@ -35,7 +38,11 @@ def _regrouper_par_categorie(lignes):
                 'quantite': ligne.qte,
             }
     return [
-        {'categorie': p['categorie'], 'produits': list(p['produits'].values())}
+        {
+            'fournisseur_id': p['fournisseur_id'],
+            'fournisseur_nom': p['fournisseur_nom'],
+            'produits': list(p['produits'].values()),
+        }
         for p in paniers.values()
     ]
 
@@ -45,19 +52,23 @@ def _regrouper_par_categorie(lignes):
 def regroupement(request):
     """POST /api/regroupement/
     Regroupe les demandes acceptées (ou celles passées en body {ids_da})
-    par catégorie de produit → paniers.
+    par fournisseur du produit → paniers.
     """
     ids_da = request.data.get('ids_da')
-    demandes = DemandeAchat.objects.filter(statut=DemandeAchat.Statut.APPROUVEE)
+    # Ne regroupe que les demandes approuvées qui n'ont pas encore de bon de commande
+    demandes = DemandeAchat.objects.filter(
+        statut=DemandeAchat.Statut.APPROUVEE,
+        bons_commande__isnull=True,
+    )
     if ids_da:
         demandes = demandes.filter(id_da__in=ids_da)
 
     lignes = (
         LigneDemandeAchat.objects
         .filter(id_da__in=demandes)
-        .select_related('id_produit__id_categorie')
+        .select_related('id_produit__id_fournisseur')
     )
-    paniers = _regrouper_par_categorie(lignes)
+    paniers = _regrouper_par_fournisseur(lignes)
     return Response({'paniers': paniers})
 
 

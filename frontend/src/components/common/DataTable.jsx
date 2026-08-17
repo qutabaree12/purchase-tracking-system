@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 
 export default function DataTable({
   columns,
@@ -8,6 +8,10 @@ export default function DataTable({
   onDelete,
   onReject,
   onAssign,
+  onView,
+  onRegroup,
+  onPdf,
+  actionsLabel = 'Actions',
 }) {
   const [sortKey, setSortKey] = useState('')
   const [sortDir, setSortDir] = useState('asc')
@@ -65,16 +69,16 @@ export default function DataTable({
                     {col.header}
 
                     {col.sortable && sortKey === col.key && (
-                      <span>{sortDir === 'asc' ? '↑' : '↓'}</span>
+                      <span>{sortDir === 'asc' ? 'â†‘' : 'â†“'}</span>
                     )}
 
                   </span>
                 </th>
               ))}
 
-              {(onEdit || onDelete || onReject || onAssign) && (
+              {(onEdit || onDelete || onReject || onAssign || onView || onRegroup || onPdf) && (
                 <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  Actions
+                  {actionsLabel}
                 </th>
               )}
 
@@ -89,7 +93,7 @@ export default function DataTable({
                 <td
                   colSpan={
                     columns.length +
-                    (onEdit || onDelete || onReject || onAssign ? 1 : 0)
+                    (onEdit || onDelete || onReject || onAssign || onView || onRegroup || onPdf ? 1 : 0)
                   }
                   className="px-4 py-8 text-center text-gray-500"
                 >
@@ -102,7 +106,7 @@ export default function DataTable({
               sorted.map((item) => (
 
                 <tr
-                  key={item.id}
+                  key={item.id ?? item.id_da}
                   className="hover:bg-gray-50 transition-colors"
                 >
 
@@ -115,11 +119,38 @@ export default function DataTable({
                     </td>
                   ))}
 
-                  {(onEdit || onDelete || onReject || onAssign) && (
+                  {(onEdit || onDelete || onReject || onAssign || onView || onRegroup || onPdf) && (
 
                     <td className="px-4 py-3">
 
                       <div className="flex items-center gap-3">
+
+                        {onView && (
+                          <button
+                            onClick={() => onView(item)}
+                            className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+                          >
+                            Fiche
+                          </button>
+                        )}
+
+                        {onRegroup && (
+                          <button
+                            onClick={() => onRegroup(item)}
+                            className="text-green-700 hover:text-green-900 text-sm font-medium"
+                          >
+                            Regrouper
+                          </button>
+                        )}
+
+                        {onPdf && (
+                          <button
+                            onClick={() => onPdf(item)}
+                            className="text-blue-700 hover:text-blue-900 text-sm font-medium"
+                          >
+                            PDF
+                          </button>
+                        )}
 
                         {onEdit && (
                           <button

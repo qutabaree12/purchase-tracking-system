@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
@@ -6,31 +6,10 @@ import api from "../../services/api";
 import DataTable from "../../components/common/DataTable";
 import StatusBadge from "../../components/common/StatusBadge";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
-import RejectionLetterForm from "../../components/forms/RejectionLetterForm";
 
 import { formatDate } from "../../utils/format";
+import { getMockArriving, getMockApproved } from "../../constants/mockDemandes";
 
-
-const mockData = [
-  {
-    id_da: 1,
-    numero_da: 'DA-ALG-2026-001',
-    dot: 'Alger-Centre',
-    demandeur: 'Sara Meziane',
-    date_creation: '2026-07-20',
-    objet: 'Renouvellement matériel réseau',
-    statut: 'en_cours',
-  },
-  {
-    id_da: 2,
-    numero_da: 'DA-ALG-2026-002',
-    dot: 'Oran',
-    demandeur: 'Yacine Haddad',
-    date_creation: '2026-07-22',
-    objet: 'Connecteurs réseau',
-    statut: 'approuvee',
-  },
-]
 
 export default function PurchaseRequestList() {
   const navigate = useNavigate();
@@ -42,41 +21,74 @@ export default function PurchaseRequestList() {
   const isChef = role === 'chef département';
   const canCreate = !['acheteur', 'chef département'].includes(role);
 
-  const [data] = useState(mockData);
-
-  // ---------- Popup de rejet (acheteur) ----------
-  const [openReject, setOpenReject] = useState(false);
-  const [selectedRequestId, setSelectedRequestId] = useState(null);
-  const [rejectData, setRejectData] = useState({ motif: "" });
-  const [errors, setErrors] = useState({});
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({ arrivees: 0, approuvees: 0, bonsCommande: 0 });
 
   // ---------- Popup "Choisir un acheteur" (chef département) ----------
   const [openAssign, setOpenAssign] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [acheteurs, setAcheteurs] = useState([]);
   const [selectedAcheteur, setSelectedAcheteur] = useState('');
   const [assignError, setAssignError] = useState('');
 
+  // ---------- Chargement des données (API réelle) ----------
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      let usingMock = false;
+
+      try {
+        const demandesRes = await api.get('/demandes/');
+        if (!active) return;
+
+        if (demandesRes.data.length === 0) {
+          usingMock = true;
+        } else {
+          const nonApprouvees = demandesRes.data.filter((d) => d.statut !== 'approuvee');
+          setData(nonApprouvees);
+
+          if (isAcheteur) {
+            const [approuveesRes, bonsRes] = await Promise.all([
+              api.get('/demandes/?statut=approuvee'),
+              api.get('/bons-commande/'),
+            ]);
+            if (!active) return;
+            setStats({
+              arrivees: nonApprouvees.length,
+              approuvees: approuveesRes.data.length,
+              bonsCommande: bonsRes.data.length,
+            });
+          }
+        }
+      } catch {
+        if (!active) return;
+        usingMock = true;
+      }
+
+      if (active && usingMock) {
+        const liste = getMockArriving(user);
+        setData(liste);
+        if (isAcheteur) {
+          setStats({
+            arrivees: liste.length,
+            approuvees: getMockApproved(user).length,
+            bonsCommande: getMockApproved(user).filter((d) => d.has_bc).length,
+          });
+        }
+      }
+
+      if (active) setLoading(false);
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [isAcheteur, user]);
+
   // ---------- Actions ----------
-
-  const handleReject = (request) => {
-    setSelectedRequestId(request.id_da);
-    setRejectData({ motif: "" });
-    setErrors({});
-    setOpenReject(true);
-  };
-
-  const handleRejectChange = (e) => {
-    setRejectData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleConfirmReject = () => {
-    if (!rejectData.motif.trim()) {
-      setErrors({ motif: "Le motif est obligatoire." });
-      return;
-    }
-    console.log({ id_da: selectedRequestId, motif: rejectData.motif });
-    setOpenReject(false);
-  };
 
   const handleAssign = async (request) => {
     setSelectedRequestId(request.id_da);
@@ -107,19 +119,45 @@ export default function PurchaseRequestList() {
     }
   };
 
+  const handleViewFiche = (request) => {
+    navigate(`/purchases/request/${request.id_da}/fiche`);
+  };
+
   // ---------- Colonnes du tableau ----------
 
   const columns = [
     { key: "numero_da", header: "N° DA", sortable: true },
     { key: "dot", header: "DOT" },
-    { key: "demandeur", header: "Demandeur", sortable: true },
+    { key: "demandeur_nom", header: "Demandeur", sortable: true },
+    { key: "acheteur_nom", header: "Acheteur" },
     { key: "date_creation", header: "Date", sortable: true, render: (r) => formatDate(r.date_creation) },
     { key: "objet", header: "Objet" },
     { key: "statut", header: "Statut", render: (r) => <StatusBadge status={r.statut} /> },
   ];
 
+  const statsCards = [
+    { label: 'Demandes arrivées', value: stats.arrivees, color: '#1d2d62' },
+    { label: 'Demandes approuvées', value: stats.approuvees, color: '#007a33' },
+    { label: 'Bons de commande', value: stats.bonsCommande, color: '#0ea5e9' },
+  ];
+
   return (
     <div className="space-y-6">
+
+      {isAcheteur && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {statsCards.map((stat) => (
+            <div key={stat.label} className="card">
+              <div className="card-body">
+                <p className="text-sm text-gray-500">{stat.label}</p>
+                <p className="text-3xl font-bold mt-1" style={{ color: stat.color }}>
+                  {stat.value}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="flex justify-between items-center">
 
@@ -144,29 +182,20 @@ export default function PurchaseRequestList() {
 
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
       <DataTable
         columns={columns}
         data={data}
+        loading={loading}
         onEdit={isDemandeur ? (request) => navigate(`/purchases/request/${request.id_da}`) : undefined}
-        onReject={isAcheteur ? handleReject : undefined}
         onAssign={isChef ? handleAssign : undefined}
+        onView={isAcheteur ? handleViewFiche : undefined}
       />
-
-      {/* Rejet (acheteur) */}
-      <ConfirmDialog
-        open={openReject}
-        title="Refuser la demande d'achat"
-        confirmLabel="Refuser"
-        cancelLabel="Annuler"
-        onConfirm={handleConfirmReject}
-        onCancel={() => setOpenReject(false)}
-      >
-        <RejectionLetterForm
-          data={rejectData}
-          onChange={handleRejectChange}
-          errors={errors}
-        />
-      </ConfirmDialog>
 
       {/* Assignation acheteur (chef département) */}
       <ConfirmDialog

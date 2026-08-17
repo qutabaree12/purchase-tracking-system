@@ -8,6 +8,7 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminSettings from './pages/admin/AdminSettings'
 import PurchaseRequestList from './pages/purchases/PurchaseRequestList'
 import PurchaseRequest from './pages/purchases/PurchaseRequest'
+import FicheDemande from './pages/purchases/FicheDemande'
 import PurchaseOrderList from './pages/purchases/PurchaseOrderList'
 import PurchaseOrder from './pages/purchases/PurchaseOrder'
 import Regroupement from './pages/purchases/Regroupement'
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="purchases/approved-requests" element={<DemandesApprouvees />} />
             <Route path="purchases/request/new" element={<PurchaseRequest />} />
             <Route path="purchases/request/:id" element={<PurchaseRequest />} />
+            <Route path="purchases/request/:id/fiche" element={<FicheDemande />} />
             <Route path="purchases/orders" element={<PurchaseOrderList />} />
             <Route path="purchases/order/new" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />

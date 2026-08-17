@@ -16,10 +16,20 @@ class DemandeAchatSerializer(serializers.ModelSerializer):
     demandeur_nom = serializers.CharField(source='id_demandeur.full_name', read_only=True)
     acheteur_nom = serializers.CharField(source='id_acheteur.full_name', read_only=True, default=None)
     lignes = LigneDemandeAchatSerializer(many=True, read_only=True)
+    has_bc = serializers.SerializerMethodField()
+    motif_refus = serializers.SerializerMethodField()
 
     class Meta:
         model = DemandeAchat
         fields = [
             'id_da', 'numero_da', 'dot', 'id_demandeur', 'demandeur_nom',
             'id_acheteur', 'acheteur_nom', 'date_creation', 'objet', 'statut', 'lignes',
+            'has_bc', 'motif_refus',
         ]
+
+    def get_has_bc(self, obj):
+        return obj.bons_commande.exists()
+
+    def get_motif_refus(self, obj):
+        lettre = obj.lettres_rejet.first()
+        return lettre.motif if lettre else None

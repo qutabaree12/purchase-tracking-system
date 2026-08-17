@@ -4,53 +4,55 @@ from django.db import models
 from django.core.management.base import BaseCommand
 
 from authentication.models import Employe
-from produits.models import Categorie, Fournisseur, Produit
+from produits.models import Fournisseur, Produit
 from demandes.models import DemandeAchat, LigneDemandeAchat
 
 # (nom_fournisseur, adresse_fournisseur, tel_fournisseur)
 FOURNISSEURS = [
-    ('HP Algérie', 'Zone industrielle Alger', 21321234567),
+    ('ALFATRON', 'Zone industrielle Alger', 21321234567),
     ('Bureau Plus', 'Rue des Frères Boudiaf, Alger', 21321567890),
-    ('Green Supply', 'Haï El Badr, Alger', 21321222233),
-    ('Paper & Co', 'Chéraga, Alger', 21321444556),
+    ('Électro Plus', 'Haï El Badr, Alger', 21321222233),
+    ('Mobili Algérie', 'Chéraga, Alger', 21321444556),
+    ('Clima Tech', 'Bab Ezzouar, Alger', 21321333444),
+    ('Green Supply', 'Dely Brahim, Alger', 21321666777),
+    ('Paper & Co', 'Hussein Dey, Alger', 21321888999),
 ]
 
-CATEGORIES = [
-    'Bureautique',
-    'Mobilier',
-    'Plantes',
-    'Papeterie',
-]
-
-# (nom, categorie, prix_unit)
+# (nom, fournisseur, prix_unit) — prix indicatifs du marché algérien (DZD)
 PRODUITS = [
-    ('PC Portable', 'Bureautique', 150000),
-    ('Clavier', 'Bureautique', 5000),
-    ('Souris', 'Bureautique', 2500),
-    ('Bureau', 'Mobilier', 80000),
-    ('Chaise', 'Mobilier', 25000),
-    ('Plante verte', 'Plantes', 3000),
-    ('Stylo', 'Papeterie', 500),
-    ('Cahier', 'Papeterie', 1200),
+    ('PC ALFATRON', 'ALFATRON', 85000),
+    ('Clavier', 'ALFATRON', 2500),
+    ('Souris', 'ALFATRON', 1500),
+    ('Rallonge', 'Électro Plus', 1200),
+    ('Porte', 'Mobili Algérie', 25000),
+    ('Casier', 'Mobili Algérie', 35000),
+    ('Chaise', 'Mobili Algérie', 8000),
+    ('Table', 'Mobili Algérie', 30000),
+    ('Climatiseur', 'Clima Tech', 75000),
+    ('Stylo', 'Paper & Co', 300),
+    ('Cahier', 'Paper & Co', 350),
 ]
 
 # Demandes acceptées : (numero_da, objet, [(nom_produit, qte), ...])
 DEMANDES = [
-    ('DA-ALG-2026-001', 'Renouvellement matériel réseau', [
-        ('PC Portable', 5),
-        ('Bureau', 3),
-        ('Plante verte', 7),
+    ('DA-ALG-2026-001', 'Équipement informatique', [
+        ('PC ALFATRON', 5),
+        ('Clavier', 10),
+        ('Souris', 10),
+        ('Rallonge', 10),
     ]),
-    ('DA-ALG-2026-002', 'Connecteurs et fournitures', [
-        ('PC Portable', 10),
-        ('Chaise', 8),
-        ('Stylo', 4),
-        ('Cahier', 9),
+    ('DA-ALG-2026-002', 'Aménagement des bureaux', [
+        ('Porte', 2),
+        ('Casier', 4),
+        ('Chaise', 15),
+        ('Table', 5),
     ]),
-    ('DA-ALG-2026-003', 'Équipement bureautique', [
-        ('PC Portable', 6),
-        ('Cahier', 1),
-        ('Clavier', 3),
+    ('DA-ALG-2026-003', 'Confort et climatisation', [
+        ('Climatiseur', 3),
+    ]),
+    ('DA-ALG-2026-004', 'Fournitures de bureau', [
+        ('Stylo', 50),
+        ('Cahier', 40),
     ]),
 ]
 
@@ -68,23 +70,17 @@ class Command(BaseCommand):
             )
             fournisseurs[nom] = f
 
-        # Catégories
-        categories = {}
-        for nom in CATEGORIES:
-            c, _ = Categorie.objects.get_or_create(nom_categorie=nom)
-            categories[nom] = c
-
         # Produits (num_produit n'est pas auto-incrémenté dans la table → fourni manuellement)
         produits = {}
         next_num = (Produit.objects.aggregate(m=models.Max('num_produit'))['m'] or 0) + 1
-        for nom, cat, prix in PRODUITS:
+        for nom, fournisseur_nom, prix in PRODUITS:
             p = Produit.objects.filter(nom_produit=nom).first()
             if not p:
                 p = Produit.objects.create(
                     num_produit=next_num,
                     nom_produit=nom,
                     prix_unit=prix,
-                    id_categorie=categories[cat],
+                    id_fournisseur=fournisseurs[fournisseur_nom],
                 )
                 next_num += 1
             produits[nom] = p
@@ -116,6 +112,6 @@ class Command(BaseCommand):
                     )
 
         self.stdout.write(self.style.SUCCESS(
-            f'OK : {Fournisseur.objects.count()} fournisseurs, {Categorie.objects.count()} catégories, '
+            f'OK : {Fournisseur.objects.count()} fournisseurs, '
             f'{Produit.objects.count()} produits, {DemandeAchat.objects.count()} demandes.'
         ))

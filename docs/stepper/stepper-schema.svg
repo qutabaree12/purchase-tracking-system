@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="460" viewBox="0 0 1200 460" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="460" fill="#f4f6fb"/>
+
+  <!-- Title -->
+  <text x="600" y="55" text-anchor="middle" font-size="26" font-weight="700" fill="#1d2d62">Stepper – Cycle de vie d'une Demande d'Achat</text>
+  <text x="600" y="82" text-anchor="middle" font-size="14" fill="#64748b">Algérie Telecom – Système de Suivi des Achats</text>
+
+  <!-- Connector line -->
+  <line x1="130" y1="200" x2="1070" y2="200" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Step positions -->
+  <!-- 6 steps: x centers at 130, 318, 506, 694, 882, 1070 -->
+
+  <!-- Steps: [x, num, title, actor, done] -->
+  <g>
+    <!-- Step 1 - done -->
+    <circle cx="130" cy="200" r="34" fill="#007a33"/>
+    <text x="130" y="210" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">1</text>
+    <text x="130" y="285" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Créée</text>
+    <text x="130" y="305" text-anchor="middle" font-size="12" fill="#64748b">Demandeur</text>
+    <text x="130" y="325" text-anchor="middle" font-size="11" fill="#007a33" font-weight="600">statut : en_cours</text>
+
+    <!-- Step 2 - done -->
+    <circle cx="318" cy="200" r="34" fill="#007a33"/>
+    <text x="318" y="210" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">2</text>
+    <text x="318" y="285" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Assignée</text>
+    <text x="318" y="305" text-anchor="middle" font-size="12" fill="#64748b">Chef département</text>
+    <text x="318" y="325" text-anchor="middle" font-size="11" fill="#007a33" font-weight="600">acheteur désigné</text>
+
+    <!-- Step 3 - done -->
+    <circle cx="506" cy="200" r="34" fill="#007a33"/>
+    <text x="506" y="210" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">3</text>
+    <text x="506" y="285" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Validée</text>
+    <text x="506" y="305" text-anchor="middle" font-size="12" fill="#64748b">Acheteur</text>
+    <text x="506" y="325" text-anchor="middle" font-size="11" fill="#007a33" font-weight="600">statut : approuvee</text>
+
+    <!-- Step 4 - current -->
+    <circle cx="694" cy="200" r="40" fill="#ffffff" stroke="#007a33" stroke-width="6"/>
+    <text x="694" y="210" text-anchor="middle" font-size="22" font-weight="700" fill="#007a33">4</text>
+    <text x="694" y="285" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Regroupée</text>
+    <text x="694" y="305" text-anchor="middle" font-size="12" fill="#64748b">Acheteur</text>
+    <text x="694" y="325" text-anchor="middle" font-size="11" fill="#94a3b8">regroupement d'achats</text>
+    <text x="694" y="200" text-anchor="middle" font-size="11" fill="#007a33" font-weight="700">EN COURS</text>
+
+    <!-- Step 5 - pending -->
+    <circle cx="882" cy="200" r="34" fill="#cbd5e1"/>
+    <text x="882" y="210" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">5</text>
+    <text x="882" y="285" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Bon de commande</text>
+    <text x="882" y="305" text-anchor="middle" font-size="12" fill="#64748b">Acheteur</text>
+    <text x="882" y="325" text-anchor="middle" font-size="11" fill="#94a3b8">BC émis vers fournisseur</text>
+
+    <!-- Step 6 - pending -->
+    <circle cx="1070" cy="200" r="34" fill="#cbd5e1"/>
+    <text x="1070" y="210" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">6</text>
+    <text x="1070" y="285" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Livrée</text>
+    <text x="1070" y="305" text-anchor="middle" font-size="12" fill="#64748b">réception</text>
+    <text x="1070" y="325" text-anchor="middle" font-size="11" fill="#94a3b8">étape future</text>
+  </g>
+
+  <!-- Rejected branch -->
+  <path d="M 640 200 L 590 200 L 590 385 L 506 385" stroke="#dc3545" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <rect x="330" y="355" width="360" height="62" rx="12" fill="#fff1f2" stroke="#dc3545" stroke-width="2"/>
+  <text x="510" y="378" text-anchor="middle" font-size="13" font-weight="700" fill="#dc3545">Sortie : Refusée</text>
+  <text x="510" y="398" text-anchor="middle" font-size="11" fill="#b91c1c">Acheteur → lettre de rejet + motif (statut : refusee)</text>
+
+  <!-- Legend -->
+  <g transform="translate(60, 430)">
+    <circle cx="10" cy="0" r="7" fill="#007a33"/>
+    <text x="24" y="4" font-size="12" fill="#334155">Terminé</text>
+    <circle cx="120" cy="0" r="7" fill="#ffffff" stroke="#007a33" stroke-width="3"/>
+    <text x="134" y="4" font-size="12" fill="#334155">Étape en cours</text>
+    <circle cx="270" cy="0" r="7" fill="#cbd5e1"/>
+    <text x="284" y="4" font-size="12" fill="#334155">À venir</text>
+    <rect x="390" y="-10" width="14" height="14" rx="4" fill="#fff1f2" stroke="#dc3545" stroke-width="2"/>
+    <text x="412" y="4" font-size="12" fill="#334155">Refus (sortie)</text>
+  </g>
+</svg>

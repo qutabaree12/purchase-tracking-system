@@ -7,6 +7,7 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
   loading = false,
+  hideCancel = false,
 }) {
   if (!open) return null
 
@@ -32,16 +33,18 @@ export default function ConfirmDialog({
 
         <div className="flex justify-end gap-3">
 
-          <button
-            className="btn-secondary"
-            onClick={onCancel}
-            disabled={loading}
-          >
-            {cancelLabel}
-          </button>
+          {!hideCancel && (
+            <button
+              className="btn-secondary"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              {cancelLabel}
+            </button>
+          )}
 
           <button
-            className="btn-danger"
+            className={onConfirm === undefined ? "btn-secondary" : "btn-danger"}
             onClick={onConfirm}
             disabled={loading}
           >

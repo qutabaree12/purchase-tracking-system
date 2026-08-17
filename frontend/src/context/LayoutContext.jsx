@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 
 const LayoutContext = createContext(null)
 
@@ -9,9 +10,23 @@ export function LayoutProvider({ children }) {
 
   return (
     <LayoutContext.Provider value={{ title, subtitle, actions, setTitle, setSubtitle, setActions }}>
+      <LayoutResetter />
       {children}
     </LayoutContext.Provider>
   )
+}
+
+function LayoutResetter() {
+  const location = useLocation()
+  const { setTitle, setSubtitle, setActions } = useContext(LayoutContext)
+
+  useEffect(() => {
+    setTitle('')
+    setSubtitle('')
+    setActions(null)
+  }, [location.pathname, setTitle, setSubtitle, setActions])
+
+  return null
 }
 
 export function useLayout() {
