@@ -23,45 +23,39 @@ function defaultTitleFor(pathname) {
 
 export default function TopBar() {
   const location = useLocation()
-  const { title, subtitle, actions } = useLayout()
+  const { title, subtitle, actions, toggleSidebar } = useLayout()
   const [notifOpen, setNotifOpen] = useState(false)
 
   const pageTitle = defaultTitleFor(location.pathname) || title
 
   return (
-    <header className="bg-white border-b border-brand-line shadow-sm px-6 py-4 flex items-center justify-between gap-4"
-      style={{ padding: '14px 24px' }}>
-      <div className="flex items-center gap-4 min-w-0">
+    <header
+      className="sticky top-0 z-20 bg-white border-b border-brand-line flex items-center justify-between gap-4"
+      style={{ padding: '14px 24px' }}
+    >
+      <div className="flex items-center gap-4 min-w-0 flex-1">
+        {/* Hamburger now actually toggles the sidebar, on ALL screen sizes
+            (not just mobile like before). */}
         <button
-          className="lg:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30"
-          aria-label="Ouvrir le menu"
+          type="button"
+          onClick={toggleSidebar}
+          className="shrink-0 p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30"
+          aria-label="Afficher ou masquer le menu"
         >
           <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
 
-        <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
-          <svg
-              className="w-6 h-6 text-brand-navy"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-          >
-              <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"
-              />
-          </svg>
-       </div>
+        {/* Document icon box removed entirely, as requested. */}
+
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-brand-navy">{pageTitle}</h1>
-          {subtitle && <p className="text-[12px] text-gray-500 mt-0.5">{subtitle}</p>}
-          {/*<p className="text-sm text-gray-500 mt-1">
-          Création d'une nouvelle demande d'achat
-          </p>*/}
+          <h1 className="text-xl font-bold tracking-tight text-brand-navy truncate">
+            {pageTitle}
+          </h1>
+          {subtitle && (
+            <p className="text-[12px] text-gray-500 mt-0.5 truncate">{subtitle}</p>
+          )}
         </div>
       </div>
 

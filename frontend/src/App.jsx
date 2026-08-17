@@ -13,6 +13,8 @@ import PurchaseOrderList from './pages/purchases/PurchaseOrderList'
 import PurchaseOrder from './pages/purchases/PurchaseOrder'
 import Regroupement from './pages/purchases/Regroupement'
 import DemandesApprouvees from './pages/purchases/DemandesApprouvees'
+import Profile from './pages/Profile'
+
 
 function HomeRedirect() {
   const { user, isAuthenticated } = useAuth()
@@ -32,6 +34,7 @@ export default function App() {
             <Route path="admin" element={<AdminDashboard />} />
             <Route path="admin/users" element={<AdminUsers />} />
             <Route path="admin/settings" element={<AdminSettings />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="purchases/requests" element={<PurchaseRequestList />} />
             <Route path="purchases/approved-requests" element={<DemandesApprouvees />} />
             <Route path="purchases/request/new" element={<PurchaseRequest />} />
