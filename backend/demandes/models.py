@@ -32,6 +32,8 @@ class DemandeAchat(models.Model):
     date_creation = models.DateField()
     objet = models.CharField(max_length=255)
     statut = models.CharField(max_length=20, choices=Statut.choices, default=Statut.EN_COURS)
+    date_approbation = models.DateField(blank=True, null=True)
+    date_rejet = models.DateField(blank=True, null=True)
 
     class Meta:
         db_table = 'demande_achat'

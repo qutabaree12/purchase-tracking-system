@@ -68,6 +68,7 @@ const SEED_ARRIVING = [
     objet: 'Équipements de bureau',
     statut: 'refusee',
     has_bc: false,
+    date_rejet: '2026-08-01',
     motif_refus: 'Budget insuffisant pour ce trimestre.',
     lignes: [
       { num_ligne_da: 1, designation: 'Imprimante laser A4', qte: 3, prix_unit: '45000.00' },
@@ -86,6 +87,7 @@ const SEED_APPROVED = [
     date_creation: '2026-08-01',
     objet: 'Renouvellement matériel réseau',
     statut: 'approuvee',
+    date_approbation: '2026-08-04',
     has_bc: false,
     motif_refus: null,
     lignes: [
@@ -102,6 +104,7 @@ const SEED_APPROVED = [
     date_creation: '2026-08-03',
     objet: 'Connecteurs réseau',
     statut: 'approuvee',
+    date_approbation: '2026-08-06',
     has_bc: true,
     motif_refus: null,
     lignes: [
@@ -117,6 +120,7 @@ const SEED_APPROVED = [
     date_creation: '2026-08-05',
     objet: 'Câbles cuivre 50m',
     statut: 'approuvee',
+    date_approbation: '2026-08-08',
     has_bc: false,
     motif_refus: null,
     lignes: [
@@ -132,6 +136,7 @@ const SEED_APPROVED = [
     date_creation: '2026-08-08',
     objet: 'Serveurs de production',
     statut: 'approuvee',
+    date_approbation: '2026-08-11',
     has_bc: true,
     motif_refus: null,
     lignes: [
@@ -173,12 +178,27 @@ function writeStore(data) {
   } catch {}
 }
 
+function plusDays(dateStr, days) {
+  if (!dateStr) return dateStr
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return dateStr
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
 function assignToUser(demande, user) {
-  return {
+  const base = {
     ...demande,
     id_acheteur: user?.id_emp ?? demande.id_acheteur,
     acheteur_nom: user?.full_name ?? demande.acheteur_nom,
   }
+  if (base.statut === 'approuvee' && !base.date_approbation) {
+    base.date_approbation = plusDays(base.date_creation, 3)
+  }
+  if (base.statut === 'refusee' && !base.date_rejet) {
+    base.date_rejet = plusDays(base.date_creation, 3)
+  }
+  return base
 }
 
 export function getMockArriving(user) {
@@ -194,7 +214,11 @@ export function mockApprouver(id, user) {
   const idx = store.arriving.findIndex((d) => d.id_da === Number(id))
   if (idx === -1) return false
   const [demande] = store.arriving.splice(idx, 1)
-  const updated = { ...demande, statut: 'approuvee' }
+  const updated = {
+    ...demande,
+    statut: 'approuvee',
+    date_approbation: plusDays(demande.date_creation, 3),
+  }
   store.approved.push(assignToUser(updated, user))
   writeStore(store)
   return true
@@ -205,6 +229,7 @@ export function mockRejeter(id, motif) {
   const demande = store.arriving.find((d) => d.id_da === Number(id))
   if (!demande) return false
   demande.statut = 'refusee'
+  demande.date_rejet = plusDays(demande.date_creation, 3)
   demande.motif_refus = motif
   writeStore(store)
   return true
@@ -310,4 +335,5 @@ export function mockGenererBonsCommande(paniers = []) {
 export function getMockBons() {
   return readStore().bons.map((b) => ({ ...b, lignes: [...b.lignes] }))
 }
+
 

@@ -164,7 +164,7 @@ export default function FicheDemande() {
           </span>
         </div>
         <div className="card-body">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
             <div>
               <p className="text-xs font-semibold text-gray-500">N° DA</p>
               <p className="text-sm font-medium mt-1">{demande.numero_da}</p>
@@ -185,6 +185,22 @@ export default function FicheDemande() {
               <p className="text-xs font-semibold text-gray-500">Date</p>
               <p className="text-sm font-medium mt-1">{formatDate(demande.date_creation)}</p>
             </div>
+            {demande.statut === 'approuvee' && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 whitespace-nowrap">Date d'approbation</p>
+                <p className="text-sm font-medium mt-1">
+                  {demande.date_approbation ? formatDate(demande.date_approbation) : '—'}
+                </p>
+              </div>
+            )}
+            {demande.statut === 'refusee' && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 whitespace-nowrap">Date de rejet</p>
+                <p className="text-sm font-medium mt-1">
+                  {demande.date_rejet ? formatDate(demande.date_rejet) : '—'}
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-xs font-semibold text-gray-500">Statut</p>
               <p className="mt-1"><StatusBadge status={demande.statut} /></p>

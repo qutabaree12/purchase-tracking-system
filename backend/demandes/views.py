@@ -66,6 +66,7 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
     def accepter(self, request, pk=None):
         demande = self.get_object()
         demande.statut = DemandeAchat.Statut.APPROUVEE
+        demande.date_approbation = datetime.date.today()
         demande.save()
         return Response(self.get_serializer(demande).data)
 
@@ -83,5 +84,6 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
                 },
             )
         demande.statut = DemandeAchat.Statut.REFUSEE
+        demande.date_rejet = datetime.date.today()
         demande.save()
         return Response(self.get_serializer(demande).data)

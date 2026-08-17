@@ -10,23 +10,6 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('fr-FR')
 }
 
-function exporterCSV(bons) {
-  const lignes = [
-    ['N° Bon', 'Fournisseur', 'Date', 'Montant (DZD)', 'Statut'],
-  ]
-  for (const b of bons) {
-    lignes.push([b.id_bc, b.fournisseur_nom, formatDate(b.date_creation), b.montant, b.status])
-  }
-  const csv = lignes.map((l) => l.map((c) => `"${String(c ?? '')}"`).join(';')).join('\r\n')
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'bons-de-commande.csv'
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 export default function PurchaseOrderList() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -93,14 +76,6 @@ export default function PurchaseOrderList() {
     <div className="space-y-6">
       {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
       <div className="flex justify-end gap-3">
-        <button
-          onClick={() => exporterCSV(data)}
-          disabled={data.length === 0 || exporting}
-          className="btn-secondary"
-          title="Exporter les bons de commande en CSV (imprimable en Excel)"
-        >
-          Exporter CSV
-        </button>
         <button
           onClick={handleExportTous}
           disabled={data.length === 0 || exporting}

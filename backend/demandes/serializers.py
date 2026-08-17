@@ -23,8 +23,8 @@ class DemandeAchatSerializer(serializers.ModelSerializer):
         model = DemandeAchat
         fields = [
             'id_da', 'numero_da', 'dot', 'id_demandeur', 'demandeur_nom',
-            'id_acheteur', 'acheteur_nom', 'date_creation', 'objet', 'statut', 'lignes',
-            'has_bc', 'motif_refus',
+            'id_acheteur', 'acheteur_nom', 'date_creation', 'objet', 'statut',
+            'date_approbation', 'date_rejet', 'lignes', 'has_bc', 'motif_refus',
         ]
 
     def get_has_bc(self, obj):

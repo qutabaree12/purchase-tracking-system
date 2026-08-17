@@ -43,6 +43,7 @@ export default function DemandesApprouvees() {
     { key: 'acheteur_nom', header: 'Acheteur' },
     { key: 'date_creation', header: 'Date', sortable: true, render: (r) => formatDate(r.date_creation) },
     { key: 'objet', header: 'Objet' },
+    { key: 'date_approbation', header: "Date d'approbation", sortable: true, render: (r) => (r.date_approbation ? formatDate(r.date_approbation) : '—') },
     { key: 'statut', header: 'Statut', render: () => <StatusBadge status="approved" /> },
   ]
 

@@ -21,6 +21,7 @@ FOURNISSEURS = [
 # (nom, fournisseur, prix_unit) — prix indicatifs du marché algérien (DZD)
 PRODUITS = [
     ('PC ALFATRON', 'ALFATRON', 85000),
+    ('PC Portable', 'ALFATRON', 150000),
     ('Clavier', 'ALFATRON', 2500),
     ('Souris', 'ALFATRON', 1500),
     ('Rallonge', 'Électro Plus', 1200),
@@ -28,7 +29,9 @@ PRODUITS = [
     ('Casier', 'Mobili Algérie', 35000),
     ('Chaise', 'Mobili Algérie', 8000),
     ('Table', 'Mobili Algérie', 30000),
+    ('Bureau', 'Mobili Algérie', 80000),
     ('Climatiseur', 'Clima Tech', 75000),
+    ('Plante', 'Green Supply', 3500),
     ('Stylo', 'Paper & Co', 300),
     ('Cahier', 'Paper & Co', 350),
 ]
@@ -83,6 +86,10 @@ class Command(BaseCommand):
                     id_fournisseur=fournisseurs[fournisseur_nom],
                 )
                 next_num += 1
+            else:
+                p.prix_unit = prix
+                p.id_fournisseur = fournisseurs[fournisseur_nom]
+                p.save()
             produits[nom] = p
 
         # Demandeur de démo
