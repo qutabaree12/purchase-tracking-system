@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.contrib.auth.hashers import make_password
 
 from authentication.models import Employe
 
@@ -30,7 +31,7 @@ class Command(BaseCommand):
                 defaults={
                     'nom_emp': nom,
                     'prenom_emp': prenom,
-                    'mot_de_passe': mdp,
+                    'mot_de_passe': make_password(mdp),
                     'role': role,
                     'etat': 'actif',
                 },

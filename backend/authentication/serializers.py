@@ -20,7 +20,7 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         employe = Employe.objects.filter(email_emp=attrs['email']).first()
-        if not employe or employe.mot_de_passe != attrs['mot_de_passe']:
+        if not employe or not employe.check_password(attrs['mot_de_passe']):
             raise serializers.ValidationError('Email ou mot de passe incorrect.')
         if employe.etat != Employe.Etat.ACTIF:
             raise serializers.ValidationError('Compte archivé ou inactif.')

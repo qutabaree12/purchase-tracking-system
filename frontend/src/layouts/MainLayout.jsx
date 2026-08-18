@@ -17,7 +17,7 @@ function LayoutContent() {
         className={`
           flex flex-col min-h-screen
           transition-[margin] duration-300 ease-in-out
-          ${sidebarOpen ? 'md:ml-[230px]' : 'md:ml-0'}
+          ${sidebarOpen ? 'md:ml-[246px]' : 'md:ml-0'}
         `}
       >
         <TopBar />

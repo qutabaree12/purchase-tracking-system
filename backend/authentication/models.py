@@ -1,4 +1,8 @@
 from django.db import models
+from django.contrib.auth.hashers import (
+    make_password as hash_password,
+    check_password as verify_password,
+)
 
 
 class Employe(models.Model):
@@ -40,6 +44,14 @@ class Employe(models.Model):
     @property
     def email(self):
         return self.email_emp
+
+    def set_password(self, raw_password):
+        """Stocke le mot de passe de manière hachée (jamais en clair)."""
+        self.mot_de_passe = hash_password(raw_password)
+
+    def check_password(self, raw_password):
+        """Vérifie un mot de passe saisi contre le hash stocké."""
+        return verify_password(raw_password, self.mot_de_passe)
 
     # --- Interface requise par Django / DRF ---
     @property
