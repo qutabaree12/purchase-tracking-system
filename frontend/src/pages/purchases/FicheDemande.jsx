@@ -8,6 +8,8 @@ import RejectionLetterForm from '../../components/forms/RejectionLetterForm'
 import { useAuth } from '../../context/AuthContext'
 import { formatDate, formatCurrency } from '../../utils/format'
 import { findMockDemande, mockApprouver, mockRejeter } from '../../constants/mockDemandes'
+import { exporterDaPdf } from '../../utils/daPdf'
+
 
 export default function FicheDemande() {
   const { id } = useParams()
@@ -141,9 +143,14 @@ export default function FicheDemande() {
             Suivi de l'avancement et détail de la demande {demande.numero_da}
           </p>
         </div>
-        <button className="btn-secondary" onClick={() => navigate(-1)}>
-          ← Retour
-        </button>
+        <div className="flex gap-3">
+          <button className="btn-secondary" onClick={() => exporterDaPdf(demande)}>
+            Exporter PDF
+          </button>
+          <button className="btn-secondary" onClick={() => navigate(-1)}>
+            ← Retour
+          </button>
+        </div>
       </div>
 
       <div className="card">
@@ -310,6 +317,6 @@ export default function FicheDemande() {
           {demande.motif_refus || 'Aucun motif renseigné.'}
         </p>
       </ConfirmDialog>
-    </div>
+    </div>   
   )
 }

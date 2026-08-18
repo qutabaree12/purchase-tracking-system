@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";  // useEffect ajouté
+import { useNavigate, useParams } from "react-router-dom";  // useParams ajouté
+import api from "../../services/api";
 
 import PurchaseRequestForm from "../../components/forms/PurchaseRequestForm";
+
 
 const productOptions = [
   {
@@ -22,22 +24,47 @@ const productOptions = [
 ];
 
 export default function PurchaseRequest() {
-
   const navigate = useNavigate();
+  const { id } = useParams();  // NOUVEAU : récupère l'id depuis l'URL (/purchases/request/:id)
+  const isEditMode = Boolean(id);  // NOUVEAU : true si on est en modification
 
   const [errors] = useState({});
+  const [loading, setLoading] = useState(isEditMode);  // NOUVEAU
 
   const [data, setData] = useState({
-
     numero_da: "",
     dot: "",
     date_creation: "",
     objet: "",
     statut: "en_cours",
-
     lignes: []
-
   });
+
+  useEffect(() => {
+    if (!isEditMode) return;
+
+    api.get(`/demandes/${id}/`)
+      .then((res) => {
+        const demande = res.data;
+        setData({
+          numero_da: demande.numero_da,
+          dot: demande.dot || "",
+          date_creation: demande.date_creation,
+          objet: demande.objet,
+          statut: demande.statut,
+          // Reconstruit le format attendu par le formulaire (produit/quantite/prix_unitaire)
+          // à partir de ce que Django renvoie (id_produit/qte/prix_unit)
+          lignes: demande.lignes.map((l) => ({
+            produit: l.id_produit,
+            designation: l.designation,
+            quantite: l.qte,
+            prix_unitaire: l.prix_unit,
+          })),
+        });
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [id, isEditMode]);
 
   const handleChange = (e) => {
 
@@ -136,13 +163,38 @@ export default function PurchaseRequest() {
 
   };
 
-  const handleSubmit = (e) => {
-
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log(data);
+    const payload = {
+      dot: data.dot,
+      date_creation: data.date_creation,
+      objet: data.objet,
+      lignes: data.lignes.map((ligne) => ({
+        id_produit: Number(ligne.produit),
+        designation: ligne.designation,
+        qte: Number(ligne.quantite),
+        prix_unit: Number(ligne.prix_unitaire),
+      })),
+    };
 
+    try {
+      if (isEditMode) {
+        await api.patch(`/demandes/${id}/`, payload);  // NOUVEAU : PATCH si modification
+      } else {
+        await api.post('/demandes/', payload);  // inchangé : POST si création
+      }
+      navigate('/purchases/requests');
+    } catch (err) {
+      console.error(err.response?.data || err);
+    }
   };
+
+  //affichage pendant le chargement en mode édition
+  if (loading) {
+    return <div className="text-center py-12 text-gray-500">Chargement...</div>;
+  }
+
 
   return (
 
@@ -406,7 +458,7 @@ export default function PurchaseRequest() {
 
             >
 
-              Enregistrer
+            {isEditMode ? "Mettre à jour" : "Enregistrer"}
 
             </button>
 
