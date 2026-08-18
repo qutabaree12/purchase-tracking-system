@@ -123,6 +123,17 @@ export default function PurchaseRequestList() {
     navigate(`/purchases/request/${request.id_da}/fiche`);
   };
 
+
+  const handleDelete = async (request) => {
+    if (!window.confirm(`Supprimer la demande ${request.numero_da} ?`)) return;
+    try {
+      await api.delete(`/demandes/${request.id_da}/`);
+      setData((prev) => prev.filter((d) => d.id_da !== request.id_da));  // retire de la liste affichée
+    } catch (err) {
+      console.error(err.response?.data || err);
+    }
+  };
+
   // ---------- Colonnes du tableau ----------
 
   const columns = [
@@ -193,10 +204,11 @@ export default function PurchaseRequestList() {
         data={data}
         loading={loading}
         onEdit={isDemandeur ? (request) => navigate(`/purchases/request/${request.id_da}`) : undefined}
+        // suppression uniquement si la DA appartient au demandeur ET est encore en_cours
+        onDelete={isDemandeur ? (request) => request.statut === 'en_cours' && handleDelete(request) : undefined}
         onAssign={isChef ? handleAssign : undefined}
         onView={isAcheteur ? handleViewFiche : undefined}
       />
-
       {/* Assignation acheteur (chef département) */}
       <ConfirmDialog
         open={openAssign}
