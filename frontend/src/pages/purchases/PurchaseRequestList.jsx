@@ -26,6 +26,8 @@ export default function PurchaseRequestList() {
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({ arrivees: 0, approuvees: 0, bonsCommande: 0 });
 
+  // NOUVEAU : stats propres au demandeur (total / en cours / approuvées / refusées)
+  const [demandeurStats, setDemandeurStats] = useState({ total: 0, enCours: 0, approuvees: 0, refusees: 0 });
   // ---------- Popup "Choisir un acheteur" (chef département) ----------
   const [openAssign, setOpenAssign] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
@@ -33,7 +35,6 @@ export default function PurchaseRequestList() {
   const [selectedAcheteur, setSelectedAcheteur] = useState('');
   const [assignError, setAssignError] = useState('');
 
-  // ---------- Chargement des données (API réelle) ----------
   useEffect(() => {
     let active = true;
 
@@ -62,6 +63,20 @@ export default function PurchaseRequestList() {
               bonsCommande: bonsRes.data.length,
             });
           }
+
+          // NOUVEAU : calcule les stats du demandeur à partir de TOUTES ses DA
+          // (pas juste nonApprouvees, donc on refait un appel complet filtré côté client)
+          if (isDemandeur) {
+            const toutesRes = await api.get('/demandes/');
+            if (!active) return;
+            const mesDemandes = toutesRes.data; // le backend filtre déjà par id_demandeur (voir get_queryset)
+            setDemandeurStats({
+              total: mesDemandes.length,
+              enCours: mesDemandes.filter((d) => d.statut === 'en_cours').length,
+              approuvees: mesDemandes.filter((d) => d.statut === 'approuvee').length,
+              refusees: mesDemandes.filter((d) => d.statut === 'refusee').length,
+            });
+          }
         }
       } catch {
         if (!active) return;
@@ -78,6 +93,16 @@ export default function PurchaseRequestList() {
             bonsCommande: getMockApproved(user).filter((d) => d.has_bc).length,
           });
         }
+        // NOUVEAU : stats demandeur en mode mock
+        if (isDemandeur) {
+          const approuveesMock = getMockApproved(user);
+          setDemandeurStats({
+            total: liste.length + approuveesMock.length,
+            enCours: liste.filter((d) => d.statut === 'en_cours').length,
+            approuvees: approuveesMock.length,
+            refusees: liste.filter((d) => d.statut === 'refusee').length,
+          });
+        }
       }
 
       if (active) setLoading(false);
@@ -86,7 +111,7 @@ export default function PurchaseRequestList() {
     return () => {
       active = false;
     };
-  }, [isAcheteur, user]);
+  }, [isAcheteur, isDemandeur, user]);  // isDemandeur ajouté aux dépendances
 
   // ---------- Actions ----------
 
@@ -152,7 +177,14 @@ export default function PurchaseRequestList() {
     { label: 'Bons de commande', value: stats.bonsCommande, color: '#0ea5e9' },
   ];
 
-  return (
+  const demandeurStatsCards = [
+    { label: 'Mes demandes', value: demandeurStats.total, color: '#1d2d62' },
+    { label: 'En cours', value: demandeurStats.enCours, color: '#0ea5e9' },
+    { label: 'Approuvées', value: demandeurStats.approuvees, color: '#007a33' },
+    { label: 'Refusées', value: demandeurStats.refusees, color: '#dc3545' },
+  ];
+
+   return (
     <div className="space-y-6">
 
       {isAcheteur && (
@@ -170,6 +202,22 @@ export default function PurchaseRequestList() {
         </div>
       )}
 
+      {/* NOUVEAU : bloc stats demandeur, même pattern que celui de l'acheteur */}
+      {isDemandeur && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {demandeurStatsCards.map((stat) => (
+            <div key={stat.label} className="card">
+              <div className="card-body">
+                <p className="text-sm text-gray-500">{stat.label}</p>
+                <p className="text-3xl font-bold mt-1" style={{ color: stat.color }}>
+                  {stat.value}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+       )}
+       
       <div className="flex justify-between items-center">
 
         <div>
@@ -204,10 +252,10 @@ export default function PurchaseRequestList() {
         data={data}
         loading={loading}
         onEdit={isDemandeur ? (request) => navigate(`/purchases/request/${request.id_da}`) : undefined}
-        // suppression uniquement si la DA appartient au demandeur ET est encore en_cours
         onDelete={isDemandeur ? (request) => request.statut === 'en_cours' && handleDelete(request) : undefined}
         onAssign={isChef ? handleAssign : undefined}
-        onView={isAcheteur ? handleViewFiche : undefined}
+        // CHANGÉ : onView maintenant pour acheteur ET demandeur (avant : isAcheteur seul)
+        onView={(isAcheteur || isDemandeur) ? handleViewFiche : undefined}
       />
       {/* Assignation acheteur (chef département) */}
       <ConfirmDialog
