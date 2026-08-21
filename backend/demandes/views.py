@@ -26,13 +26,10 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
         return qs
 
     def create(self, request, *args, **kwargs):
-        """Crée la DA + ses lignes.
-        Body : { numero_da, dot, objet, lignes: [{id_produit, designation, qte, prix_unit}] }
-        """
+        """Crée la DA + ses lignes."""
         data = request.data
         lignes_data = data.pop('lignes', [])
 
-        # Validation serveur : ne fait jamais confiance qu'au frontend
         if not lignes_data:
             return Response(
                 {'detail': 'Une demande doit contenir au moins une ligne de produit.'},
@@ -40,9 +37,8 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
             )
 
         data['id_demandeur'] = request.user.id_emp
-        data['date_creation'] = data.get('date_creation', datetime.date.today())
+        data['date_creation'] = datetime.date.today()
 
-        # Génère automatiquement le numero_da si le frontend ne l'envoie pas
         if not data.get('numero_da'):
             annee = datetime.date.today().year
             dernier = DemandeAchat.objects.filter(numero_da__startswith=f'DA-{annee}-').order_by('-id_da').first()
@@ -65,6 +61,43 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
                 prix_unit=ligne.get('prix_unit', 0),
             )
         return Response(self.get_serializer(demande).data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        """Modifie la DA + remplace ses lignes."""
+        partial = kwargs.pop('partial', False)
+        demande = self.get_object()
+
+        if demande.id_acheteur_id is not None:
+            return Response(
+                {'detail': 'Cette demande est déjà en cours de traitement, modification impossible.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = request.data
+        lignes_data = data.pop('lignes', None)
+        data.pop('date_creation', None)
+
+        serializer = self.get_serializer(demande, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        demande = serializer.save()
+
+        if lignes_data is not None:
+            if not lignes_data:
+                return Response(
+                    {'detail': 'Une demande doit contenir au moins une ligne de produit.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            demande.lignes.all().delete()
+            for ligne in lignes_data:
+                LigneDemandeAchat.objects.create(
+                    id_da=demande,
+                    id_produit_id=ligne['id_produit'],
+                    designation=ligne.get('designation', ''),
+                    qte=ligne.get('qte', 1),
+                    prix_unit=ligne.get('prix_unit', 0),
+                )
+
+        return Response(self.get_serializer(demande).data)
 
     @action(detail=True, methods=['post'])
     def assigner_acheteur(self, request, pk=None):
