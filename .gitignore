@@ -12,3 +12,6 @@ __pycache__/
 backend/staticfiles/
 .venv/
 venv/
+
+# Présentations / schémas (non versionnés)
+docs/presentations/

@@ -100,11 +100,11 @@ export default function Sidebar() {
           w-[230px]
           flex flex-col
           text-white
+          bg-[#203090] dark:bg-[#050a18]
           rounded-2xl shadow-2xl
           transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
-        style={{ backgroundColor: '#203090' }}
       >
         <div className="px-5 py-5 flex items-center gap-3 border-b border-white/10 shrink-0">
           <Logo className="h-8 w-auto" />
@@ -125,7 +125,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `relative flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-[#3030A0] text-white'
+                    ? 'bg-[rgba(59,130,246,0.15)] text-white'
                     : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }`
               }
@@ -133,6 +133,12 @@ export default function Sidebar() {
             >
               {({ isActive }) => (
                 <>
+                  {isActive && (
+                    <span
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r"
+                      style={{ backgroundColor: '#3b82f6' }}
+                    />
+                  )}
                   <NavIcon path={item.path} />
                   <span className="flex-1 truncate">{item.name}</span>
                   {item.badge > 0 && (
@@ -156,8 +162,7 @@ export default function Sidebar() {
             className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 text-left"
           >
             <span
-              className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold text-white"
-              style={{ backgroundColor: '#007a33' }}
+              className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold text-white bg-[#007a33] dark:bg-[#00a651]"
             >
               {initials(user?.full_name) || 'U'}
             </span>

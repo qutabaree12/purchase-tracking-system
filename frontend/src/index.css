@@ -98,3 +98,112 @@
     @apply px-6 py-4;
   }
 }
+
+/* ---------- Thème bleu nuit (palette dark) ---------- */
+.dark body {
+  background-color: #0b1226;
+  color: #e2e8f0;
+}
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: #ffffff;
+}
+.dark .bg-brand-page {
+  background-color: #0b1226;
+}
+.dark .card {
+  background-color: #101a38;
+  border-color: #1e293b;
+  box-shadow: 0 12px 30px rgba(0,0,0,.25);
+}
+.dark .card-header {
+  border-color: #1e293b;
+}
+.dark .input {
+  background-color: #15224a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+.dark .input:hover {
+  border-color: #475569;
+}
+.dark .input:focus {
+  border-color: #00a651;
+  box-shadow: 0 0 0 4px rgba(0,166,81,.25);
+}
+.dark .label {
+  color: #94a3b8;
+}
+.dark .text-brand-navy {
+  color: #ffffff;
+}
+
+/* Boutons */
+.dark .btn-primary,
+.dark .btn-success {
+  background-color: #00a651;
+  color: #0b1226;
+}
+.dark .btn-primary:hover,
+.dark .btn-success:hover {
+  background-color: #00c25e;
+}
+.dark .btn-secondary {
+  color: #cbd5e1;
+  border-color: #334155;
+}
+.dark .btn-secondary:hover {
+  background-color: #15224a;
+}
+.dark .btn-danger {
+  background-color: #f87171;
+  color: #0b1226;
+}
+.dark .btn-danger:hover {
+  background-color: #fca5a5;
+}
+
+/* Surfaces blanches → élévation 1 (topbar, cartes, compteurs) */
+.dark .bg-white {
+  background-color: #101a38;
+}
+/* Élévation 2 : entêtes tableaux, champs, hover */
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-gray-200 {
+  background-color: #15224a;
+}
+/* Lignes / séparateurs */
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-brand-line {
+  border-color: #1e293b;
+}
+.dark .border-gray-300,
+.dark .border-brand-border {
+  border-color: #334155;
+}
+.dark .divide-gray-100 > * + *,
+.dark .divide-gray-200 > * + * {
+  border-color: #1e293b;
+}
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: #15224a;
+}
+
+/* Textes */
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: #e2e8f0;
+}
+.dark .text-gray-600 {
+  color: #cbd5e1;
+}
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: #94a3b8;
+}
+.dark .text-gray-300 {
+  color: #64748b;
+}

@@ -162,9 +162,12 @@ class BonDeCommandeViewSet(viewsets.ModelViewSet):
     serializer_class = BonDeCommandeSerializer
 
     def get_queryset(self):
-        return (
+        qs = (
             BonDeCommande.objects
-            .filter(id_acheteur=self.request.user)
             .select_related('id_acheteur', 'id_fournisseur')
             .prefetch_related('lignes__num_produit')
         )
+        # L'acheteur ne voit que ses bons ; l'admin voit tout
+        if getattr(self.request.user, 'role', None) == 'acheteur':
+            qs = qs.filter(id_acheteur=self.request.user)
+        return qs
