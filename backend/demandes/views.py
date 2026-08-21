@@ -26,37 +26,45 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
         return qs
 
     def create(self, request, *args, **kwargs):
-            """Crée la DA + ses lignes.
-            Body : { numero_da, dot, objet, lignes: [{id_produit, designation, qte, prix_unit}] }
-            """
-            data = request.data
-            lignes_data = data.pop('lignes', [])
-            data['id_demandeur'] = request.user.id_emp
-            data['date_creation'] = data.get('date_creation', datetime.date.today())
+        """Crée la DA + ses lignes.
+        Body : { numero_da, dot, objet, lignes: [{id_produit, designation, qte, prix_unit}] }
+        """
+        data = request.data
+        lignes_data = data.pop('lignes', [])
 
-            # NOUVEAU : génère automatiquement le numero_da si le frontend ne l'envoie pas
-            if not data.get('numero_da'):
-                annee = datetime.date.today().year
-                dernier = DemandeAchat.objects.filter(numero_da__startswith=f'DA-{annee}-').order_by('-id_da').first()
-                if dernier:
-                    dernier_num = int(dernier.numero_da.split('-')[-1])
-                else:
-                    dernier_num = 0
-                data['numero_da'] = f'DA-{annee}-{dernier_num + 1:04d}'
+        # Validation serveur : ne fait jamais confiance qu'au frontend
+        if not lignes_data:
+            return Response(
+                {'detail': 'Une demande doit contenir au moins une ligne de produit.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            serializer = self.get_serializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            demande = serializer.save()
+        data['id_demandeur'] = request.user.id_emp
+        data['date_creation'] = data.get('date_creation', datetime.date.today())
 
-            for ligne in lignes_data:
-                LigneDemandeAchat.objects.create(
-                    id_da=demande,
-                    id_produit_id=ligne['id_produit'],
-                    designation=ligne.get('designation', ''),
-                    qte=ligne.get('qte', 1),
-                    prix_unit=ligne.get('prix_unit', 0),
-                )
-            return Response(self.get_serializer(demande).data, status=status.HTTP_201_CREATED)
+        # Génère automatiquement le numero_da si le frontend ne l'envoie pas
+        if not data.get('numero_da'):
+            annee = datetime.date.today().year
+            dernier = DemandeAchat.objects.filter(numero_da__startswith=f'DA-{annee}-').order_by('-id_da').first()
+            if dernier:
+                dernier_num = int(dernier.numero_da.split('-')[-1])
+            else:
+                dernier_num = 0
+            data['numero_da'] = f'DA-{annee}-{dernier_num + 1:04d}'
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        demande = serializer.save()
+
+        for ligne in lignes_data:
+            LigneDemandeAchat.objects.create(
+                id_da=demande,
+                id_produit_id=ligne['id_produit'],
+                designation=ligne.get('designation', ''),
+                qte=ligne.get('qte', 1),
+                prix_unit=ligne.get('prix_unit', 0),
+            )
+        return Response(self.get_serializer(demande).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def assigner_acheteur(self, request, pk=None):

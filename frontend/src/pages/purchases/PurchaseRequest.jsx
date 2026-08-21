@@ -5,31 +5,15 @@ import api from "../../services/api";
 import PurchaseRequestForm from "../../components/forms/PurchaseRequestForm";
 
 
-const productOptions = [
-  {
-    value: 1,
-    label: "Ordinateur Portable",
-    price: 150000,
-  },
-  {
-    value: 2,
-    label: "Imprimante Laser",
-    price: 45000,
-  },
-  {
-    value: 3,
-    label: "Switch Cisco",
-    price: 120000,
-  },
-];
-
 export default function PurchaseRequest() {
   const navigate = useNavigate();
-  const { id } = useParams();  // NOUVEAU : récupère l'id depuis l'URL (/purchases/request/:id)
-  const isEditMode = Boolean(id);  // NOUVEAU : true si on est en modification
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
 
-  const [errors] = useState({});
-  const [loading, setLoading] = useState(isEditMode);  // NOUVEAU
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(isEditMode);
+  const [submitting, setSubmitting] = useState(false);
+  const [productOptions, setProductOptions] = useState([]);
 
   const [data, setData] = useState({
     numero_da: "",
@@ -40,6 +24,21 @@ export default function PurchaseRequest() {
     lignes: []
   });
 
+  // PREMIER useEffect : charge les produits, se lance TOUJOURS (création ET édition)
+  useEffect(() => {
+    api.get('/produits/')
+      .then((res) => {
+        const options = res.data.map((p) => ({
+          value: p.num_produit,
+          label: p.nom_produit,
+          price: Number(p.prix_unit),
+        }));
+        setProductOptions(options);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  // DEUXIÈME useEffect : charge la DA existante, seulement en mode édition
   useEffect(() => {
     if (!isEditMode) return;
 
@@ -52,8 +51,6 @@ export default function PurchaseRequest() {
           date_creation: demande.date_creation,
           objet: demande.objet,
           statut: demande.statut,
-          // Reconstruit le format attendu par le formulaire (produit/quantite/prix_unitaire)
-          // à partir de ce que Django renvoie (id_produit/qte/prix_unit)
           lignes: demande.lignes.map((l) => ({
             produit: l.id_produit,
             designation: l.designation,
@@ -152,20 +149,30 @@ export default function PurchaseRequest() {
   };
 
   const calculateTotal = () => {
-
     return data.lignes.reduce(
-
-      (sum, item) => sum + item.quantite * item.prix_unitaire,
-
+      (sum, item) => sum + Number(item.quantite) * Number(item.prix_unitaire),
       0
-
     );
-
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
 
+    // AJOUT : validations avant tout envoi
+    const newErrors = {};
+    if (data.lignes.length === 0) {
+      newErrors.lignes = "Ajoutez au moins un produit.";
+    } else if (data.lignes.some((l) => !l.produit)) {
+      newErrors.lignes = "Sélectionnez un produit pour chaque ligne ajoutée.";
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+
+  setSubmitting(true);
     const payload = {
       dot: data.dot,
       date_creation: data.date_creation,
@@ -180,13 +187,14 @@ export default function PurchaseRequest() {
 
     try {
       if (isEditMode) {
-        await api.patch(`/demandes/${id}/`, payload);  // NOUVEAU : PATCH si modification
+        await api.patch(`/demandes/${id}/`, payload);
       } else {
-        await api.post('/demandes/', payload);  // inchangé : POST si création
+        await api.post('/demandes/', payload);
       }
       navigate('/purchases/requests');
     } catch (err) {
       console.error(err.response?.data || err);
+      setSubmitting(false);  // AJOUT : réactive le bouton si erreur (sinon on reste bloqué)
     }
   };
 
@@ -215,30 +223,17 @@ export default function PurchaseRequest() {
           />
 
           <div>
-
             <div className="flex justify-between items-center mb-3">
-
-              <h2 className="text-lg font-semibold">
-
-                Lignes de la demande
-
-              </h2>
-
-              <button
-
-                type="button"
-
-                className="btn-primary"
-
-                onClick={handleAddLine}
-
-              >
-
+              <h2 className="text-lg font-semibold">Lignes de la demande</h2>
+              <button type="button" className="btn-primary" onClick={handleAddLine}>
                 + Ajouter un produit
-
               </button>
-
             </div>
+
+            {/* AJOUT : affichage de l'erreur de validation des lignes */}
+            {errors.lignes && (
+              <p className="text-sm text-red-600 mb-3">{errors.lignes}</p>
+            )}
 
             {
 
@@ -450,16 +445,8 @@ export default function PurchaseRequest() {
 
             </button>
 
-            <button
-
-              type="submit"
-
-              className="btn-primary"
-
-            >
-
-            {isEditMode ? "Mettre à jour" : "Enregistrer"}
-
+            <button type="submit" className="btn-primary" disabled={submitting}>
+              {submitting ? "Enregistrement..." : (isEditMode ? "Mettre à jour" : "Enregistrer")}
             </button>
 
           </div>
