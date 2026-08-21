@@ -25,15 +25,6 @@ export default function PurchaseRequestForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        {/*<FormField
-          label="Numéro DA"
-          name="numero_da"
-          value={data.numero_da}
-          onChange={onChange}
-          required
-          error={errors?.numero_da}
-        />*/}
-
         <FormField
           label="DOT"
           name="dot"
@@ -41,24 +32,16 @@ export default function PurchaseRequestForm({
           onChange={onChange}
         />
 
-        <FormField
+        {/*<FormField
           label="Date de création"
           name="date_creation"
           type="date"
           value={data.date_creation}
           onChange={onChange}
           required
-        />
-
-        {/*<FormField
-          label="Statut"
-          name="statut"
-          type="select"
-          value={data.statut}
-          onChange={onChange}
-          options={statusOptions}
         />*/}
 
+    
         <div className="md:col-span-2">
           <FormField
             label="Objet"
