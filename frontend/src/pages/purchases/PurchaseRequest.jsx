@@ -173,17 +173,16 @@ export default function PurchaseRequest() {
     setErrors({});
 
   setSubmitting(true);
-    const payload = {
-      dot: data.dot,
-      date_creation: data.date_creation,
-      objet: data.objet,
-      lignes: data.lignes.map((ligne) => ({
-        id_produit: Number(ligne.produit),
-        designation: ligne.designation,
-        qte: Number(ligne.quantite),
-        prix_unit: Number(ligne.prix_unitaire),
-      })),
-    };
+  const payload = {
+    dot: data.dot,
+    objet: data.objet,
+    lignes: data.lignes.map((ligne) => ({
+      id_produit: Number(ligne.produit),
+      designation: ligne.designation,
+      qte: Number(ligne.quantite),
+      prix_unit: Number(ligne.prix_unitaire),
+    })),
+  };
 
     try {
       if (isEditMode) {
@@ -193,8 +192,9 @@ export default function PurchaseRequest() {
       }
       navigate('/purchases/requests');
     } catch (err) {
-      console.error(err.response?.data || err);
-      setSubmitting(false);  // AJOUT : réactive le bouton si erreur (sinon on reste bloqué)
+      const message = err.response?.data?.detail || "Une erreur est survenue lors de l'enregistrement.";
+      setErrors({ general: message });  // NOUVEAU : stocke le message pour l'afficher
+      setSubmitting(false);
     }
   };
 
@@ -428,6 +428,10 @@ export default function PurchaseRequest() {
             }
 
           </div>
+
+          {errors.general && (
+            <p className="text-sm text-red-600 mb-3">{errors.general}</p>
+          )}
 
           <div className="flex justify-end gap-3">
 
