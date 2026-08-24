@@ -184,7 +184,7 @@ export default function DataTable({
                             onClick={() => onAssign(item)}
                             className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                           >
-                            Choisir un acheteur
+                            {item.id_acheteur ? "Changer d'acheteur" : "Choisir un acheteur"}
                           </button>
                         )}
 

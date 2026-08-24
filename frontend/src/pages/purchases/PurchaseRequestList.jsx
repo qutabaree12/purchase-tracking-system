@@ -221,9 +221,6 @@ export default function PurchaseRequestList() {
       <div className="flex justify-between items-center">
 
         <div>
-          <h1 className="text-2xl font-semibold">
-            Demandes d'achat
-          </h1>
 
           <p className="text-sm text-gray-500 mt-1">
             Liste des demandes d'achat enregistrées
