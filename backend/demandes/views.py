@@ -20,6 +20,8 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
             qs = qs.filter(id_acheteur=self.request.user)
         elif role == 'demandeur':
             qs = qs.filter(id_demandeur=self.request.user)
+        elif role == 'chef département':
+            qs = qs.filter(id_demandeur__id_departement__id_chef=self.request.user)
         statut = self.request.query_params.get('statut')
         if statut:
             qs = qs.filter(statut=statut)
