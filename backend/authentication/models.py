@@ -4,6 +4,30 @@ from django.contrib.auth.hashers import (
     check_password as verify_password,
 )
 
+class Departement(models.Model):
+    """Département d'Algérie Telecom, rattaché à une DOT géographique."""
+
+    id_departement = models.AutoField(primary_key=True)
+    nom = models.CharField(max_length=100)
+    dot = models.CharField(max_length=30)
+    id_chef = models.ForeignKey(
+        'Employe',
+        on_delete=models.SET_NULL,
+        db_column='id_chef',
+        null=True,
+        blank=True,
+        related_name='departements_diriges',
+    )
+
+    class Meta:
+        db_table = 'departement'
+        verbose_name = 'Département'
+        verbose_name_plural = 'Départements'
+        managed = True
+
+    def __str__(self):
+        return f"{self.nom} ({self.dot})"
+
 
 class Employe(models.Model):
     """Employé Algérie Telecom (table Supabase `Employé`)."""
@@ -27,6 +51,16 @@ class Employe(models.Model):
     mot_de_passe = models.CharField(max_length=255)
     role = models.CharField(max_length=30, choices=Role.choices, default=Role.DEMANDEUR)
     etat = models.CharField(max_length=10, choices=Etat.choices, default=Etat.ACTIF)
+
+
+    id_departement = models.ForeignKey(
+        Departement,
+        on_delete=models.SET_NULL,
+        db_column='id_departement',
+        null=True,
+        blank=True,
+        related_name='employes',
+    )
 
     class Meta:
         db_table = 'Employé'
