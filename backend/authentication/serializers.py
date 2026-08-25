@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from .models import Employe
+from .models import Employe, Departement
+
+
+class DepartementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Departement
+        fields = ['id_departement', 'nom', 'dot', 'id_chef']
 
 
 class EmployeSerializer(serializers.ModelSerializer):
@@ -10,7 +16,7 @@ class EmployeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employe
-        fields = ['id_emp', 'full_name', 'email', 'role', 'etat']
+        fields = ['id_emp', 'full_name', 'email', 'role', 'etat', 'id_departement']
         read_only_fields = fields
 
 
