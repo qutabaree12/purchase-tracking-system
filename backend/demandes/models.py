@@ -29,6 +29,11 @@ class DemandeAchat(models.Model):
         blank=True,
         related_name='demandes_assignees',
     )
+
+    date_assignation = models.DateTimeField(
+    null=True,
+    blank=True,
+    help_text="Date et heure d'assignation de l'acheteur à la demande")
     date_creation = models.DateField()
     objet = models.CharField(max_length=255)
     statut = models.CharField(max_length=20, choices=Statut.choices, default=Statut.EN_COURS)

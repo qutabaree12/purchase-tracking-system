@@ -9,7 +9,7 @@ class LigneDemandeAchatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LigneDemandeAchat
-        fields = ['num_ligne_da', 'id_produit', 'produit_detail', 'designation', 'qte', 'prix_unit']
+        fields = ['num_ligne_da', 'id_produit', 'produit_detail', 'designation',  'qte', 'prix_unit']
 
 
 class DemandeAchatSerializer(serializers.ModelSerializer):
@@ -23,7 +23,7 @@ class DemandeAchatSerializer(serializers.ModelSerializer):
         model = DemandeAchat
         fields = [
             'id_da', 'numero_da', 'dot', 'id_demandeur', 'demandeur_nom',
-            'id_acheteur', 'acheteur_nom', 'date_creation', 'objet', 'statut',
+            'id_acheteur', 'acheteur_nom', 'date_creation', 'objet', 'statut', 'date_assignation',
             'date_approbation', 'date_rejet', 'lignes', 'has_bc', 'motif_refus',
         ]
 

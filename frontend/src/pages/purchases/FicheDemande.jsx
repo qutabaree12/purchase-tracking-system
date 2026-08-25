@@ -188,6 +188,12 @@ export default function FicheDemande() {
               <p className="text-xs font-semibold text-gray-500">Acheteur</p>
               <p className="text-sm font-medium mt-1">{demande.acheteur_nom || 'Non assigné'}</p>
             </div>
+            {demande.date_assignation && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 whitespace-nowrap">Assignée le</p>
+                <p className="text-sm font-medium mt-1">{formatDate(demande.date_assignation)}</p>
+              </div>
+            )}
             <div>
               <p className="text-xs font-semibold text-gray-500">Date</p>
               <p className="text-sm font-medium mt-1">{formatDate(demande.date_creation)}</p>

@@ -252,7 +252,7 @@ export default function PurchaseRequestList() {
         onDelete={isDemandeur ? (request) => request.statut === 'en_cours' && handleDelete(request) : undefined}
         onAssign={isChef ? handleAssign : undefined}
         // CHANGÉ : onView maintenant pour acheteur ET demandeur (avant : isAcheteur seul)
-        onView={(isAcheteur || isDemandeur) ? handleViewFiche : undefined}
+        onView={(isAcheteur || isDemandeur || isChef) ? handleViewFiche : undefined}
       />
       {/* Assignation acheteur (chef département) */}
       <ConfirmDialog

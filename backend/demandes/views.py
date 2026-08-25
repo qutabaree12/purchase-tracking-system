@@ -110,6 +110,7 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         demande.id_acheteur_id = acheteur_id
+        demande.date_assignation = datetime.datetime.now()
         demande.save()
         return Response(self.get_serializer(demande).data)
 
