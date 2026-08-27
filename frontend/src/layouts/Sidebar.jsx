@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLayout } from '../context/LayoutContext'
 import { getRoleAccess } from '../constants/roles'
-import Logo from '../components/common/Logo'
+import atLogo from '../assets/images/logo.webp'
 
 function initials(name = '') {
   return name
@@ -107,7 +107,7 @@ export default function Sidebar() {
         `}
       >
         <div className="px-5 py-5 flex items-center gap-3 border-b border-white/10 shrink-0">
-          <Logo className="h-8 w-auto" />
+          <img src={atLogo} alt="Algérie Télécom" className="h-8 w-auto" />
           <div className="leading-tight min-w-0">
             <p className="text-sm font-semibold truncate">Algérie Telecom</p>
             <p className="text-[10px] text-white/50 uppercase tracking-wider truncate">
