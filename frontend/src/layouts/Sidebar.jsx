@@ -97,7 +97,7 @@ export default function Sidebar() {
       <aside
         className={`
           fixed left-2 top-2 bottom-2 z-40
-          w-[230px]
+          w-[200px]
           flex flex-col
           text-white
           bg-[#203090] dark:bg-[#050a18]
@@ -125,7 +125,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `relative flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-[rgba(59,130,246,0.15)] text-white'
+                    ? 'bg-[rgba(59,130,246,0.15)] dark:bg-[#1E293B] text-white'
                     : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }`
               }

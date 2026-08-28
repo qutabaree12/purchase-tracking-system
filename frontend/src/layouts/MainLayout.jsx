@@ -17,14 +17,14 @@ function LayoutContent() {
         className={`
           flex flex-col min-h-screen
           transition-[margin] duration-300 ease-in-out
-          ${sidebarOpen ? 'md:ml-[238px]' : 'md:ml-0'}
+          ${sidebarOpen ? 'md:ml-[208px]' : 'md:ml-0'}
         `}
       >
         <TopBar />
 
         <main
           className="flex-1 p-6 overflow-y-auto ml-2 mr-2"
-          style={{ padding: '20px 24px' }}
+          style={{ padding: '20px 24px 20px 12px' }}
         >
           <Outlet />
         </main>
