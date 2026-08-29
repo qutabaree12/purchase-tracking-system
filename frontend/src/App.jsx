@@ -7,6 +7,10 @@ import Login from './pages/auth/Login'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminSettings from './pages/admin/AdminSettings'
+import AdminDemandes from './pages/admin/AdminDemandes'
+import AdminBonsCommande from './pages/admin/AdminBonsCommande'
+import AdminProduits from './pages/admin/AdminProduits'
+import AdminFournisseurs from './pages/admin/AdminFournisseurs'
 import PurchaseRequestList from './pages/purchases/PurchaseRequestList'
 import PurchaseRequest from './pages/purchases/PurchaseRequest'
 import FicheDemande from './pages/purchases/FicheDemande'
@@ -36,6 +40,10 @@ export default function App() {
             <Route path="admin" element={<AdminDashboard />} />
             <Route path="admin/users" element={<AdminUsers />} />
             <Route path="admin/settings" element={<AdminSettings />} />
+            <Route path="admin/demandes" element={<AdminDemandes />} />
+            <Route path="admin/bons-commande" element={<AdminBonsCommande />} />
+            <Route path="admin/produits" element={<AdminProduits />} />
+            <Route path="admin/fournisseurs" element={<AdminFournisseurs />} />
             <Route path="profile" element={<Profile />} />
             <Route path="purchases/requests" element={<PurchaseRequestList />} />
             <Route path="purchases/approved-requests" element={<DemandesApprouvees />} />

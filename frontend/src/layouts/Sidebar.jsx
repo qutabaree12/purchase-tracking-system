@@ -62,12 +62,31 @@ function NavIcon({ path }) {
       </svg>
     )
   }
-  if (path === '/purchases/orders') {
+  if (path === '/purchases/orders' || path === '/admin/bons-commande') {
     return (
       <svg {...props}>
         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
         <rect x="8" y="2" width="8" height="4" rx="1" />
         <path d="M9 12h6M9 16h6" />
+      </svg>
+    )
+  }
+  if (path === '/admin/produits') {
+    return (
+      <svg {...props}>
+        <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z" />
+        <polyline points="3.3 8.3 12 13 20.7 8.3" />
+        <line x1="12" y1="13" x2="12" y2="21" />
+      </svg>
+    )
+  }
+  if (path === '/admin/fournisseurs') {
+    return (
+      <svg {...props}>
+        <path d="M1 3h15v13H1z" />
+        <path d="M16 8h4l3 3v5h-7V8z" />
+        <circle cx="5.5" cy="18.5" r="2.5" />
+        <circle cx="18.5" cy="18.5" r="2.5" />
       </svg>
     )
   }

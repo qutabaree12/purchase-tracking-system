@@ -4,8 +4,12 @@ export const ROLE_ACCESS = {
     nav: [
       { name: 'Tableau de bord', path: '/admin' },
       { name: 'Utilisateurs', path: '/admin/users' },
+      { name: "Demandes d'achat", path: '/admin/demandes' },
+      { name: 'Bons de commande', path: '/admin/bons-commande' },
+      { name: 'Produits', path: '/admin/produits' },
+      { name: 'Fournisseurs', path: '/admin/fournisseurs' },
     ],
-    paths: ['/admin', '/admin/users'],
+    paths: ['/admin', '/admin/users', '/admin/demandes', '/admin/bons-commande', '/admin/produits', '/admin/fournisseurs'],
   },
   'chef département': {
     home: '/purchases/requests',
