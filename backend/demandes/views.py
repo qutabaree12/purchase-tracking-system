@@ -1,11 +1,16 @@
 import datetime
+from django.utils import timezone  # NOUVEAU
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from authentication.models import Employe
+
 from .models import DemandeAchat, LigneDemandeAchat, LettreRejet
 from .serializers import DemandeAchatSerializer
+from notifications.models import Notification
+from notifications.utils import notifier_da_assignee, notifier_da_approuvee, notifier_da_refusee  # NOUVEAU
 
 
 class DemandeAchatViewSet(viewsets.ModelViewSet):
@@ -62,6 +67,20 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
                 qte=ligne.get('qte', 1),
                 prix_unit=ligne.get('prix_unit', 0),
             )
+
+        # NOUVEAU : notifie le chef du département du demandeur, s'il existe
+        chef = None
+        if demande.id_demandeur.id_departement:
+            chef = demande.id_demandeur.id_departement.id_chef
+        if chef:
+            Notification.objects.create(
+                destinataire=chef,
+                demande=demande,
+                type=Notification.Type.DA_ASSIGNEE,  # réutilise le type existant, voir note ci-dessous
+                titre='Nouvelle demande d\'achat',
+                message=f'Une nouvelle demande {demande.numero_da} a été créée par {demande.id_demandeur.full_name}.',
+            )
+
         return Response(self.get_serializer(demande).data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -105,15 +124,34 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
     def assigner_acheteur(self, request, pk=None):
         """POST /api/demandes/{pk}/assigner_acheteur/  { acheteur_id }"""
         demande = self.get_object()
+
+        # NOUVEAU : évite de re-notifier si l'acheteur est déjà le même (double-clic residuel)
         acheteur_id = request.data.get('acheteur_id')
         if not acheteur_id:
             return Response(
                 {'detail': 'Veuillez choisir un acheteur.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        if str(demande.id_acheteur_id) == str(acheteur_id):
+            return Response(self.get_serializer(demande).data)
+
         demande.id_acheteur_id = acheteur_id
-        demande.date_assignation = datetime.datetime.now()
+        demande.date_assignation = timezone.now()  # CHANGÉ : timezone.now() au lieu de datetime.datetime.now()
         demande.save()
+        demande.refresh_from_db()
+
+        # CHANGÉ : utilise l'utilitaire existant (demandeur) + ajoute la notif acheteur
+        notifier_da_assignee(demande)
+
+        acheteur = Employe.objects.get(id_emp=acheteur_id)
+        Notification.objects.create(
+            destinataire=acheteur,
+            demande=demande,
+            type=Notification.Type.DA_ASSIGNEE,
+            titre='Nouvelle demande assignée',
+            message=f'La demande {demande.numero_da} vous a été assignée.',
+        )
+
         return Response(self.get_serializer(demande).data)
 
     @action(detail=True, methods=['post'])
@@ -122,12 +160,16 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
         demande.statut = DemandeAchat.Statut.APPROUVEE
         demande.date_approbation = datetime.date.today()
         demande.save()
+
+        notifier_da_approuvee(demande)  # NOUVEAU
+
         return Response(self.get_serializer(demande).data)
 
     @action(detail=True, methods=['post'])
     def rejeter(self, request, pk=None):
         demande = self.get_object()
         motif = request.data.get('motif', '')
+
         if motif:
             LettreRejet.objects.update_or_create(
                 id_da=demande,
@@ -137,7 +179,11 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
                     'motif': motif,
                 },
             )
+
         demande.statut = DemandeAchat.Statut.REFUSEE
         demande.date_rejet = datetime.date.today()
         demande.save()
+
+        notifier_da_refusee(demande, motif)  # CHANGÉ : utilise l'utilitaire au lieu du code dupliqué
+
         return Response(self.get_serializer(demande).data)
