@@ -35,6 +35,8 @@ export default function PurchaseRequestList() {
   const [selectedAcheteur, setSelectedAcheteur] = useState('');
   const [assignError, setAssignError] = useState('');
 
+  const [assignLoading, setAssignLoading] = useState(false);
+
   useEffect(() => {
     let active = true;
 
@@ -130,10 +132,16 @@ export default function PurchaseRequestList() {
   };
 
   const handleConfirmAssign = async () => {
+    if (assignLoading) return;  // AJOUT : bloque si une requête est déjà en cours
+  
     if (!selectedAcheteur) {
       setAssignError("Veuillez choisir un acheteur.");
       return;
     }
+  
+    setAssignLoading(true);  // AJOUT
+    setAssignError('');      // AJOUT : nettoie une éventuelle erreur précédente
+  
     try {
       await api.post(`/demandes/${selectedRequestId}/assigner_acheteur/`, {
         acheteur_id: Number(selectedAcheteur),
@@ -141,6 +149,8 @@ export default function PurchaseRequestList() {
       setOpenAssign(false)
     } catch (err) {
       setAssignError(err.response?.data?.detail || "Erreur lors de l'assignation.")
+    } finally {
+      setAssignLoading(false);  // AJOUT : réactive dans tous les cas
     }
   };
 
@@ -260,6 +270,7 @@ export default function PurchaseRequestList() {
         title="Choisir un acheteur"
         confirmLabel="Assigner"
         cancelLabel="Annuler"
+        loading={assignLoading}
         onConfirm={handleConfirmAssign}
         onCancel={() => setOpenAssign(false)}
       >
