@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useEffect,useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useLayout } from '../context/LayoutContext'
 import { useTheme } from '../context/ThemeContext'
+import api from '../services/api'
 
 const defaultTitles = [
   { match: '/admin/users', title: 'Utilisateurs' },
@@ -55,8 +56,64 @@ function ThemeToggle() {
 
 export default function TopBar() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { title, subtitle, actions, toggleSidebar } = useLayout()
   const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notifLoading, setNotifLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setNotifLoading(true)
+  
+        const res = await api.get('/notifications/')
+  
+        setNotifications(res.data)
+      } catch (error) {
+        console.error('Erreur lors du chargement des notifications', error)
+      } finally {
+        setNotifLoading(false)
+      }
+    }
+  
+    fetchNotifications()
+  }, [])
+
+
+  const unreadCount = notifications.filter(
+    (notification) => !notification.lu
+  ).length
+
+  const handleMarkAllRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, lu: true })))
+    try {
+      await api.post('/notifications/marquer_toutes_lues/')
+    } catch (error) {
+      console.error('Erreur lors du marquage global', error)
+    }
+  }
+
+  const handleNotificationClick = async (notification) => {
+    // Met à jour l'affichage immédiatement (pas d'attente de la réponse serveur)
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.id_notification === notification.id_notification ? { ...n, lu: true } : n
+      )
+    )
+
+    try {
+      await api.post(`/notifications/${notification.id_notification}/marquer_lue/`)
+    } catch (error) {
+      console.error('Erreur lors du marquage de la notification', error)
+    }
+
+    setNotifOpen(false)
+
+    if (notification.demande) {
+      navigate(`/purchases/request/${notification.demande}/fiche`)
+    }
+  }
 
   const pageTitle = defaultTitleFor(location.pathname) || title
 
@@ -93,19 +150,89 @@ export default function TopBar() {
 
       <div className="flex items-center gap-3 shrink-0">
         <ThemeToggle />
-        <div className="relative">
-          <button
-            onClick={() => setNotifOpen(!notifOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30"
-            aria-label="Notifications"
-          >
-            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-badge" />
-        </div>
-        {actions}
+          <div className="relative">
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30"
+              aria-label="Notifications"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+            </button>
+
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-brand-badge text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+
+            {notifOpen && (
+              <div className="absolute right-0 top-12 w-96 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+
+                <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-800">
+                    Notifications
+                  </h3>
+
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllRead}
+                      className="text-xs text-brand-navy hover:underline font-medium"
+                    >
+                      Tout marquer comme lu
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-96 overflow-y-auto">
+
+                  {notifLoading ? (
+                    <div className="p-4 text-sm text-gray-500">
+                      Chargement...
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-gray-500">
+                      Aucune notification
+                    </div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <div
+                        key={notification.id_notification}
+                        onClick={() => handleNotificationClick(notification)}  // NOUVEAU
+                        className={`px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+                          !notification.lu ? 'bg-blue-50' : 'bg-white'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          {!notification.lu && (
+                            <span className="w-2 h-2 mt-2 rounded-full bg-brand-badge shrink-0" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-800">
+                              {notification.titre}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {new Date(notification.date_creation).toLocaleString('fr-FR')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+
+                </div>
+              </div>
+            )}
+          </div>
+            {actions}
       </div>
     </header>
   )
