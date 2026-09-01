@@ -19,6 +19,7 @@ import PurchaseOrder from './pages/purchases/PurchaseOrder'
 import Regroupement from './pages/purchases/Regroupement'
 import DemandesApprouvees from './pages/purchases/DemandesApprouvees'
 import Profile from './pages/Profile'
+import FicheBonCommande from './pages/purchases/FicheBonCommande'
 
 
 function HomeRedirect() {
@@ -54,7 +55,7 @@ export default function App() {
             <Route path="purchases/order/new" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />
             <Route path="purchases/regroupement" element={<Regroupement />} />
-          </Route>
+            <Route path="purchases/order/:id/fiche" element={<FicheBonCommande />} />          </Route>
         </Routes>
       </AuthProvider>
       </ThemeProvider>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
@@ -11,6 +12,7 @@ function formatDate(date) {
 }
 
 export default function PurchaseOrderList() {
+  const navigate = useNavigate() 
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -37,6 +39,10 @@ export default function PurchaseOrderList() {
       active = false
     }
   }, [])
+
+  const handleView = (bon) => {
+    navigate(`/purchases/order/${bon.id_bc}/fiche`)
+  }
 
   const handleExportUn = async (bon) => {
     setExporting(true)
@@ -89,6 +95,7 @@ export default function PurchaseOrderList() {
         columns={columns}
         data={data}
         loading={loading}
+        onView={handleView}
         onPdf={handleExportUn}
         actionsLabel="Actions"
       />
