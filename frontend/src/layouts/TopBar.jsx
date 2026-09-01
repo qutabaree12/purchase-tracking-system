@@ -1,4 +1,4 @@
-import { useEffect,useState } from 'react'
+import { useEffect,useState, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLayout } from '../context/LayoutContext'
 import { useTheme } from '../context/ThemeContext'
@@ -61,6 +61,7 @@ export default function TopBar() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [notifLoading, setNotifLoading] = useState(false)
+  const notifRef = useRef(null)
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -80,6 +81,20 @@ export default function TopBar() {
     fetchNotifications()
   }, [])
 
+  useEffect(() => {
+    if (!notifOpen) return
+  
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setNotifOpen(false)
+      }
+    }
+  
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [notifOpen])
 
   const unreadCount = notifications.filter(
     (notification) => !notification.lu
@@ -150,7 +165,7 @@ export default function TopBar() {
 
       <div className="flex items-center gap-3 shrink-0">
         <ThemeToggle />
-          <div className="relative">
+        <div className="relative" ref={notifRef}>
             <button
               onClick={() => setNotifOpen(!notifOpen)}
               className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30"
