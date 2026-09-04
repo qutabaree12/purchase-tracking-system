@@ -3,13 +3,14 @@ import datetime
 from django.db import models
 from django.db.utils import IntegrityError
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from demandes.models import DemandeAchat, LigneDemandeAchat
-from .models import BonDeCommande, LigneBonDeCommande
-from .serializers import BonDeCommandeSerializer
+from .models import BonDeCommande, LigneBonDeCommande, DossierImportation
+from .serializers import BonDeCommandeSerializer, DossierImportationSerializer
+from authentication.models import Employe
 
 
 def _regrouper_par_fournisseur(lignes):
@@ -138,6 +139,8 @@ def generer_bons_commande(request):
                 montant=montant,
                 status=BonDeCommande.Statut.EN_COURS,
             )
+
+            DossierImportation.objects.create(id_bc=bc, statut=DossierImportation.Statut.A_TRAITER)
             for p in produits:
                 LigneBonDeCommande.objects.create(
                     num_ligne_bc=next_num_ligne,
@@ -157,7 +160,7 @@ def generer_bons_commande(request):
 
 
 class BonDeCommandeViewSet(viewsets.ModelViewSet):
-    """CRUD des bons de commande — chaque acheteur ne voit que les SIENS."""
+    """CRUD des bons de commande."""
 
     serializer_class = BonDeCommandeSerializer
 
@@ -167,7 +170,144 @@ class BonDeCommandeViewSet(viewsets.ModelViewSet):
             .select_related('id_acheteur', 'id_fournisseur')
             .prefetch_related('lignes__num_produit')
         )
-        # L'acheteur ne voit que ses bons ; l'admin voit tout
-        if getattr(self.request.user, 'role', None) == 'acheteur':
-            qs = qs.filter(id_acheteur=self.request.user)
+
+        user = self.request.user
+
+        # L'acheteur voit uniquement ses propres BC
+        if getattr(user, 'role', None) == 'acheteur':
+            qs = qs.filter(id_acheteur=user)
+
+        # Le transitaire voit uniquement les BC
+        # dont le dossier d'importation lui est assigné
+        elif getattr(user, 'role', None) == 'transitaire':
+            qs = qs.filter(
+                dossier_importation__id_transitaire=user
+            )
+
         return qs
+
+
+class DossierImportationViewSet(viewsets.ModelViewSet):
+    """
+    Gestion des dossiers d'importation.
+
+    - Acheteur : voit les dossiers liés à ses BC.
+    - Transitaire : voit uniquement les dossiers qui lui sont assignés.
+    """
+
+    serializer_class = DossierImportationSerializer
+
+    def get_queryset(self):
+        qs = (
+            DossierImportation.objects
+            .select_related(
+                'id_bc__id_fournisseur',
+                'id_bc__id_acheteur',
+                'id_transitaire',
+            )
+        )
+
+        user = self.request.user
+
+        # Transitaire :
+        # uniquement les dossiers qui lui sont assignés
+        if getattr(user, 'role', None) == 'transitaire':
+            qs = qs.filter(id_transitaire=user)
+
+        # Acheteur :
+        # uniquement les dossiers de ses propres BC
+        elif getattr(user, 'role', None) == 'acheteur':
+            qs = qs.filter(id_bc__id_acheteur=user)
+
+        return qs
+
+    @action(detail=True, methods=['post'])
+    def assigner_transitaire(self, request, pk=None):
+        """
+        L'acheteur propriétaire du BC assigne un transitaire.
+        """
+
+        dossier = self.get_object()
+
+        # Vérification : seul l'acheteur propriétaire peut assigner
+        if (
+            getattr(request.user, 'role', None) != 'acheteur'
+            or dossier.id_bc.id_acheteur_id != request.user.id_emp
+        ):
+            return Response(
+                {
+                    'detail':
+                    "Vous n'êtes pas autorisé à assigner ce dossier."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        transitaire_id = request.data.get('transitaire_id')
+
+        if not transitaire_id:
+            return Response(
+                {
+                    'detail':
+                    'Veuillez choisir un transitaire.'
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        transitaire = Employe.objects.filter(
+            id_emp=transitaire_id,
+            role=Employe.Role.TRANSITAIRE,
+            etat=Employe.Etat.ACTIF,
+        ).first()
+
+        if not transitaire:
+            return Response(
+                {
+                    'detail':
+                    "Employé introuvable ou n'est pas un transitaire actif."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        dossier.id_transitaire = transitaire
+
+        # Dès qu'un transitaire est assigné,
+        # le dossier passe de "à traiter" à "en cours".
+        if dossier.statut == DossierImportation.Statut.A_TRAITER:
+            dossier.statut = DossierImportation.Statut.EN_COURS
+
+        dossier.save()
+
+        return Response(
+            self.get_serializer(dossier).data
+        )
+
+    @action(detail=True, methods=['post'])
+    def valider_reception(self, request, pk=None):
+        """
+        Marque le dossier comme livré.
+        La date de réception réelle est la date du jour.
+        """
+
+        dossier = self.get_object()
+
+        # Seul le transitaire assigné peut valider la réception
+        if (
+            getattr(request.user, 'role', None) != 'transitaire'
+            or dossier.id_transitaire_id != request.user.id_emp
+        ):
+            return Response(
+                {
+                    'detail':
+                    "Vous n'êtes pas autorisé à valider cette réception."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        dossier.date_reception_reelle = datetime.date.today()
+        dossier.statut = DossierImportation.Statut.LIVRE
+
+        dossier.save()
+
+        return Response(
+            self.get_serializer(dossier).data
+        )

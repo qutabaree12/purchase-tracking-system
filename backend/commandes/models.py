@@ -46,12 +46,6 @@ class BonDeCommande(models.Model):
             models.UniqueConstraint(
                 fields=['id_fournisseur', 'date_creation', 'id_acheteur'],
                 name='unique_bc_fournisseur_jour_acheteur',
-            ),
-        ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=['id_fournisseur', 'date_creation', 'id_acheteur'],
-                name='unique_bc_fournisseur_jour_acheteur',
                 violation_error_message=(
                     'Un bon de commande existe déjà pour ce fournisseur aujourd\'hui.'
                 ),
@@ -92,3 +86,83 @@ class LigneBonDeCommande(models.Model):
 
     def __str__(self):
         return f"BC-{self.id_bc_id} - {self.num_produit} x{self.qte}"
+
+
+class DossierImportation(models.Model):
+    """Dossier de suivi de l'importation lié à un bon de commande."""
+
+    class Statut(models.TextChoices):
+        A_TRAITER = 'a traiter', 'À traiter'
+        EN_COURS = 'en cours', 'En cours'
+        LIVRE = 'livré', 'Livré'
+
+    id_dossier = models.BigAutoField(primary_key=True)
+
+    id_bc = models.OneToOneField(
+        BonDeCommande,
+        on_delete=models.CASCADE,
+        db_column='id_bc',
+        related_name='dossier_importation',
+    )
+
+    id_transitaire = models.ForeignKey(
+        Employe,
+        on_delete=models.SET_NULL,
+        db_column='id_transitaire',
+        null=True,
+        blank=True,
+        related_name='dossiers_importation',
+    )
+
+    tarif_douane = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+
+    autorisation_necessaire = models.BooleanField(default=False)
+
+    autorisation_obtenue = models.BooleanField(default=False)
+
+    numero_autorisation = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+
+    mode_expedition = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+
+    lieu_chargement = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+
+    date_livraison_prevue = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    date_reception_reelle = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    statut = models.CharField(
+        max_length=20,
+        choices=Statut.choices,
+        default=Statut.A_TRAITER,
+    )
+
+    class Meta:
+        db_table = 'DossierImportation'
+        verbose_name = "Dossier d'importation"
+        verbose_name_plural = "Dossiers d'importation"
+        managed = True
+
+    def __str__(self):
+        return f"Dossier importation - {self.id_bc.reference}"
