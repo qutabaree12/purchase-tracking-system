@@ -35,11 +35,32 @@ def logout(request):
 
 
 class EmployeViewSet(viewsets.ModelViewSet):
-    """CRUD des employés (réservé à l'admin)."""
+    """Gestion des employés."""
+
     queryset = Employe.objects.all()
     serializer_class = EmployeSerializer
 
+    def get_queryset(self):
+        qs = Employe.objects.all()
+
+        role = self.request.query_params.get('role')
+        etat = self.request.query_params.get('etat')
+
+        if role:
+            qs = qs.filter(role=role)
+
+        if etat:
+            qs = qs.filter(etat=etat)
+
+        return qs
+
     def get_permissions(self):
-        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+        if self.action in (
+            'create',
+            'update',
+            'partial_update',
+            'destroy',
+        ):
             return [permissions.IsAdminUser()]
+
         return [permissions.IsAuthenticated()]
