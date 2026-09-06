@@ -4,6 +4,7 @@ import api from '../../services/api'
 import StatusBadge from '../../components/common/StatusBadge'
 import { formatCurrency } from '../../utils/format'
 import { exporterPdfUn } from '../../utils/bcPdf'
+import { useAuth } from '../../context/AuthContext'
 
 function formatDate(date) {
   if (!date) return '-'
@@ -12,8 +13,14 @@ function formatDate(date) {
 }
 
 export default function FicheBonCommande() {
+  
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
+
+
+  const isAcheteur = user?.role === 'acheteur'
+  const isTransitaire = user?.role === 'transitaire'
 
   const [bon, setBon] = useState(null)
   const [dossier, setDossier] = useState(null)
@@ -517,72 +524,77 @@ export default function FicheBonCommande() {
                   TRANSITAIRE
               ========================= */}
               <div>
-
-                <label
-                  htmlFor="transitaire"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Transitaire
                 </label>
 
-                <div className="flex gap-3">
+                {isAcheteur ? (
+                  <>
+                    <div className="flex gap-3">
 
-                  <select
-                    id="transitaire"
-                    className="input flex-1"
-                    value={transitaireSelectionne}
-                    onChange={(e) => {
-                      setTransitaireSelectionne(
-                        e.target.value
-                      )
-                      setAssignError(null)
-                      setSuccess(null)
-                    }}
-                    disabled={assigning}
-                  >
-                    <option value="">
-                      Sélectionner un transitaire
-                    </option>
-
-                    {transitaires.map(
-                      (transitaire) => (
-                        <option
-                          key={transitaire.id_emp}
-                          value={transitaire.id_emp}
-                        >
-                          {transitaire.full_name ||
-                            `${transitaire.prenom || transitaire.prénom || ''} ${transitaire.nom || ''}`.trim() ||
-                            `Employé #${transitaire.id_emp}`}
+                      <select
+                        className="input flex-1"
+                        value={transitaireSelectionne}
+                        onChange={(e) => {
+                          setTransitaireSelectionne(e.target.value)
+                          setAssignError(null)
+                          setSuccess(null)
+                        }}
+                        disabled={assigning}
+                      >
+                        <option value="">
+                          Sélectionner un transitaire
                         </option>
-                      )
+
+                        {transitaires.map((transitaire) => (
+                          <option
+                            key={transitaire.id_emp}
+                            value={transitaire.id_emp}
+                          >
+                            {transitaire.full_name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={assignerTransitaire}
+                        disabled={
+                          assigning ||
+                          !transitaireSelectionne
+                        }
+                      >
+                        {assigning
+                          ? 'Assignation...'
+                          : dossier.id_transitaire
+                            ? 'Réassigner'
+                            : 'Assigner'}
+                      </button>
+
+                    </div>
+
+                    {dossier.id_transitaire && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        Un transitaire est actuellement assigné à ce dossier.
+                      </p>
                     )}
-                  </select>
+                  </>
+                ) : isTransitaire ? (
+                  <div className="rounded-md bg-gray-50 border border-gray-200 px-4 py-3">
 
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={assignerTransitaire}
-                    disabled={
-                      assigning ||
-                      !transitaireSelectionne
-                    }
-                  >
-                    {assigning
-                      ? 'Assignation...'
-                      : dossier.id_transitaire
-                        ? 'Réassigner'
-                        : 'Assigner'}
-                  </button>
+                    <p className="text-sm font-medium text-gray-700">
+                      {dossier.transitaire_nom || 'Aucun transitaire assigné'}
+                    </p>
 
-                </div>
+                    {dossier.transitaire_nom && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ce dossier vous est assigné.
+                      </p>
+                    )}
 
-                {dossier.id_transitaire && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Un transitaire est actuellement
-                    assigné à ce dossier.
-                  </p>
-                )}
-
+                  </div>
+                    ) : null}
               </div>
 
               {/* =========================

@@ -100,10 +100,13 @@ class DossierImportationSerializer(serializers.ModelSerializer):
             'date_reception_reelle',
             'statut',
         ]
+
         read_only_fields = [
             'id_dossier',
+            'id_bc',
             'bc_reference',
             'fournisseur_nom',
             'transitaire_nom',
+            'id_transitaire',
             'date_reception_reelle',
         ]

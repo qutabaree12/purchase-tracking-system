@@ -186,14 +186,7 @@ class BonDeCommandeViewSet(viewsets.ModelViewSet):
 
         return qs
 
-
 class DossierImportationViewSet(viewsets.ModelViewSet):
-    """
-    Gestion des dossiers d'importation.
-
-    - Acheteur : voit les dossiers liés à ses BC.
-    - Transitaire : voit uniquement les dossiers qui lui sont assignés.
-    """
 
     serializer_class = DossierImportationSerializer
 
@@ -209,29 +202,59 @@ class DossierImportationViewSet(viewsets.ModelViewSet):
 
         user = self.request.user
 
-        # Transitaire :
-        # uniquement les dossiers qui lui sont assignés
-        if getattr(user, 'role', None) == 'transitaire':
+        if getattr(user, 'role', None) == Employe.Role.TRANSITAIRE:
             qs = qs.filter(id_transitaire=user)
 
-        # Acheteur :
-        # uniquement les dossiers de ses propres BC
-        elif getattr(user, 'role', None) == 'acheteur':
+        elif getattr(user, 'role', None) == Employe.Role.ACHETEUR:
             qs = qs.filter(id_bc__id_acheteur=user)
 
         return qs
 
+    def update(self, request, *args, **kwargs):
+
+        dossier = self.get_object()
+        user = request.user
+
+        if (
+            getattr(user, 'role', None) != Employe.Role.TRANSITAIRE
+            or dossier.id_transitaire_id != user.id_emp
+        ):
+            return Response(
+                {
+                    'detail':
+                    "Seul le transitaire assigné peut modifier ce dossier."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+
+        dossier = self.get_object()
+        user = request.user
+
+        if (
+            getattr(user, 'role', None) != Employe.Role.TRANSITAIRE
+            or dossier.id_transitaire_id != user.id_emp
+        ):
+            return Response(
+                {
+                    'detail':
+                    "Seul le transitaire assigné peut modifier ce dossier."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return super().partial_update(request, *args, **kwargs)
+
     @action(detail=True, methods=['post'])
     def assigner_transitaire(self, request, pk=None):
-        """
-        L'acheteur propriétaire du BC assigne un transitaire.
-        """
 
         dossier = self.get_object()
 
-        # Vérification : seul l'acheteur propriétaire peut assigner
         if (
-            getattr(request.user, 'role', None) != 'acheteur'
+            getattr(request.user, 'role', None) != Employe.Role.ACHETEUR
             or dossier.id_bc.id_acheteur_id != request.user.id_emp
         ):
             return Response(
@@ -247,8 +270,7 @@ class DossierImportationViewSet(viewsets.ModelViewSet):
         if not transitaire_id:
             return Response(
                 {
-                    'detail':
-                    'Veuillez choisir un transitaire.'
+                    'detail': 'Veuillez choisir un transitaire.'
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -270,30 +292,25 @@ class DossierImportationViewSet(viewsets.ModelViewSet):
 
         dossier.id_transitaire = transitaire
 
-        # Dès qu'un transitaire est assigné,
-        # le dossier passe de "à traiter" à "en cours".
         if dossier.statut == DossierImportation.Statut.A_TRAITER:
             dossier.statut = DossierImportation.Statut.EN_COURS
 
         dossier.save()
 
         return Response(
-            self.get_serializer(dossier).data
+            self.get_serializer(dossier).data,
+            status=status.HTTP_200_OK,
         )
 
     @action(detail=True, methods=['post'])
     def valider_reception(self, request, pk=None):
-        """
-        Marque le dossier comme livré.
-        La date de réception réelle est la date du jour.
-        """
 
         dossier = self.get_object()
+        user = request.user
 
-        # Seul le transitaire assigné peut valider la réception
         if (
-            getattr(request.user, 'role', None) != 'transitaire'
-            or dossier.id_transitaire_id != request.user.id_emp
+            getattr(user, 'role', None) != Employe.Role.TRANSITAIRE
+            or dossier.id_transitaire_id != user.id_emp
         ):
             return Response(
                 {
@@ -309,5 +326,6 @@ class DossierImportationViewSet(viewsets.ModelViewSet):
         dossier.save()
 
         return Response(
-            self.get_serializer(dossier).data
+            self.get_serializer(dossier).data,
+            status=status.HTTP_200_OK,
         )
