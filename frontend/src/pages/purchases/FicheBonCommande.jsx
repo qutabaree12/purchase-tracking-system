@@ -37,6 +37,20 @@ export default function FicheBonCommande() {
   const [assignError, setAssignError] = useState(null)
   const [success, setSuccess] = useState(null)
 
+  const [dossierForm, setDossierForm] = useState({
+    tarif_douane: '',
+    autorisation_necessaire: false,
+    autorisation_obtenue: false,
+    numero_autorisation: '',
+    mode_expedition: '',
+    lieu_chargement: '',
+    date_livraison_prevue: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
+  const [validating, setValidating] = useState(false)
+  const [validateError, setValidateError] = useState(null)
+
   // ============================================================
   // 1. Charger le BC
   // ============================================================
@@ -111,6 +125,16 @@ export default function FicheBonCommande() {
             "Aucun dossier d'importation n'a été trouvé pour ce BC."
           )
         }
+
+        setDossierForm({
+          tarif_douane: dossierTrouve.tarif_douane || '',
+          autorisation_necessaire: !!dossierTrouve.autorisation_necessaire,
+          autorisation_obtenue: !!dossierTrouve.autorisation_obtenue,
+          numero_autorisation: dossierTrouve.numero_autorisation || '',
+          mode_expedition: dossierTrouve.mode_expedition || '',
+          lieu_chargement: dossierTrouve.lieu_chargement || '',
+          date_livraison_prevue: dossierTrouve.date_livraison_prevue || '',
+        })
       })
       .catch((err) => {
         console.error(
@@ -229,6 +253,85 @@ export default function FicheBonCommande() {
       )
     } finally {
       setAssigning(false)
+    }
+  }
+
+  const validerFormulaireDossier = () => {
+    if (!dossierForm.mode_expedition) {
+      return "Le mode d'expédition est obligatoire."
+    }
+    if (!dossierForm.lieu_chargement) {
+      return 'Le lieu de chargement est obligatoire.'
+    }
+    if (!dossierForm.date_livraison_prevue) {
+      return 'La date de livraison prévue est obligatoire.'
+    }
+    if (dossierForm.autorisation_necessaire && !dossierForm.numero_autorisation) {
+      return "Le numéro d'autorisation est obligatoire quand une autorisation est nécessaire."
+    }
+    return null
+  }
+
+  const enregistrerDossier = async () => {
+    if (!dossier) return
+
+    const erreurValidation = validerFormulaireDossier()
+    if (erreurValidation) {
+      setSaveError(erreurValidation)
+      setValidateError(null)
+      setSuccess(null)
+      return
+    }
+
+    setSaving(true)
+    setSaveError(null)
+    setValidateError(null)
+    setSuccess(null)
+
+    try {
+      const res = await api.patch(
+        `/dossiers-importation/${dossier.id_dossier}/`,
+        dossierForm
+      )
+      setDossier(res.data)
+      setSuccess("Le dossier d'importation a été mis à jour. Redirection...")
+
+      setTimeout(() => {
+        navigate('/purchases/orders')
+      }, 1200)
+    } catch (err) {
+      console.error('Erreur mise à jour dossier:', err)
+      setSaveError(
+        err.response?.data?.detail ||
+          "Erreur lors de la mise à jour du dossier."
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const validerReception = async () => {
+    if (!dossier) return
+
+    setValidating(true)
+    setValidateError(null)
+    setSaveError(null)
+    setSuccess(null)
+
+    try {
+      const res = await api.post(
+        `/dossiers-importation/${dossier.id_dossier}/valider_reception/`
+      )
+      setDossier(res.data)
+      setSuccess('La réception a été validée.')
+    } catch (err) {
+      console.error('Erreur validation réception:', err)
+      setValidateError(
+        err.response?.data?.detail ||
+          'Erreur lors de la validation de la réception.'
+      )
+    } finally {
+      setValidating(false)
     }
   }
 
@@ -559,10 +662,21 @@ export default function FicheBonCommande() {
                       <button
                         type="button"
                         className="btn-primary"
-                        onClick={assignerTransitaire}
+                        onClick={() => {
+                          if (
+                            dossier.id_transitaire &&
+                            !window.confirm(
+                              `Réassigner ce dossier retirera l'accès à ${dossier.transitaire_nom || 'l\'ancien transitaire'}. Continuer ?`
+                            )
+                          ) {
+                            return
+                          }
+                          assignerTransitaire()
+                        }}
                         disabled={
                           assigning ||
-                          !transitaireSelectionne
+                          !transitaireSelectionne ||
+                          dossier.statut === 'livré'
                         }
                       >
                         {assigning
@@ -600,105 +714,212 @@ export default function FicheBonCommande() {
               {/* =========================
                   INFORMATIONS IMPORTATION
               ========================= */}
-              <div className="border-t border-gray-200 pt-5">
+                            <div className="border-t border-gray-200 pt-5">
 
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">
-                  Informations d'importation
-                </h3>
+                              <h3 className="text-sm font-semibold text-gray-700 mb-4">
+                                Informations d'importation
+                              </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                              {isTransitaire ? (
+                                <div className="space-y-4">
 
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      Mode d'expédition
-                    </p>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
-                    <p className="text-sm font-medium mt-1">
-                      {dossier.mode_expedition || '-'}
-                    </p>
-                  </div>
+                                  <div>
+                                    <label className="block text-xs font-semibold text-gray-500 mb-1">
+                                      Mode d'expédition <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                      className="input w-full"
+                                      value={dossierForm.mode_expedition}
+                                      onChange={(e) =>
+                                        setDossierForm({ ...dossierForm, mode_expedition: e.target.value })
+                                      }
+                                    >
+                                      <option value="">Sélectionner...</option>
+                                      <option value="maritime">Maritime</option>
+                                      <option value="aerien">Aérien</option>
+                                      <option value="terrestre">Terrestre</option>
+                                      <option value="ferroviaire">Ferroviaire</option>
+                                    </select>
+                                  </div>
 
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      Lieu de chargement
-                    </p>
+                                    <div>
+                                      <label className="block text-xs font-semibold text-gray-500 mb-1">
+                                        Lieu de chargement
+                                      </label>
+                                      <input
+                                        type="text"
+                                        className="input w-full"
+                                        value={dossierForm.lieu_chargement}
+                                        onChange={(e) =>
+                                          setDossierForm({ ...dossierForm, lieu_chargement: e.target.value })
+                                        }
+                                      />
+                                    </div>
 
-                    <p className="text-sm font-medium mt-1">
-                      {dossier.lieu_chargement || '-'}
-                    </p>
-                  </div>
+                                    <div>
+                                      <label className="block text-xs font-semibold text-gray-500 mb-1">
+                                        Tarif douane
+                                      </label>
+                                      <input
+                                        type="text"
+                                        className="input w-full"
+                                        value={dossierForm.tarif_douane}
+                                        onChange={(e) =>
+                                          setDossierForm({ ...dossierForm, tarif_douane: e.target.value })
+                                        }
+                                      />
+                                    </div>
 
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      Tarif douane
-                    </p>
+                                    <div className="flex items-center gap-2 mt-5">
+                                      <input
+                                        type="checkbox"
+                                        id="autorisation_necessaire"
+                                        checked={dossierForm.autorisation_necessaire}
+                                        onChange={(e) =>
+                                          setDossierForm({ ...dossierForm, autorisation_necessaire: e.target.checked })
+                                        }
+                                      />
+                                      <label htmlFor="autorisation_necessaire" className="text-sm text-gray-700">
+                                        Autorisation nécessaire
+                                      </label>
+                                    </div>
 
-                    <p className="text-sm font-medium mt-1">
-                      {dossier.tarif_douane || '-'}
-                    </p>
-                  </div>
+                                    <div className="flex items-center gap-2 mt-5">
+                                      <input
+                                        type="checkbox"
+                                        id="autorisation_obtenue"
+                                        checked={dossierForm.autorisation_obtenue}
+                                        onChange={(e) =>
+                                          setDossierForm({ ...dossierForm, autorisation_obtenue: e.target.checked })
+                                        }
+                                      />
+                                      <label htmlFor="autorisation_obtenue" className="text-sm text-gray-700">
+                                        Autorisation obtenue
+                                      </label>
+                                    </div>
 
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      Autorisation nécessaire
-                    </p>
+                                    <div>
+                                      <label className="block text-xs font-semibold text-gray-500 mb-1">
+                                        N° autorisation
+                                        {dossierForm.autorisation_necessaire && (
+                                          <span className="text-red-500"> *</span>
+                                        )}
+                              
+                                      </label>
+                                      <input
+                                        type="text"
+                                        className="input w-full"
+                                        value={dossierForm.numero_autorisation}
+                                        onChange={(e) =>
+                                          setDossierForm({ ...dossierForm, numero_autorisation: e.target.value })
+                                        }
+                                      />
+                                    </div>
 
-                    <p className="text-sm font-medium mt-1">
-                      {dossier.autorisation_necessaire
-                        ? 'Oui'
-                        : 'Non'}
-                    </p>
-                  </div>
+                                    <div>
+                                      <label className="block text-xs font-semibold text-gray-500 mb-1">
+                                        Livraison prévue
+                                      </label>
+                                      <input
+                                        type="date"
+                                        className="input w-full"
+                                        value={dossierForm.date_livraison_prevue}
+                                        onChange={(e) =>
+                                          setDossierForm({ ...dossierForm, date_livraison_prevue: e.target.value })
+                                        }
+                                      />
+                                    </div>
 
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      Autorisation obtenue
-                    </p>
+                                    <div>
+                                      <p className="text-xs font-semibold text-gray-500">
+                                        Réception réelle
+                                      </p>
+                                      <p className="text-sm font-medium mt-1">
+                                        {formatDate(dossier.date_reception_reelle)}
+                                      </p>
+                                    </div>
 
-                    <p className="text-sm font-medium mt-1">
-                      {dossier.autorisation_obtenue
-                        ? 'Oui'
-                        : 'Non'}
-                    </p>
-                  </div>
+                                  </div>
 
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      N° autorisation
-                    </p>
+                                  <div className="flex items-center gap-3 pt-2">
+                                    <button
+                                      type="button"
+                                      className="btn-primary"
+                                      onClick={enregistrerDossier}
+                                      disabled={saving}
+                                    >
+                                      {saving ? 'Enregistrement...' : 'Enregistrer'}
+                                    </button>
 
-                    <p className="text-sm font-medium mt-1">
-                      {dossier.numero_autorisation || '-'}
-                    </p>
-                  </div>
+                                    {dossier.statut !== 'livré' && (
+                                      <button
+                                        type="button"
+                                        className="btn-secondary"
+                                        onClick={validerReception}
+                                        disabled={validating}
+                                      >
+                                        {validating ? 'Validation...' : 'Valider la réception'}
+                                      </button>
+                                    )}
+                                  </div>
 
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      Livraison prévue
-                    </p>
+                                  {saveError && (
+                                    <div className="text-sm text-red-600">{saveError}</div>
+                                  )}
+                                  {validateError && (
+                                    <div className="text-sm text-red-600">{validateError}</div>
+                                  )}
 
-                    <p className="text-sm font-medium mt-1">
-                      {formatDate(
-                        dossier.date_livraison_prevue
-                      )}
-                    </p>
-                  </div>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500">
-                      Réception réelle
-                    </p>
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500">Mode d'expédition</p>
+                                    <p className="text-sm font-medium mt-1">{dossier.mode_expedition || '-'}</p>
+                                  </div>
 
-                    <p className="text-sm font-medium mt-1">
-                      {formatDate(
-                        dossier.date_reception_reelle
-                      )}
-                    </p>
-                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500">Lieu de chargement</p>
+                                    <p className="text-sm font-medium mt-1">{dossier.lieu_chargement || '-'}</p>
+                                  </div>
 
-                </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500">Tarif douane</p>
+                                    <p className="text-sm font-medium mt-1">{dossier.tarif_douane || '-'}</p>
+                                  </div>
 
-              </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500">Autorisation nécessaire</p>
+                                    <p className="text-sm font-medium mt-1">{dossier.autorisation_necessaire ? 'Oui' : 'Non'}</p>
+                                  </div>
+
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500">Autorisation obtenue</p>
+                                    <p className="text-sm font-medium mt-1">{dossier.autorisation_obtenue ? 'Oui' : 'Non'}</p>
+                                  </div>
+
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500">N° autorisation</p>
+                                    <p className="text-sm font-medium mt-1">{dossier.numero_autorisation || '-'}</p>
+                                  </div>
+
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500">Livraison prévue</p>
+                                    <p className="text-sm font-medium mt-1">{formatDate(dossier.date_livraison_prevue)}</p>
+                                  </div>
+
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500">Réception réelle</p>
+                                    <p className="text-sm font-medium mt-1">{formatDate(dossier.date_reception_reelle)}</p>
+                                  </div>
+
+                                </div>
+                              )}
+
+                              </div>
 
               {/* =========================
                   MESSAGES
