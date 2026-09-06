@@ -17,6 +17,7 @@ class Notification(models.Model):
         LC_CREEE = 'lc_creee', 'Lettre de crédit créée'
         DEDOUANEMENT = 'dedouanement', 'Dédouanement'
         LIVRAISON = 'livraison', 'Livraison'
+        DOSSIER_ASSIGNE = 'dossier_assigne', 'Dossier assigné'
 
     id_notification = models.BigAutoField(primary_key=True)
 
