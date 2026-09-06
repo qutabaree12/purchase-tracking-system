@@ -50,3 +50,18 @@ def notifier_da_refusee(demande, motif=''):
         titre='Demande refusée',
         message=message,
     )
+
+
+def notifier_dossier_assigne(dossier):
+    if not dossier.id_transitaire:
+        return
+
+    Notification.objects.create(
+        destinataire=dossier.id_transitaire,
+        type=Notification.Type.DOSSIER_ASSIGNE,
+        titre="Dossier d'importation assigné",
+        message=(
+            f"Le dossier d'importation du {dossier.id_bc.reference} "
+            f"vous a été assigné."
+        ),
+    )
