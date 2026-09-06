@@ -11,6 +11,7 @@ from demandes.models import DemandeAchat, LigneDemandeAchat
 from .models import BonDeCommande, LigneBonDeCommande, DossierImportation
 from .serializers import BonDeCommandeSerializer, DossierImportationSerializer
 from authentication.models import Employe
+from notifications.utils import notifier_dossier_assigne
 
 
 def _regrouper_par_fournisseur(lignes):
@@ -290,12 +291,17 @@ class DossierImportationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        transitaire_a_change = dossier.id_transitaire_id != transitaire.id_emp
+
         dossier.id_transitaire = transitaire
 
         if dossier.statut == DossierImportation.Statut.A_TRAITER:
             dossier.statut = DossierImportation.Statut.EN_COURS
 
         dossier.save()
+
+        if transitaire_a_change:
+            notifier_dossier_assigne(dossier)
 
         return Response(
             self.get_serializer(dossier).data,
