@@ -1,5 +1,6 @@
 import datetime
 from django.utils import timezone  # NOUVEAU
+from django.db.models import Prefetch
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -9,6 +10,7 @@ from authentication.models import Employe
 
 from .models import DemandeAchat, LigneDemandeAchat, LettreRejet
 from .serializers import DemandeAchatSerializer
+from config.pagination import OptionalPagination
 from notifications.models import Notification
 from notifications.utils import notifier_da_assignee, notifier_da_approuvee, notifier_da_refusee  # NOUVEAU
 
@@ -17,9 +19,25 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
     """CRUD des demandes d'achat + changement de statut."""
 
     serializer_class = DemandeAchatSerializer
+    pagination_class = OptionalPagination
 
     def get_queryset(self):
-        qs = DemandeAchat.objects.select_related('id_demandeur').prefetch_related('lignes__id_produit')
+        # OPTIMISATION : précharge tout (demandeur, acheteur, lignes + produit +
+        # fournisseur, BC, lettres de rejet) pour éviter les requêtes N+1.
+        qs = (
+            DemandeAchat.objects
+            .select_related('id_demandeur', 'id_acheteur')
+            .prefetch_related(
+                'bons_commande',
+                'lettres_rejet',
+                Prefetch(
+                    'lignes',
+                    queryset=LigneDemandeAchat.objects.select_related(
+                        'id_produit__id_fournisseur'
+                    ),
+                ),
+            )
+        )
         role = getattr(self.request.user, 'role', None)
         if role == 'acheteur':
             qs = qs.filter(id_acheteur=self.request.user)
@@ -30,7 +48,8 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
         statut = self.request.query_params.get('statut')
         if statut:
             qs = qs.filter(statut=statut)
-        return qs
+        # Tri stable : requis pour une pagination cohérente (UnorderedObjectList)
+        return qs.order_by('-date_creation', '-id_da')
 
     def create(self, request, *args, **kwargs):
         """Crée la DA + ses lignes."""

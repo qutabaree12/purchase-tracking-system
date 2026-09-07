@@ -98,8 +98,18 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '5432'),
+        # POOL DE CONNEXIONS (psycopg 3) : quelques connexions restent ouvertes
+        # et sont partagées entre les requêtes -> la base Supabase ne se
+        # "refroidit" pas entre deux pages et le handshake SSL n'est fait qu'une
+        # fois. Supprime les ~10 s de "reveil" après une courte inactivité.
+        'CONN_MAX_AGE': 0,  # 0 est OBLIGATOIRE avec le pool (c'est lui qui gère la durée de vie)
         'OPTIONS': {
             'sslmode': 'require',  # Supabase exige SSL
+            # Si le réseau ne joint pas Supabase (DNS/instabilité), on échoue
+            # vite (10 s max) au lieu de bloquer des minutes par requête.
+            'connect_timeout': 10,
+            # Pool : 1 connexion min. gardée ouverte, jusqu'à 4 en cas de besoin.
+            'pool': {'min_size': 1, 'max_size': 4},
         },
     }
 }

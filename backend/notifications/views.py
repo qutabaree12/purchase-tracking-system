@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from config.pagination import OptionalPagination
 from .models import Notification
 from .serializers import NotificationSerializer
 
@@ -10,6 +11,7 @@ from .serializers import NotificationSerializer
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = OptionalPagination
 
     def get_queryset(self):
         return (

@@ -12,33 +12,69 @@ function formatDate(date) {
 }
 
 export default function PurchaseOrderList() {
-  const navigate = useNavigate() 
+  const navigate = useNavigate()
   const [data, setData] = useState([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [pageSize] = useState(50)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [exporting, setExporting] = useState(false)
 
+  const applyData = (res) => {
+    const items = Array.isArray(res.data) ? res.data : res.data.results || []
+    if (items.length) {
+      setData(items)
+      setTotal(Array.isArray(res.data) ? items.length : res.data.count ?? items.length)
+    } else {
+      const mocks = getMockBons()
+      setData(mocks)
+      setTotal(mocks.length)
+    }
+  }
+
+  const applyFallback = () => {
+    const mocks = getMockBons()
+    setData(mocks)
+    setTotal(mocks.length)
+  }
+
   useEffect(() => {
     let active = true
-    const fetchBons = async () => {
+    const load = async () => {
+      setLoading(true)
       try {
-        const res = await api.get('/bons-commande/')
-        if (!active) return
-        setData(res.data.length ? res.data : getMockBons())
+        const res = await api.get('/bons-commande/', {
+          params: { page: 1, page_size: pageSize },
+        })
+        if (active) applyData(res)
       } catch {
         if (active) {
           setError('Erreur lors du chargement des bons de commande. Affichage des exemples.')
-          setData(getMockBons())
+          applyFallback()
         }
       } finally {
         if (active) setLoading(false)
       }
     }
-    fetchBons()
+    load()
     return () => {
       active = false
     }
-  }, [])
+  }, [pageSize])
+
+  const handlePageChange = (p) => {
+    setPage(p)
+    setLoading(true)
+    setError(null)
+    api.get('/bons-commande/', { params: { page: p, page_size: pageSize } })
+      .then((res) => applyData(res))
+      .catch(() => {
+        setError('Erreur lors du chargement des bons de commande. Affichage des exemples.')
+        applyFallback()
+      })
+      .finally(() => setLoading(false))
+  }
 
   const handleView = (bon) => {
     navigate(`/purchases/order/${bon.id_bc}/fiche`)
@@ -61,7 +97,12 @@ export default function PurchaseOrderList() {
     setExporting(true)
     setError(null)
     try {
-      await exporterPdfTous(data)
+      const res = await api.get('/bons-commande/', {
+        params: { page_size: 200 },
+      })
+      const tous = Array.isArray(res.data) ? res.data : res.data.results || []
+      if (!tous.length) tous.push(...getMockBons())
+      await exporterPdfTous(tous)
     } catch (err) {
       console.error('Erreur export PDF', err)
       setError('Erreur lors de la génération des PDF.')
@@ -95,6 +136,10 @@ export default function PurchaseOrderList() {
         columns={columns}
         data={data}
         loading={loading}
+        total={total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
         onView={handleView}
         onPdf={handleExportUn}
         actionsLabel="Actions"

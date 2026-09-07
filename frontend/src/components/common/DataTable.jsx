@@ -12,9 +12,17 @@ export default function DataTable({
   onRegroup,
   onPdf,
   actionsLabel = 'Actions',
+  total,
+  page,
+  pageSize,
+  onPageChange,
 }) {
   const [sortKey, setSortKey] = useState('')
   const [sortDir, setSortDir] = useState('asc')
+
+  const totalPages = total != null && pageSize ? Math.max(1, Math.ceil(total / pageSize)) : 0
+  const start = total != null ? (page - 1) * pageSize + 1 : 0
+  const end = total != null ? Math.min(page * pageSize, total) : 0
 
   const handleSort = (key) => {
     if (sortKey === key) {
@@ -204,6 +212,33 @@ export default function DataTable({
 
         </table>
       </div>
+
+      {total != null && totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-sm">
+          <span className="text-gray-500 dark:text-gray-400">
+            {start}–{end} sur {total}
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onPageChange(page - 1)}
+              disabled={page <= 1}
+              className="px-3 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              Précédent
+            </button>
+            <span className="text-gray-500 dark:text-gray-400">
+              Page {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => onPageChange(page + 1)}
+              disabled={page >= totalPages}
+              className="px-3 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              Suivant
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

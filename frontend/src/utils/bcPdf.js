@@ -1,6 +1,13 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
-
 const TEMPLATE_URL = '/Bon_de_Commande.pdf'
+
+// Couleur texte PDF (objet couleur pdf-lib, sans importer la lib en amont)
+const TEXT_COLOR = { type: 'RGB', red: 0.12, green: 0.12, blue: 0.12 }
+
+let pdfLibPromise = null
+function getPdfLib() {
+  if (!pdfLibPromise) pdfLibPromise = import('pdf-lib')
+  return pdfLibPromise
+}
 
 // Baselines (y) calculées depuis les positions mesurées du modèle (origine bas-gauche)
 
@@ -51,7 +58,7 @@ function drawText(page, font, size, text, x, y, { right = false } = {}) {
   const value = sanitize(text)
   let tx = x
   if (right) tx = x - font.widthOfTextAtSize(value, size)
-  page.drawText(value, { x: tx, y, size, font, color: rgb(0.12, 0.12, 0.12) })
+  page.drawText(value, { x: tx, y, size, font, color: TEXT_COLOR })
 }
 
 async function fetchTemplate() {
@@ -103,6 +110,7 @@ function fillPage(page, font, bc) {
 }
 
 export async function generateBcPdf(bc) {
+  const { PDFDocument, StandardFonts } = await getPdfLib()
   const templateBytes = await fetchTemplate()
   const pdfDoc = await PDFDocument.load(templateBytes)
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
@@ -111,6 +119,7 @@ export async function generateBcPdf(bc) {
 }
 
 export async function generateAllBcsPdf(bcs) {
+  const { PDFDocument, StandardFonts } = await getPdfLib()
   const templateBytes = await fetchTemplate()
   const pdfDoc = await PDFDocument.load(templateBytes)
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)

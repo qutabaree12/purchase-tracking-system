@@ -1,24 +1,28 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { getRoleAccess } from './constants/roles'
-import MainLayout from './layouts/MainLayout'
-import Login from './pages/auth/Login'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminUsers from './pages/admin/AdminUsers'
-import AdminSettings from './pages/admin/AdminSettings'
-import AdminDemandes from './pages/admin/AdminDemandes'
-import AdminBonsCommande from './pages/admin/AdminBonsCommande'
-import AdminProduits from './pages/admin/AdminProduits'
-import AdminFournisseurs from './pages/admin/AdminFournisseurs'
-import PurchaseRequestList from './pages/purchases/PurchaseRequestList'
-import PurchaseRequest from './pages/purchases/PurchaseRequest'
-import FicheDemande from './pages/purchases/FicheDemande'
-import PurchaseOrderList from './pages/purchases/PurchaseOrderList'
-import PurchaseOrder from './pages/purchases/PurchaseOrder'
-import Regroupement from './pages/purchases/Regroupement'
-import DemandesApprouvees from './pages/purchases/DemandesApprouvees'
-import Profile from './pages/Profile'
+
+// Chargement paresseux (lazy) des pages : chaque page n'est téléchargée
+// que lorsqu'on la visite → le bundle initial est beaucoup plus léger.
+const Login = lazy(() => import('./pages/auth/Login'))
+const MainLayout = lazy(() => import('./layouts/MainLayout'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
+const AdminDemandes = lazy(() => import('./pages/admin/AdminDemandes'))
+const AdminBonsCommande = lazy(() => import('./pages/admin/AdminBonsCommande'))
+const AdminProduits = lazy(() => import('./pages/admin/AdminProduits'))
+const AdminFournisseurs = lazy(() => import('./pages/admin/AdminFournisseurs'))
+const PurchaseRequestList = lazy(() => import('./pages/purchases/PurchaseRequestList'))
+const PurchaseRequest = lazy(() => import('./pages/purchases/PurchaseRequest'))
+const FicheDemande = lazy(() => import('./pages/purchases/FicheDemande'))
+const PurchaseOrderList = lazy(() => import('./pages/purchases/PurchaseOrderList'))
+const PurchaseOrder = lazy(() => import('./pages/purchases/PurchaseOrder'))
+const Regroupement = lazy(() => import('./pages/purchases/Regroupement'))
+const DemandesApprouvees = lazy(() => import('./pages/purchases/DemandesApprouvees'))
+const Profile = lazy(() => import('./pages/Profile'))
 import FicheBonCommande from './pages/purchases/FicheBonCommande'
 
 
@@ -29,11 +33,26 @@ function HomeRedirect() {
   return <Navigate to={home} replace />
 }
 
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="text-center">
+        <div
+          className="mx-auto mb-3 w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+          style={{ borderColor: '#007a33' }}
+        />
+        <p className="text-sm text-gray-500">Chargement...</p>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
       <AuthProvider>
+        <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>
@@ -55,8 +74,9 @@ export default function App() {
             <Route path="purchases/order/new" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />
             <Route path="purchases/regroupement" element={<Regroupement />} />
-            <Route path="purchases/order/:id/fiche" element={<FicheBonCommande />} />          </Route>
+          </Route>
         </Routes>
+        </Suspense>
       </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

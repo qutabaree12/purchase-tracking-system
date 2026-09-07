@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
+  timeout: 20000, // évite de rester bloqué des minutes si le réseau (Supabase) cale
   headers: {
     'Content-Type': 'application/json',
   },

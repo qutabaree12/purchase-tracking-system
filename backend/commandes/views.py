@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from demandes.models import DemandeAchat, LigneDemandeAchat
 from .models import BonDeCommande, LigneBonDeCommande, DossierImportation
 from .serializers import BonDeCommandeSerializer, DossierImportationSerializer
+from config.pagination import OptionalPagination
 from authentication.models import Employe
 from notifications.utils import notifier_dossier_assigne
 
@@ -164,6 +165,7 @@ class BonDeCommandeViewSet(viewsets.ModelViewSet):
     """CRUD des bons de commande."""
 
     serializer_class = BonDeCommandeSerializer
+    pagination_class = OptionalPagination
 
     def get_queryset(self):
         qs = (
@@ -185,11 +187,13 @@ class BonDeCommandeViewSet(viewsets.ModelViewSet):
                 dossier_importation__id_transitaire=user
             )
 
-        return qs
+        # Tri stable : requis pour une pagination cohérente (UnorderedObjectList)
+        return qs.order_by('-id_bc')
 
 class DossierImportationViewSet(viewsets.ModelViewSet):
 
     serializer_class = DossierImportationSerializer
+    pagination_class = OptionalPagination
 
     def get_queryset(self):
         qs = (
@@ -209,7 +213,8 @@ class DossierImportationViewSet(viewsets.ModelViewSet):
         elif getattr(user, 'role', None) == Employe.Role.ACHETEUR:
             qs = qs.filter(id_bc__id_acheteur=user)
 
-        return qs
+        # Tri stable : requis pour une pagination cohérente (UnorderedObjectList)
+        return qs.order_by('-id_dossier')
 
     def update(self, request, *args, **kwargs):
 

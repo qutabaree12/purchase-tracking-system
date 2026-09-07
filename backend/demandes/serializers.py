@@ -28,8 +28,10 @@ class DemandeAchatSerializer(serializers.ModelSerializer):
         ]
 
     def get_has_bc(self, obj):
-        return obj.bons_commande.exists()
+        # `bons_commande` est préchargé → pas de requête SQL supplémentaire
+        return len(obj.bons_commande.all()) > 0
 
     def get_motif_refus(self, obj):
-        lettre = obj.lettres_rejet.first()
+        # `lettres_rejet` est préchargé → pas de requête SQL supplémentaire
+        lettre = next(iter(obj.lettres_rejet.all()), None)
         return lettre.motif if lettre else None
