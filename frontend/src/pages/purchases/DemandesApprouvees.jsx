@@ -3,13 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
-import { useAuth } from '../../context/AuthContext'
 import { formatDate } from '../../utils/format'
-import { getMockApproved } from '../../constants/mockDemandes'
 
 export default function DemandesApprouvees() {
   const navigate = useNavigate()
-  const { user } = useAuth()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -19,10 +16,12 @@ export default function DemandesApprouvees() {
     api
       .get('/demandes/?statut=approuvee')
       .then((res) => {
-        if (active) setData(res.data.length ? res.data : getMockApproved(user))
+        if (active) setData(res.data || [])
       })
-      .catch(() => {
-        if (active) setData(getMockApproved(user))
+      .catch((err) => {
+        if (active) {
+          setError(err.response?.data?.detail || 'Erreur lors du chargement des demandes approuvées.')
+        }
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -30,7 +29,7 @@ export default function DemandesApprouvees() {
     return () => {
       active = false
     }
-  }, [user])
+  }, [])
 
   const handleViewFiche = (request) => {
     navigate(`/purchases/request/${request.id_da}/fiche`)

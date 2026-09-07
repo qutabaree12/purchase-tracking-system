@@ -7,7 +7,6 @@ import ConfirmDialog from '../../components/common/ConfirmDialog'
 import RejectionLetterForm from '../../components/forms/RejectionLetterForm'
 import { useAuth } from '../../context/AuthContext'
 import { formatDate, formatCurrency } from '../../utils/format'
-import { findMockDemande, mockApprouver, mockRejeter } from '../../constants/mockDemandes'
 import { exporterDaPdf } from '../../utils/daPdf'
 
 
@@ -38,11 +37,7 @@ export default function FicheDemande() {
         if (active) setDemande(res.data)
       })
       .catch(() => {
-        const mock = findMockDemande(id, user)
-        if (active) {
-          if (mock) setDemande({ ...mock, isMock: true })
-          else setError('Erreur lors du chargement de la demande.')
-        }
+        if (active) setError('Erreur lors du chargement de la demande.')
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -83,12 +78,6 @@ export default function FicheDemande() {
     setApproving(true)
     setActionError(null)
     try {
-      if (demande.isMock) {
-        mockApprouver(demande.id_da, user)
-        const updated = findMockDemande(demande.id_da, user)
-        setDemande(updated ? { ...updated, isMock: true } : { ...demande, statut: 'approuvee' })
-        return
-      }
       await api.post(`/demandes/${demande.id_da}/accepter/`)
       const res = await api.get(`/demandes/${demande.id_da}/`)
       setDemande(res.data)
@@ -112,17 +101,6 @@ export default function FicheDemande() {
     setActionError(null)
     setRejectLoading(true)
     try {
-      if (demande.isMock) {
-        mockRejeter(demande.id_da, rejectData.motif)
-        const updated = findMockDemande(demande.id_da, user)
-        setDemande(
-          updated
-            ? { ...updated, isMock: true }
-            : { ...demande, statut: 'refusee', motif_refus: rejectData.motif }
-        )
-        setOpenReject(false)
-        return
-      }
       await api.post(`/demandes/${demande.id_da}/rejeter/`, { motif: rejectData.motif })
       const res = await api.get(`/demandes/${demande.id_da}/`)
       setDemande(res.data)

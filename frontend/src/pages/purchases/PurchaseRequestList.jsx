@@ -8,7 +8,6 @@ import StatusBadge from "../../components/common/StatusBadge";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 
 import { formatDate } from "../../utils/format";
-import { getMockArriving, getMockApproved } from "../../constants/mockDemandes";
 
 
 export default function PurchaseRequestList() {
@@ -41,70 +40,42 @@ export default function PurchaseRequestList() {
     let active = true;
 
     const load = async () => {
-      let usingMock = false;
-
       try {
         const demandesRes = await api.get('/demandes/');
         if (!active) return;
 
-        if (demandesRes.data.length === 0) {
-          usingMock = true;
-        } else {
-          const nonApprouvees = demandesRes.data.filter((d) => d.statut !== 'approuvee');
-          setData(nonApprouvees);
+        const toutes = demandesRes.data || [];
+        const nonApprouvees = toutes.filter((d) => d.statut !== 'approuvee');
+        setData(nonApprouvees);
 
-          if (isAcheteur) {
-            const [approuveesRes, bonsRes] = await Promise.all([
-              api.get('/demandes/?statut=approuvee'),
-              api.get('/bons-commande/'),
-            ]);
-            if (!active) return;
-            setStats({
-              arrivees: nonApprouvees.length,
-              approuvees: approuveesRes.data.length,
-              bonsCommande: bonsRes.data.length,
-            });
-          }
+        if (isAcheteur) {
+          const [approuveesRes, bonsRes] = await Promise.all([
+            api.get('/demandes/?statut=approuvee'),
+            api.get('/bons-commande/'),
+          ]);
+          if (!active) return;
+          setStats({
+            arrivees: nonApprouvees.length,
+            approuvees: approuveesRes.data.length,
+            bonsCommande: bonsRes.data.length,
+          });
+        }
 
-          // NOUVEAU : calcule les stats du demandeur à partir de TOUTES ses DA
-          // (pas juste nonApprouvees, donc on refait un appel complet filtré côté client)
-          if (isDemandeur) {
-            const toutesRes = await api.get('/demandes/');
-            if (!active) return;
-            const mesDemandes = toutesRes.data; // le backend filtre déjà par id_demandeur (voir get_queryset)
-            setDemandeurStats({
-              total: mesDemandes.length,
-              enCours: mesDemandes.filter((d) => d.statut === 'en_cours').length,
-              approuvees: mesDemandes.filter((d) => d.statut === 'approuvee').length,
-              refusees: mesDemandes.filter((d) => d.statut === 'refusee').length,
-            });
-          }
+        // NOUVEAU : calcule les stats du demandeur à partir de TOUTES ses DA
+        // (pas juste nonApprouvees, donc on refait un appel complet filtré côté client)
+        if (isDemandeur) {
+          const toutesRes = await api.get('/demandes/');
+          if (!active) return;
+          const mesDemandes = toutesRes.data; // le backend filtre déjà par id_demandeur (voir get_queryset)
+          setDemandeurStats({
+            total: mesDemandes.length,
+            enCours: mesDemandes.filter((d) => d.statut === 'en_cours').length,
+            approuvees: mesDemandes.filter((d) => d.statut === 'approuvee').length,
+            refusees: mesDemandes.filter((d) => d.statut === 'refusee').length,
+          });
         }
       } catch {
-        if (!active) return;
-        usingMock = true;
-      }
-
-      if (active && usingMock) {
-        const liste = getMockArriving(user);
-        setData(liste);
-        if (isAcheteur) {
-          setStats({
-            arrivees: liste.length,
-            approuvees: getMockApproved(user).length,
-            bonsCommande: getMockApproved(user).filter((d) => d.has_bc).length,
-          });
-        }
-        // NOUVEAU : stats demandeur en mode mock
-        if (isDemandeur) {
-          const approuveesMock = getMockApproved(user);
-          setDemandeurStats({
-            total: liste.length + approuveesMock.length,
-            enCours: liste.filter((d) => d.statut === 'en_cours').length,
-            approuvees: approuveesMock.length,
-            refusees: liste.filter((d) => d.statut === 'refusee').length,
-          });
-        }
+        if (active) setError('Erreur lors du chargement des demandes.');
       }
 
       if (active) setLoading(false);

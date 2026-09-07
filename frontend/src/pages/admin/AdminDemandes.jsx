@@ -4,12 +4,6 @@ import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
 import { formatDate } from '../../utils/format'
 
-const mockDemandes = [
-  { id_da: 1, numero_da: 'DA-ALG-2026-001', dot: 'Alger-Centre', demandeur_nom: 'Sara Meziane', acheteur_nom: 'Omar Benaissa', date_creation: '2026-07-20', objet: 'Renouvellement matériel réseau', statut: 'en_cours' },
-  { id_da: 2, numero_da: 'DA-ALG-2026-002', dot: 'Oran', demandeur_nom: 'Yacine Haddad', acheteur_nom: 'Omar Benaissa', date_creation: '2026-07-22', objet: 'Connecteurs réseau', statut: 'approuvee' },
-  { id_da: 3, numero_da: 'DA-ALG-2026-003', dot: 'Sétif', demandeur_nom: 'Amina Cherif', acheteur_nom: null, date_creation: '2026-07-25', objet: 'Câbles cuivre 50m', statut: 'en_cours' },
-]
-
 export default function AdminDemandes() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,12 +14,11 @@ export default function AdminDemandes() {
     api
       .get('/demandes/')
       .then((res) => {
-        if (active) setData(res.data.length ? res.data : mockDemandes)
+        if (active) setData(res.data || [])
       })
-      .catch(() => {
+      .catch((err) => {
         if (active) {
-          setError('API indisponible — affichage des données de démonstration.')
-          setData(mockDemandes)
+          setError(err.response?.data?.detail || 'API indisponible — impossible de charger les demandes.')
         }
       })
       .finally(() => {

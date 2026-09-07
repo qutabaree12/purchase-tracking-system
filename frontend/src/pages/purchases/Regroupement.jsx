@@ -2,14 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../../services/api'
 import { useLayout } from '../../context/LayoutContext'
-import { useAuth } from '../../context/AuthContext'
 import PanierCard from '../../components/purchases/PanierCard'
-import { mockRegroupement, mockGenererBonsCommande, MOCK_FOURNISSEURS } from '../../constants/mockDemandes'
-
-const mockFournisseurs = Object.entries(MOCK_FOURNISSEURS).map(([id, f]) => ({
-  id: Number(id),
-  nom: f.nom,
-}))
 
 export default function Regroupement() {
   const navigate = useNavigate()
@@ -18,15 +11,13 @@ export default function Regroupement() {
   const idsDa = idsParam
     ? idsParam.split(',').map((s) => Number(s.trim())).filter(Boolean)
     : []
-  const { user } = useAuth()
   const { setTitle, setSubtitle, setActions } = useLayout()
   const [paniers, setPaniers] = useState([])
-  const [fournisseurs, setFournisseurs] = useState(mockFournisseurs)
+  const [fournisseurs, setFournisseurs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectAll, setSelectAll] = useState(true)
   const [generating, setGenerating] = useState(false)
-  const [usingMock, setUsingMock] = useState(false)
 
   const totalEstime = useMemo(
     () =>
@@ -43,14 +34,12 @@ export default function Regroupement() {
           api.post('/regroupement/', idsDa.length ? { ids_da: idsDa } : {}),
           api.get('/fournisseurs/'),
         ])
-        setUsingMock(false)
         setPaniers(res.data.paniers.map((p) => ({ ...p, inclus: true })))
         setFournisseurs(
           resFour.data.map((f) => ({ id: f.id_fournisseur, nom: f.nom_fournisseur }))
         )
       } catch {
-        setUsingMock(true)
-        setPaniers(mockRegroupement(user))
+        setError('Erreur lors du chargement du regroupement. Veuillez réessayer.')
       } finally {
         setLoading(false)
       }
@@ -121,11 +110,7 @@ export default function Regroupement() {
     setError(null)
 
     try {
-      if (usingMock) {
-        mockGenererBonsCommande(paniersValides)
-      } else {
-        await api.post('/bons-commande/generer/', { paniers: paniersValides })
-      }
+      await api.post('/bons-commande/generer/', { paniers: paniersValides })
       navigate('/purchases/orders')
     } catch (err) {
       setError(err.response?.data?.detail || 'Erreur lors de la génération. Veuillez réessayer.')

@@ -4,8 +4,6 @@ import {
   PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts'
 import api from '../../services/api'
-import { useAuth } from '../../context/AuthContext'
-import { getMockArriving, getMockApproved, getMockBons, MOCK_FOURNISSEURS } from '../../constants/mockDemandes'
 
 const SURFACE = '#151E32'
 const BORDER = '#1E293B'
@@ -233,7 +231,6 @@ function ChartCard({ title, children }) {
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth()
   const [stats, setStats] = useState(null)
   const [error, setError] = useState(null)
 
@@ -260,15 +257,7 @@ export default function AdminDashboard() {
         produits = p.data
         fournisseurs = f.data
       } catch {
-        if (active) setError('API indisponible — affichage des données de démonstration.')
-      }
-
-      if (demandes.length === 0) {
-        demandes = [...getMockArriving(user), ...getMockApproved(user)]
-        bons = getMockBons()
-        if (fournisseurs.length === 0) {
-          fournisseurs = Object.keys(MOCK_FOURNISSEURS).map((id) => ({ id_fournisseur: Number(id) }))
-        }
+        if (active) setError('API indisponible — impossible de charger les statistiques.')
       }
 
       if (active) setStats(computeStats(demandes, bons, employes, produits, fournisseurs))
@@ -278,7 +267,7 @@ export default function AdminDashboard() {
     return () => {
       active = false
     }
-  }, [user])
+  }, [])
 
   const kpis = stats ? [
     { label: 'Employés Total', value: stats.employes, color: TEXT, icon: 'employes' },

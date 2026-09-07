@@ -4,7 +4,6 @@ import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
 import { exporterPdfUn, exporterPdfTous } from '../../utils/bcPdf'
-import { getMockBons } from '../../constants/mockDemandes'
 
 function formatDate(date) {
   if (!date) return '-'
@@ -23,20 +22,9 @@ export default function PurchaseOrderList() {
 
   const applyData = (res) => {
     const items = Array.isArray(res.data) ? res.data : res.data.results || []
-    if (items.length) {
-      setData(items)
-      setTotal(Array.isArray(res.data) ? items.length : res.data.count ?? items.length)
-    } else {
-      const mocks = getMockBons()
-      setData(mocks)
-      setTotal(mocks.length)
-    }
-  }
-
-  const applyFallback = () => {
-    const mocks = getMockBons()
-    setData(mocks)
-    setTotal(mocks.length)
+    const count = Array.isArray(res.data) ? items.length : res.data.count ?? items.length
+    setData(items)
+    setTotal(count)
   }
 
   useEffect(() => {
@@ -48,10 +36,9 @@ export default function PurchaseOrderList() {
           params: { page: 1, page_size: pageSize },
         })
         if (active) applyData(res)
-      } catch {
+      } catch (err) {
         if (active) {
-          setError('Erreur lors du chargement des bons de commande. Affichage des exemples.')
-          applyFallback()
+          setError(err.response?.data?.detail || 'Erreur lors du chargement des bons de commande.')
         }
       } finally {
         if (active) setLoading(false)
@@ -69,9 +56,8 @@ export default function PurchaseOrderList() {
     setError(null)
     api.get('/bons-commande/', { params: { page: p, page_size: pageSize } })
       .then((res) => applyData(res))
-      .catch(() => {
-        setError('Erreur lors du chargement des bons de commande. Affichage des exemples.')
-        applyFallback()
+      .catch((err) => {
+        setError(err.response?.data?.detail || 'Erreur lors du chargement des bons de commande.')
       })
       .finally(() => setLoading(false))
   }
@@ -101,7 +87,6 @@ export default function PurchaseOrderList() {
         params: { page_size: 200 },
       })
       const tous = Array.isArray(res.data) ? res.data : res.data.results || []
-      if (!tous.length) tous.push(...getMockBons())
       await exporterPdfTous(tous)
     } catch (err) {
       console.error('Erreur export PDF', err)
