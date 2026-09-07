@@ -10,20 +10,21 @@ function LayoutContent() {
   const { sidebarOpen } = useLayout()
 
   return (
-    <div className="min-h-screen bg-brand-page">
+    <div className="h-screen overflow-hidden bg-brand-page">
       <Sidebar />
 
       <div
         className={`
-          flex flex-col min-h-screen
+          flex flex-col h-full
           transition-[margin] duration-300 ease-in-out
           ${sidebarOpen ? 'md:ml-[208px]' : 'md:ml-0'}
         `}
       >
         <TopBar />
 
+        {/* Seul ce bloc défile : la barre du haut et le menu restent fixes */}
         <main
-          className="flex-1 p-6 overflow-y-auto ml-2 mr-2"
+          className="flex-1 min-h-0 overflow-y-auto p-6 ml-2 mr-2"
           style={{ padding: '20px 24px 20px 12px' }}
         >
           <Outlet />
