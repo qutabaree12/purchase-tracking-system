@@ -73,6 +73,7 @@ export default function App() {
             <Route path="purchases/orders" element={<PurchaseOrderList />} />
             <Route path="purchases/order/new" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />
+            <Route path="purchases/order/:id/fiche" element={<FicheBonCommande />} />
             <Route path="purchases/regroupement" element={<Regroupement />} />
           </Route>
         </Routes>
