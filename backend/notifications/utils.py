@@ -66,3 +66,63 @@ def notifier_dossier_assigne(dossier):
             f"vous a été assigné."
         ),
     )
+
+
+def notifier_dossier_mis_a_jour(dossier):
+    """
+    Informe l'acheteur lorsqu'un transitaire modifie
+    le dossier d'importation.
+    """
+    if not dossier.id_bc or not dossier.id_bc.id_acheteur:
+        return
+
+    Notification.objects.create(
+        destinataire=dossier.id_bc.id_acheteur,
+        bon_commande=dossier.id_bc,
+        type=Notification.Type.BC_PRIS_EN_CHARGE,
+        titre="Dossier d'importation mis à jour",
+        message=(
+            f"Le dossier d'importation du "
+            f"{dossier.id_bc.reference} a été mis à jour "
+            f"par le transitaire."
+        ),
+    )
+
+
+def notifier_reception_validee(dossier):
+    """
+    Informe l'acheteur et le demandeur lorsque
+    la réception de la marchandise est validée.
+    """
+
+    bc = dossier.id_bc
+
+    if not bc:
+        return
+
+    # Notification à l'acheteur
+    if bc.id_acheteur:
+        Notification.objects.create(
+            destinataire=bc.id_acheteur,
+            bon_commande=bc,
+            type=Notification.Type.LIVRAISON,
+            titre="Marchandise livrée",
+            message=(
+                f"La réception de la marchandise du "
+                f"{bc.reference} a été validée."
+            ),
+        )
+
+    # Notification au demandeur
+    if bc.id_da and bc.id_da.id_demandeur:
+        Notification.objects.create(
+            destinataire=bc.id_da.id_demandeur,
+            demande=bc.id_da,
+            bon_commande=bc,
+            type=Notification.Type.LIVRAISON,
+            titre="Marchandise livrée",
+            message=(
+                f"La marchandise liée à votre demande "
+                f"{bc.id_da.reference} a été livrée."
+            ),
+        )

@@ -12,8 +12,11 @@ from .models import BonDeCommande, LigneBonDeCommande, DossierImportation
 from .serializers import BonDeCommandeSerializer, DossierImportationSerializer
 from config.pagination import OptionalPagination
 from authentication.models import Employe
-from notifications.utils import notifier_dossier_assigne
-
+from notifications.utils import (
+    notifier_dossier_assigne,
+    notifier_dossier_mis_a_jour,
+    notifier_reception_validee,
+)
 
 def _regrouper_par_fournisseur(lignes):
     """Regroupe les lignes par fournisseur du produit et somme les quantités."""
@@ -336,7 +339,30 @@ class DossierImportationViewSet(viewsets.ModelViewSet):
 
         dossier.save()
 
+        notifier_reception_validee(dossier)
+
         return Response(
             self.get_serializer(dossier).data,
             status=status.HTTP_200_OK,
         )
+
+
+    def perform_update(self, serializer):
+        dossier = serializer.save()
+
+        notifier_dossier_mis_a_jour(dossier)
+
+    def notifier_reception_validee(dossier):
+        if not dossier.id_bc or not dossier.id_bc.id_acheteur:
+            return
+
+        Notification.objects.create(
+            destinataire=dossier.id_bc.id_acheteur,
+            bon_commande=dossier.id_bc,
+            type=Notification.Type.LIVRAISON,
+            titre='Commande livrée',
+            message=(
+                f'La réception du {dossier.id_bc.reference} '
+                f'a été validée par le transitaire.'
+            ),
+    )

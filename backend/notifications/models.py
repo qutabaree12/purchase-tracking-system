@@ -18,6 +18,7 @@ class Notification(models.Model):
         DEDOUANEMENT = 'dedouanement', 'Dédouanement'
         LIVRAISON = 'livraison', 'Livraison'
         DOSSIER_ASSIGNE = 'dossier_assigne', 'Dossier assigné'
+        DOSSIER_MIS_A_JOUR = 'dossier_mis_a_jour', 'Dossier mis à jour'
 
     id_notification = models.BigAutoField(primary_key=True)
 
