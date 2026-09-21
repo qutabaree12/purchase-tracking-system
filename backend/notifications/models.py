@@ -35,6 +35,15 @@ class Notification(models.Model):
         related_name='notifications',
     )
 
+
+    bon_commande = models.ForeignKey(
+        'commandes.BonDeCommande',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+    )
+
     type = models.CharField(
         max_length=30,
         choices=Type.choices,

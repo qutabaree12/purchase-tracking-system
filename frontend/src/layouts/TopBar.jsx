@@ -127,6 +127,8 @@ export default function TopBar() {
 
     if (notification.demande) {
       navigate(`/purchases/request/${notification.demande}/fiche`)
+    } else if (notification.bon_commande) {
+      navigate(`/purchases/order/${notification.bon_commande}/fiche`)
     }
   }
 
@@ -218,7 +220,7 @@ export default function TopBar() {
                     notifications.map((notification) => (
                       <div
                         key={notification.id_notification}
-                        onClick={() => handleNotificationClick(notification)}  // NOUVEAU
+                        onClick={() => handleNotificationClick(notification)}  
                         className={`px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
                           !notification.lu ? 'bg-blue-50' : 'bg-white'
                         }`}

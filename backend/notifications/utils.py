@@ -58,6 +58,7 @@ def notifier_dossier_assigne(dossier):
 
     Notification.objects.create(
         destinataire=dossier.id_transitaire,
+        bon_commande=dossier.id_bc,
         type=Notification.Type.DOSSIER_ASSIGNE,
         titre="Dossier d'importation assigné",
         message=(

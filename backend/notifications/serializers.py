@@ -10,6 +10,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             'id_notification',
             'destinataire',
             'demande',
+            'bon_commande',
             'type',
             'titre',
             'message',
