@@ -21,6 +21,7 @@ export default function PurchaseRequestList() {
   const canCreate = !['acheteur', 'chef département'].includes(role);
 
   const [data, setData] = useState([]);
+  const [demandeurFilter, setDemandeurFilter] = useState('toutes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({ arrivees: 0, approuvees: 0, bonsCommande: 0 });
@@ -45,8 +46,11 @@ export default function PurchaseRequestList() {
         if (!active) return;
 
         const toutes = demandesRes.data || [];
-        const nonApprouvees = toutes.filter((d) => d.statut !== 'approuvee');
-        setData(nonApprouvees);
+        const demandesVisibles = isDemandeur
+          ? toutes
+          : toutes.filter((d) => d.statut !== 'approuvee');
+        
+        setData(demandesVisibles);
 
         if (isAcheteur) {
           const [approuveesRes, bonsRes] = await Promise.all([
@@ -55,7 +59,7 @@ export default function PurchaseRequestList() {
           ]);
           if (!active) return;
           setStats({
-            arrivees: nonApprouvees.length,
+            arrivees: toutes.filter((d) => d.statut !== 'approuvee').length,
             approuvees: approuveesRes.data.length,
             bonsCommande: bonsRes.data.length,
           });
@@ -85,6 +89,16 @@ export default function PurchaseRequestList() {
       active = false;
     };
   }, [isAcheteur, isDemandeur, user]);  // isDemandeur ajouté aux dépendances
+
+
+
+  // Filtre utilisé uniquement pour le demandeur
+  const filteredData = isDemandeur
+    ? data.filter((demande) => {
+        if (demandeurFilter === 'toutes') return true;
+        return demande.statut === demandeurFilter;
+      })
+    : data;
 
   // ---------- Actions ----------
 
@@ -225,9 +239,32 @@ export default function PurchaseRequestList() {
         </div>
       )}
 
+      {isDemandeur && (
+        <div className="flex flex-wrap gap-2">
+          {[
+            { key: 'toutes', label: 'Toutes' },
+            { key: 'en_cours', label: 'En cours' },
+            { key: 'approuvee', label: 'Approuvées' },
+            { key: 'refusee', label: 'Refusées' },
+          ].map((filter) => (
+            <button
+              key={filter.key}
+              onClick={() => setDemandeurFilter(filter.key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                demandeurFilter === filter.key
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+       )}
+       
       <DataTable
         columns={columns}
-        data={data}
+        data={filteredData}
         loading={loading}
         onEdit={isDemandeur ? (request) => navigate(`/purchases/request/${request.id_da}`) : undefined}
         onDelete={isDemandeur ? (request) => request.statut === 'en_cours' && handleDelete(request) : undefined}
