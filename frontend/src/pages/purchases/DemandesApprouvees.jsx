@@ -35,6 +35,14 @@ export default function DemandesApprouvees() {
     navigate(`/purchases/request/${request.id_da}/fiche`)
   }
 
+  // Uniquement les demandes approuvées sans bon de commande : prêtes à regrouper
+  const demandesPretes = data.filter((d) => d.statut === 'approuvee' && !d.has_bc)
+
+  const handleRegrouper = () => {
+    const ids = demandesPretes.map((d) => d.id_da)
+    navigate(`/purchases/regroupement?ids=${ids.join(',')}`)
+  }
+
   const columns = [
     { key: 'numero_da', header: 'N° DA', sortable: true },
     { key: 'dot', header: 'DOT' },
@@ -55,8 +63,12 @@ export default function DemandesApprouvees() {
             Demandes validées par l'acheteur, prêtes pour le regroupement
           </p>
         </div>
-        <button className="btn-primary" onClick={() => navigate('/purchases/regroupement')}>
-          Regrouper
+        <button
+          className="btn-primary"
+          disabled={demandesPretes.length === 0}
+          onClick={handleRegrouper}
+        >
+          Regrouper{` (${demandesPretes.length})`}
         </button>
       </div>
       {error && (
@@ -66,7 +78,7 @@ export default function DemandesApprouvees() {
       )}
       <DataTable
         columns={columns}
-        data={data}
+        data={demandesPretes}
         loading={loading}
         onView={handleViewFiche}
         actionsLabel="Avancement"

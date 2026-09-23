@@ -140,6 +140,17 @@ export default function Regroupement() {
     )
   }
 
+  if (idsDa.length === 0) {
+    return (
+      <div className="card">
+        <div className="card-body text-center py-8 text-gray-500">
+          Aucune demande sélectionnée. Utilisez le bouton « Regrouper » depuis la page
+          Demandes approuvées.
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       {error && (

@@ -61,13 +61,17 @@ def regroupement(request):
     par fournisseur du produit → paniers.
     """
     ids_da = request.data.get('ids_da')
+    # Ne regroupe que les demandes explicitement sélectionnées par l'acheteur
+    # (via le bouton "Regrouper" de la page "Demandes approuvées").
+    if not ids_da:
+        return Response({'paniers': []})
+
     # Ne regroupe que les demandes approuvées qui n'ont pas encore de bon de commande
     demandes = DemandeAchat.objects.filter(
         statut=DemandeAchat.Statut.APPROUVEE,
         bons_commande__isnull=True,
+        id_da__in=ids_da,
     )
-    if ids_da:
-        demandes = demandes.filter(id_da__in=ids_da)
 
     lignes = (
         LigneDemandeAchat.objects
