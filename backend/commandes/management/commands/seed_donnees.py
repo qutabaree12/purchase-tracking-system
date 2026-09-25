@@ -38,22 +38,22 @@ PRODUITS = [
 
 # Demandes acceptées : (numero_da, objet, [(nom_produit, qte), ...])
 DEMANDES = [
-    ('DA-ALG-2026-001', 'Équipement informatique', [
+    ('DA-2026-0001', 'Équipement informatique', [
         ('PC ALFATRON', 5),
         ('Clavier', 10),
         ('Souris', 10),
         ('Rallonge', 10),
     ]),
-    ('DA-ALG-2026-002', 'Aménagement des bureaux', [
+    ('DA-2026-0002', 'Aménagement des bureaux', [
         ('Porte', 2),
         ('Casier', 4),
         ('Chaise', 15),
         ('Table', 5),
     ]),
-    ('DA-ALG-2026-003', 'Confort et climatisation', [
+    ('DA-2026-0003', 'Confort et climatisation', [
         ('Climatiseur', 3),
     ]),
-    ('DA-ALG-2026-004', 'Fournitures de bureau', [
+    ('DA-2026-0004', 'Fournitures de bureau', [
         ('Stylo', 50),
         ('Cahier', 40),
     ]),

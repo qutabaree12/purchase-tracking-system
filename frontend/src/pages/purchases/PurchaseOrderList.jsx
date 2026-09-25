@@ -97,7 +97,7 @@ export default function PurchaseOrderList() {
   }
 
   const columns = [
-    { key: 'id_bc', header: 'N° Bon', sortable: true },
+    { key: 'reference', header: 'N° BC', sortable: true },
     { key: 'fournisseur_nom', header: 'Fournisseur', sortable: true },
     { key: 'date_creation', header: 'Date', sortable: true, render: (o) => formatDate(o.date_creation) },
     { key: 'montant', header: 'Montant', render: (o) => `${Number(o.montant || 0).toLocaleString('fr-FR')} DZD` },

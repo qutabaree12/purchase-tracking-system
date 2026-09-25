@@ -4,8 +4,8 @@ import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
 
 const mockBons = [
-  { id_bc: 1, reference: 'BC-1', fournisseur_nom: 'ALFATRON', date_creation: '2026-08-10', montant: 425000, status: 'en cours' },
-  { id_bc: 2, reference: 'BC-2', fournisseur_nom: 'Paper & Co', date_creation: '2026-08-11', montant: 31000, status: 'en cours' },
+  { id_bc: 1, reference: 'BC-2026-0001', fournisseur_nom: 'ALFATRON', date_creation: '2026-08-10', montant: 425000, status: 'en cours' },
+  { id_bc: 2, reference: 'BC-2026-0002', fournisseur_nom: 'Paper & Co', date_creation: '2026-08-11', montant: 31000, status: 'en cours' },
 ]
 
 export default function AdminBonsCommande() {
@@ -35,7 +35,7 @@ export default function AdminBonsCommande() {
   }, [])
 
   const columns = [
-    { key: 'id_bc', header: 'N° Bon', sortable: true },
+    { key: 'reference', header: 'N° BC', sortable: true },
     { key: 'fournisseur_nom', header: 'Fournisseur', sortable: true },
     { key: 'date_creation', header: 'Date', sortable: true, render: (b) => (b.date_creation ? new Date(b.date_creation).toLocaleDateString('fr-FR') : '-') },
     { key: 'montant', header: 'Montant', render: (b) => `${Number(b.montant || 0).toLocaleString('fr-FR')} DZD` },

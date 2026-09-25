@@ -53,11 +53,12 @@ class BonDeCommande(models.Model):
         ]
 
     def __str__(self):
-        return f"BC-{self.id_bc}"
+        return self.reference
 
     @property
     def reference(self):
-        return f"BC-{self.id_bc}"
+        annee = self.date_creation.year if self.date_creation else None
+        return f"BC-{annee}-{self.id_bc:04d}"
 
 
 class LigneBonDeCommande(models.Model):
