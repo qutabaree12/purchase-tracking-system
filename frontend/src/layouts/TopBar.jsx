@@ -14,6 +14,8 @@ const defaultTitles = [
   { match: '/purchases/requests', title: "Demandes d'achat" },
   { match: '/purchases/order/new', title: 'Nouveau bon de commande' },
   { match: '/purchases/orders', title: 'Bons de commande' },
+  { match: '/purchases/dashboard', title: 'Tableau de bord' },
+  { match: '/purchases/dossiers', title: "Dossiers d'importation" },
 ]
 
 function defaultTitleFor(pathname) {

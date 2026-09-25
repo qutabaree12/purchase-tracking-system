@@ -20,6 +20,8 @@ const PurchaseRequest = lazy(() => import('./pages/purchases/PurchaseRequest'))
 const FicheDemande = lazy(() => import('./pages/purchases/FicheDemande'))
 const PurchaseOrderList = lazy(() => import('./pages/purchases/PurchaseOrderList'))
 const PurchaseOrder = lazy(() => import('./pages/purchases/PurchaseOrder'))
+const TransitaireDashboard = lazy(() => import('./pages/purchases/TransitaireDashboard'))
+const DossiersImportation = lazy(() => import('./pages/purchases/DossiersImportation'))
 const Regroupement = lazy(() => import('./pages/purchases/Regroupement'))
 const DemandesApprouvees = lazy(() => import('./pages/purchases/DemandesApprouvees'))
 const Profile = lazy(() => import('./pages/Profile'))
@@ -71,6 +73,8 @@ export default function App() {
             <Route path="purchases/request/:id" element={<PurchaseRequest />} />
             <Route path="purchases/request/:id/fiche" element={<FicheDemande />} />
             <Route path="purchases/orders" element={<PurchaseOrderList />} />
+            <Route path="purchases/dashboard" element={<TransitaireDashboard />} />
+            <Route path="purchases/dossiers" element={<DossiersImportation />} />
             <Route path="purchases/order/new" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id/fiche" element={<FicheBonCommande />} />

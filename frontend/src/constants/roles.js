@@ -32,9 +32,12 @@ export const ROLE_ACCESS = {
     prefixes: ['/purchases/regroupement', '/purchases/order', '/purchases/request', '/purchases/approved-requests'],
   },
   transitaire: {
-    home: '/purchases/orders',
-    nav: [{ name: 'Bons de commande', path: '/purchases/orders' }],
-    prefixes: ['/purchases/order'],
+    home: '/purchases/dashboard',
+    nav: [
+      { name: 'Tableau de bord', path: '/purchases/dashboard' },
+      { name: "Dossiers d'importation", path: '/purchases/dossiers' },
+    ],
+    prefixes: ['/purchases/dashboard', '/purchases/dossiers', '/purchases/order'],
   },
   directeur: {
     home: '/admin',
