@@ -832,15 +832,23 @@ export default function FicheBonCommande() {
                                       />
                                     </div>
 
+          
+                                    
                                     <div>
-                                      <p className="text-xs font-semibold text-gray-500">
+                                      <label className="block text-xs font-semibold text-gray-500 mb-1">
                                         Réception réelle
-                                      </p>
-                                      <p className="text-sm font-medium mt-1">
-                                        {formatDate(dossier.date_reception_reelle)}
-                                      </p>
+                                      </label>
+                                      <input
+                                        type="date"
+                                        className="input w-full"
+                                        value={
+                                          dossier.date_reception_reelle
+                                            ? dossier.date_reception_reelle.substring(0, 10)
+                                            : ''
+                                        }
+                                        readOnly
+                                      />
                                     </div>
-
                                   </div>
 
                                   <div className="flex items-center gap-3 pt-2">
