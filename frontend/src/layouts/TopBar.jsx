@@ -91,7 +91,7 @@ export default function TopBar() {
   }, [])
   
   useEffect(() => {
-    
+    //rien adding my comit
     if (!notifOpen) return
   
     const handleClickOutside = (event) => {
