@@ -120,21 +120,22 @@ export default function FicheBonCommande() {
               ? String(dossierTrouve.id_transitaire)
               : ''
           )
+
+          setDossierForm({
+            tarif_douane: dossierTrouve.tarif_douane || '',
+            autorisation_necessaire: !!dossierTrouve.autorisation_necessaire,
+            autorisation_obtenue: !!dossierTrouve.autorisation_obtenue,
+            numero_autorisation: dossierTrouve.numero_autorisation || '',
+            mode_expedition: dossierTrouve.mode_expedition || '',
+            lieu_chargement: dossierTrouve.lieu_chargement || '',
+            date_livraison_prevue: dossierTrouve.date_livraison_prevue || '',
+          })
+
         } else {
           setDossierError(
             "Aucun dossier d'importation n'a été trouvé pour ce BC."
           )
         }
-
-        setDossierForm({
-          tarif_douane: dossierTrouve.tarif_douane || '',
-          autorisation_necessaire: !!dossierTrouve.autorisation_necessaire,
-          autorisation_obtenue: !!dossierTrouve.autorisation_obtenue,
-          numero_autorisation: dossierTrouve.numero_autorisation || '',
-          mode_expedition: dossierTrouve.mode_expedition || '',
-          lieu_chargement: dossierTrouve.lieu_chargement || '',
-          date_livraison_prevue: dossierTrouve.date_livraison_prevue || '',
-        })
       })
       .catch((err) => {
         console.error(
@@ -294,6 +295,8 @@ export default function FicheBonCommande() {
         dossierForm
       )
       setDossier(res.data)
+      window.dispatchEvent(new Event('notifications:refresh'))
+
       setSuccess("Le dossier d'importation a été mis à jour. Redirection...")
 
       setTimeout(() => {
@@ -323,6 +326,7 @@ export default function FicheBonCommande() {
         `/dossiers-importation/${dossier.id_dossier}/valider_reception/`
       )
       setDossier(res.data)
+      window.dispatchEvent(new Event('notifications:refresh'))
       setSuccess('La réception a été validée.')
     } catch (err) {
       console.error('Erreur validation réception:', err)
