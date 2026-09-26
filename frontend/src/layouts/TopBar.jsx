@@ -65,25 +65,33 @@ export default function TopBar() {
   const [notifLoading, setNotifLoading] = useState(false)
   const notifRef = useRef(null)
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setNotifLoading(true)
-  
-        const res = await api.get('/notifications/')
-  
-        setNotifications(res.data)
-      } catch (error) {
-        console.error('Erreur lors du chargement des notifications', error)
-      } finally {
-        setNotifLoading(false)
-      }
+  const fetchNotifications = async () => {
+    try {
+      setNotifLoading(true)
+
+      const res = await api.get('/notifications/')
+
+      setNotifications(res.data)
+    } catch (error) {
+      console.error('Erreur lors du chargement des notifications', error)
+    } finally {
+      setNotifLoading(false)
     }
+  }
+
+  useEffect(() => {
+    
   
     fetchNotifications()
   }, [])
 
   useEffect(() => {
+    window.addEventListener('notifications:refresh', fetchNotifications)
+    return () => window.removeEventListener('notifications:refresh', fetchNotifications)
+  }, [])
+  
+  useEffect(() => {
+    
     if (!notifOpen) return
   
     const handleClickOutside = (event) => {
