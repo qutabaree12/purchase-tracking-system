@@ -208,7 +208,7 @@
   color: #64748b;
 }
 
-/* Liens d'action des tableaux (DataTable) : les teintes "600/700" de la
+/* NEW_00 27-09: Liens d'action des tableaux (DataTable) : les teintes "600/700" de la
    palette sont pensées pour un fond clair et deviennent illisibles sur
    fond sombre (ex: primary-600 est presque la couleur du fond de carte
    en dark mode). On les éclaircit uniquement en mode sombre. */
@@ -253,3 +253,5 @@
   .dark .hover\:text-orange-800:hover {
     color: #fdba74;
   }
+
+  /*END NEW_00 27-09*/
