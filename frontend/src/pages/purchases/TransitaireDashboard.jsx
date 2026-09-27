@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import StatusBadge from '../../components/common/StatusBadge'
-import { formatDate } from '../../utils/format'
+import { formatDate, modeExpeditionLabel } from '../../utils/format'
 
 function Kpi({ label, value, color }) {
   return (
@@ -105,7 +105,7 @@ export default function TransitaireDashboard() {
                   <tr key={d.id_dossier} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-gray-700">{d.bc_reference || `BC-${d.id_bc}`}</td>
                     <td className="px-4 py-3 text-gray-700">{d.fournisseur_nom || '-'}</td>
-                    <td className="px-4 py-3 text-gray-700">{d.mode_expedition || '-'}</td>
+                    <td className="px-4 py-3 text-gray-700">{modeExpeditionLabel(d.mode_expedition)}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={d.statut} />
                     </td>

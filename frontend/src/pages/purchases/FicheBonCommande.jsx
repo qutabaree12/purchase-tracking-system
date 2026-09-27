@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import StatusBadge from '../../components/common/StatusBadge'
-import { formatCurrency } from '../../utils/format'
+import { formatCurrency, modeExpeditionLabel } from '../../utils/format'
 import { exporterPdfUn } from '../../utils/bcPdf'
 import { useAuth } from '../../context/AuthContext'
 
@@ -878,7 +878,7 @@ export default function FicheBonCommande() {
 
                                   <div>
                                     <p className="text-xs font-semibold text-gray-500">Mode d'expédition</p>
-                                    <p className="text-sm font-medium mt-1">{dossier.mode_expedition || '-'}</p>
+                                    <p className="text-sm font-medium mt-1">{modeExpeditionLabel(dossier.mode_expedition)}</p>
                                   </div>
 
                                   <div>

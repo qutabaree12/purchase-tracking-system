@@ -3,19 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
-import { formatDate } from '../../utils/format'
+import { formatDate, modeExpeditionLabel } from '../../utils/format'
 
 const COLUMNS = [
   { key: 'bc_reference', header: 'N° BC', sortable: true },
   { key: 'fournisseur_nom', header: 'Fournisseur', sortable: true },
-  { key: 'mode_expedition', header: 'Mode', render: (d) => d.mode_expedition || '-' },
-  { key: 'statut', header: 'Statut', render: (d) => <StatusBadge status={d.statut} /> },
+  { key: 'mode_expedition', header: 'Mode', render: (d) => modeExpeditionLabel(d.mode_expedition) },
   {
     key: 'date_livraison_prevue',
     header: 'Livraison prévue',
     sortable: true,
     render: (d) => (d.date_livraison_prevue ? formatDate(d.date_livraison_prevue) : '-'),
   },
+  { key: 'statut', header: 'Statut', render: (d) => <StatusBadge status={d.statut} /> },
 ]
 
 export default function DossiersImportation() {

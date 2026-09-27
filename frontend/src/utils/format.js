@@ -23,6 +23,16 @@ export const formatDateTime = (date) => {
   }).format(new Date(date))
 }
 
+export const modeExpeditionLabel = (value) => {
+  const labels = {
+    maritime: 'Maritime',
+    aerien: 'Aérien',
+    terrestre: 'Terrestre',
+    ferroviaire: 'Ferroviaire',
+  }
+  return labels[value] || value || '-'
+}
+
 export const statusLabels = {
   en_cours: {
     label: 'En cours',
