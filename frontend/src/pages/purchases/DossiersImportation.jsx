@@ -105,6 +105,12 @@ export default function DossiersImportation() {
         loading={loading}
         onView={(d) => navigate(`/purchases/order/${d.id_bc}/fiche`)}
         actionsLabel="Action"
+        //NEW_00 27-09: affichage des erreurs quand il n'y a pas de données
+        emptyMessage={
+          dossiers.length === 0
+            ? "Aucun dossier ne vous est encore assigné."
+            : "Aucun dossier ne correspond à votre recherche."
+        }
       />
     </div>
   )

@@ -120,21 +120,22 @@ export default function FicheBonCommande() {
               ? String(dossierTrouve.id_transitaire)
               : ''
           )
+
+          setDossierForm({
+            tarif_douane: dossierTrouve.tarif_douane || '',
+            autorisation_necessaire: !!dossierTrouve.autorisation_necessaire,
+            autorisation_obtenue: !!dossierTrouve.autorisation_obtenue,
+            numero_autorisation: dossierTrouve.numero_autorisation || '',
+            mode_expedition: dossierTrouve.mode_expedition || '',
+            lieu_chargement: dossierTrouve.lieu_chargement || '',
+            date_livraison_prevue: dossierTrouve.date_livraison_prevue || '',
+          })
+
         } else {
           setDossierError(
             "Aucun dossier d'importation n'a été trouvé pour ce BC."
           )
         }
-
-        setDossierForm({
-          tarif_douane: dossierTrouve.tarif_douane || '',
-          autorisation_necessaire: !!dossierTrouve.autorisation_necessaire,
-          autorisation_obtenue: !!dossierTrouve.autorisation_obtenue,
-          numero_autorisation: dossierTrouve.numero_autorisation || '',
-          mode_expedition: dossierTrouve.mode_expedition || '',
-          lieu_chargement: dossierTrouve.lieu_chargement || '',
-          date_livraison_prevue: dossierTrouve.date_livraison_prevue || '',
-        })
       })
       .catch((err) => {
         console.error(
@@ -294,10 +295,12 @@ export default function FicheBonCommande() {
         dossierForm
       )
       setDossier(res.data)
+      window.dispatchEvent(new Event('notifications:refresh'))
+
       setSuccess("Le dossier d'importation a été mis à jour. Redirection...")
 
       setTimeout(() => {
-        navigate('/purchases/orders')
+        navigate('/purchases/dossiers') // NEW_00 27-09: redirection après succès orders devient dossiers
       }, 1200)
     } catch (err) {
       console.error('Erreur mise à jour dossier:', err)
@@ -323,6 +326,7 @@ export default function FicheBonCommande() {
         `/dossiers-importation/${dossier.id_dossier}/valider_reception/`
       )
       setDossier(res.data)
+      window.dispatchEvent(new Event('notifications:refresh'))
       setSuccess('La réception a été validée.')
     } catch (err) {
       console.error('Erreur validation réception:', err)
@@ -832,15 +836,23 @@ export default function FicheBonCommande() {
                                       />
                                     </div>
 
+          
+                                    
                                     <div>
-                                      <p className="text-xs font-semibold text-gray-500">
+                                      <label className="block text-xs font-semibold text-gray-500 mb-1">
                                         Réception réelle
-                                      </p>
-                                      <p className="text-sm font-medium mt-1">
-                                        {formatDate(dossier.date_reception_reelle)}
-                                      </p>
+                                      </label>
+                                      <input
+                                        type="date"
+                                        className="input w-full"
+                                        value={
+                                          dossier.date_reception_reelle
+                                            ? dossier.date_reception_reelle.substring(0, 10)
+                                            : ''
+                                        }
+                                        readOnly
+                                      />
                                     </div>
-
                                   </div>
 
                                   <div className="flex items-center gap-3 pt-2">
