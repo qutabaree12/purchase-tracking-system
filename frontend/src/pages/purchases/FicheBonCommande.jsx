@@ -300,7 +300,7 @@ export default function FicheBonCommande() {
       setSuccess("Le dossier d'importation a été mis à jour. Redirection...")
 
       setTimeout(() => {
-        navigate('/purchases/dossiers')
+        navigate('/purchases/dossiers') // NEW_00 27-09: redirection après succès orders devient dossiers
       }, 1200)
     } catch (err) {
       console.error('Erreur mise à jour dossier:', err)
