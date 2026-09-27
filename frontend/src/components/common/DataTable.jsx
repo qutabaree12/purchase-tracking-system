@@ -130,9 +130,19 @@ export default function DataTable({
             ) : (
 
               sorted.map((item) => (
-
                 <tr
-                  key={item.id ?? item.id_da}
+                  //NEW_03 27-09: -DUPLICATION DES LIGNES BC -
+                  // Regler probleme de clé unique pour les lignes
+                  // du tableau, en utilisant plusieurs champs possibles
+                  key={item.id ??
+                    item.id_bc ??
+                    item.id_dossier ??
+                    item.id_da ??
+                    item.id_emp ??
+                    item.id_notification ??
+                    item.num_produit ??
+                    item.id_fournisseur
+                  } // end NEW_03 27-09
                   className="hover:bg-gray-50 transition-colors"
                 >
 
