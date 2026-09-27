@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import StatusBadge from '../../components/common/StatusBadge'
 import { formatDate } from '../../utils/format'
+import DataTable from '../../components/common/DataTable' // NEW_00 27-09: import DataTable for displaying recent dossiers
 
 function Kpi({ label, value, color }) {
   return (
@@ -12,6 +13,21 @@ function Kpi({ label, value, color }) {
     </div>
   )
 }
+
+// NEW_01 27-09: columns for recent dossiers table
+const RECENT_COLUMNS = [
+  { key: 'bc_reference', header: 'N° BC', sortable: true, render: (d) => d.bc_reference || `BC-${d.id_bc}` },
+  { key: 'fournisseur_nom', header: 'Fournisseur', sortable: true, render: (d) => d.fournisseur_nom || '-' },
+  { key: 'mode_expedition', header: 'Mode', render: (d) => d.mode_expedition || '-' },
+  { key: 'statut', header: 'Statut', render: (d) => <StatusBadge status={d.statut} /> },
+  {
+    key: 'date_livraison_prevue',
+    header: 'Livraison prévue',
+    sortable: true,
+    render: (d) => (d.date_livraison_prevue ? formatDate(d.date_livraison_prevue) : '-'),
+  },
+]
+// end NEW_01 27-09
 
 export default function TransitaireDashboard() {
   const navigate = useNavigate()
@@ -82,50 +98,21 @@ export default function TransitaireDashboard() {
             Voir tout
           </button>
         </div>
-
-        {loading ? (
-          <div className="px-6 py-8 text-center text-gray-500">Chargement...</div>
-        ) : recents.length === 0 ? (
-          <div className="px-6 py-8 text-center text-gray-500">Aucun dossier récent</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">N° BC</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Fournisseur</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Mode</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Statut</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Livraison prévue</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {recents.map((d) => (
-                  <tr key={d.id_dossier} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-gray-700">{d.bc_reference || `BC-${d.id_bc}`}</td>
-                    <td className="px-4 py-3 text-gray-700">{d.fournisseur_nom || '-'}</td>
-                    <td className="px-4 py-3 text-gray-700">{d.mode_expedition || '-'}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={d.statut} />
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {d.date_livraison_prevue ? formatDate(d.date_livraison_prevue) : '-'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => navigate(`/purchases/order/${d.id_bc}/fiche`)}
-                        className="text-primary-600 hover:text-primary-800 text-sm font-medium"
-                      >
-                        Fiche
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {/* NEW_02 27-09 : emplace l'ancien <table> codé à la main
+          par le composant DataTable partagé, pour avoir le tri
+          (clic + clavier) et un message vide cohérent */}
+        <DataTable
+          columns={RECENT_COLUMNS}
+          data={recents}
+          loading={loading}
+          onView={(d) => navigate(`/purchases/order/${d.id_bc}/fiche`)}
+          actionsLabel="Action"
+          emptyMessage={
+            dossiers.length === 0
+              ? "Aucun dossier ne vous est encore assigné."
+              : "Tous vos dossiers sont livrés."
+          } // end NEW_02 27-09
+        />
       </div>
     </div>
   )
