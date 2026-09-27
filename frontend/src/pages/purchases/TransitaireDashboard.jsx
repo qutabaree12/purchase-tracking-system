@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import StatusBadge from '../../components/common/StatusBadge'
 import { formatDate, modeExpeditionLabel } from '../../utils/format'
+import { DOSSIERS } from './DocumentsTransport'
 
 function Kpi({ label, value, color }) {
   return (
@@ -12,6 +13,18 @@ function Kpi({ label, value, color }) {
     </div>
   )
 }
+
+const DOCUMENTS_MANQUANTS = (() => {
+  const list = []
+  DOSSIERS.forEach((d) => {
+    d.docs.forEach((doc) => {
+      if (doc.status === 'manquant') {
+        list.push({ nom: doc.nom, bc: d.id, fournisseur: d.fournisseur })
+      }
+    })
+  })
+  return list
+})()
 
 export default function TransitaireDashboard() {
   const navigate = useNavigate()
@@ -124,6 +137,54 @@ export default function TransitaireDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      <div className="card overflow-hidden">
+        <div className="card-header flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+            Documents manquants
+          </span>
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: 13 }}
+            onClick={() => navigate('/purchases/documents-transport')}
+          >
+            Voir tout
+          </button>
+        </div>
+
+        {DOCUMENTS_MANQUANTS.length === 0 ? (
+          <div className="px-6 py-8 text-center text-gray-500">Aucun document manquant</div>
+        ) : (
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            {DOCUMENTS_MANQUANTS.map((m) => (
+              <div key={`${m.bc}-${m.nom}`} className="flex items-center gap-3 px-6 py-3">
+                <span className="w-9 h-9 shrink-0 rounded-lg bg-gray-100 dark:bg-[#15224a] flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-brand-navy dark:text-white/80"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{m.nom}</p>
+                  <p className="text-xs text-gray-500">{m.bc} · {m.fournisseur}</p>
+                </div>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-[#991b1b] dark:text-[#fca5a5]">
+                  Manquant
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </div>
