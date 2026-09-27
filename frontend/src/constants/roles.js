@@ -36,8 +36,9 @@ export const ROLE_ACCESS = {
     nav: [
       { name: 'Tableau de bord', path: '/purchases/dashboard' },
       { name: "Dossiers d'importation", path: '/purchases/dossiers' },
+      { name: 'Documents de transport', path: '/purchases/documents-transport' },
     ],
-    prefixes: ['/purchases/dashboard', '/purchases/dossiers', '/purchases/order'],
+    prefixes: ['/purchases/dashboard', '/purchases/dossiers', '/purchases/order', '/purchases/documents-transport'],
   },
   directeur: {
     home: '/admin',

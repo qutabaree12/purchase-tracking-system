@@ -24,6 +24,7 @@ const TransitaireDashboard = lazy(() => import('./pages/purchases/TransitaireDas
 const DossiersImportation = lazy(() => import('./pages/purchases/DossiersImportation'))
 const Regroupement = lazy(() => import('./pages/purchases/Regroupement'))
 const DemandesApprouvees = lazy(() => import('./pages/purchases/DemandesApprouvees'))
+const DocumentsTransport = lazy(() => import('./pages/purchases/DocumentsTransport'))
 const Profile = lazy(() => import('./pages/Profile'))
 import FicheBonCommande from './pages/purchases/FicheBonCommande'
 
@@ -79,6 +80,7 @@ export default function App() {
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id/fiche" element={<FicheBonCommande />} />
             <Route path="purchases/regroupement" element={<Regroupement />} />
+            <Route path="purchases/documents-transport" element={<DocumentsTransport />} />
           </Route>
         </Routes>
         </Suspense>
