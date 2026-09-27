@@ -16,6 +16,7 @@ export default function DataTable({
   page,
   pageSize,
   onPageChange,
+  emptyMessage = 'Aucune donnée trouvée', // NEW_00 27-09: message à afficher quand il n'y a pas de données
 }) {
   const [sortKey, setSortKey] = useState('')
   const [sortDir, setSortDir] = useState('asc')
@@ -72,14 +73,31 @@ export default function DataTable({
                       : ''
                   }`}
                   onClick={() => col.sortable && handleSort(col.key)}
-                >
+                  
+                  // NEW_01 27-09: les caractères â†‘/â†“ sont un bug d'encodage 
+                  // affichés mal sur les tableaux
+                  tabIndex={col.sortable ? 0 : undefined}
+                  role={col.sortable ? 'button' : undefined}
+                  aria-sort={
+                    col.sortable && sortKey === col.key
+                      ? sortDir === 'asc' ? 'ascending' : 'descending'
+                      : undefined
+                  }
+                  onKeyDown={(e) => {
+                    if (col.sortable && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault()
+                      handleSort(col.key)
+                    }
+                  }}
+                > 
                   <span className="inline-flex items-center gap-1">
                     {col.header}
 
                     {col.sortable && sortKey === col.key && (
-                      <span>{sortDir === 'asc' ? 'â†‘' : 'â†“'}</span>
+                      <span aria-hidden="true">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>
+                      //end NEW 27-09
                     )}
-
+                  
                   </span>
                 </th>
               ))}
@@ -104,8 +122,8 @@ export default function DataTable({
                     (onEdit || onDelete || onReject || onAssign || onView || onRegroup || onPdf ? 1 : 0)
                   }
                   className="px-4 py-8 text-center text-gray-500"
-                >
-                  Aucune donnée trouvée
+                > 
+                  {emptyMessage} {/* NEW_02 27-09: */}
                 </td>
               </tr>
 
