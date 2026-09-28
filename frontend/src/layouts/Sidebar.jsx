@@ -88,6 +88,37 @@ function NavIcon({ path }) {
       </svg>
     )
   }
+  if (path === '/purchases/assurances') {
+    return (
+      <svg {...props}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    )
+  }
+  if (path === '/purchases/suivi-transport') {
+    return (
+      <svg {...props}>
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    )
+  }
+  if (path === '/purchases/reception') {
+    return (
+      <svg {...props}>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    )
+  }
+  if (path === '/purchases/historique') {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    )
+  }
   if (path === '/admin/produits') {
     return (
       <svg {...props}>
@@ -136,7 +167,7 @@ export default function Sidebar() {
           w-[200px]
           flex flex-col
           text-white
-          bg-[#203090] dark:bg-[#050a18]
+          bg-gradient-to-b from-[#1e305f] to-[#101a38] dark:from-[#111c38] dark:to-[#050a18]
           rounded-2xl shadow-2xl
           transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -161,7 +192,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `relative flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-[rgba(59,130,246,0.15)] dark:bg-[#1E293B] text-white'
+                    ? 'bg-blue-500/15 ring-1 ring-blue-400/25 text-white dark:bg-blue-500/15 dark:ring-blue-400/25'
                     : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }`
               }

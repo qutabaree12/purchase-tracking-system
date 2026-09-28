@@ -4,6 +4,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts'
 import api from '../../services/api'
+import { useTheme } from '../../context/ThemeContext'
 
 const SURFACE = '#151E32'
 const BORDER = '#1E293B'
@@ -113,14 +114,14 @@ function KpiIcon({ type }) {
   )
 }
 
-function KpiCard({ label, value, color, icon, trend }) {
+function KpiCard({ label, value, color, icon, trend, theme }) {
   return (
-    <div className="relative shadow-sm" style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 14, minHeight: 92 }}>
+    <div className="relative shadow-sm" style={{ backgroundColor: `${color}1A`, boxShadow: `inset 0 0 0 1px ${color}40`, borderRadius: 16, minHeight: 92 }}>
       <div className="absolute top-3 right-3" style={{ color }}>
         <KpiIcon type={icon} />
       </div>
       <div className="px-4 py-3">
-        <p className="text-[13px]" style={{ color: TEXT }}>{label}</p>
+        <p className="text-[13px]" style={{ color: theme.text }}>{label}</p>
         <p className="text-[26px] font-bold leading-none mt-2" style={{ color }}>
           {value.toLocaleString('fr-FR')}
         </p>
@@ -132,11 +133,11 @@ function KpiCard({ label, value, color, icon, trend }) {
   )
 }
 
-function ProgressCard({ color, title, value, count, display }) {
+function ProgressCard({ color, title, value, count, display, theme }) {
   return (
     <div
       className="relative overflow-hidden shadow-sm transition-transform hover:-translate-y-0.5"
-      style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 14 }}
+      style={{ backgroundColor: theme.surface, boxShadow: `inset 0 0 0 1px ${theme.border}`, borderRadius: 14, padding: 14 }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: color }} />
       <div className="flex items-center gap-3">
@@ -144,20 +145,20 @@ function ProgressCard({ color, title, value, count, display }) {
           className="flex-none flex items-center justify-center"
           style={{
             width: 46, height: 46, borderRadius: '50%',
-            fontSize: 11, fontWeight: 700, color: '#F8FAFC',
-            background: `conic-gradient(${color} ${Math.min(100, Math.max(0, value))}%, #334155 0)`,
+            fontSize: 11, fontWeight: 700,
+            background: `conic-gradient(${color} ${Math.min(100, Math.max(0, value))}%, ${theme.track} 0)`,
           }}
         >
           <span
             className="flex items-center justify-center"
-            style={{ background: SURFACE, width: 34, height: 34, borderRadius: '50%' }}
+            style={{ background: theme.surface, width: 34, height: 34, borderRadius: '50%', color: theme.title }}
           >
             {display}
           </span>
         </div>
         <div className="min-w-0">
-          <p className="text-[16px] font-bold text-white leading-none">{count}</p>
-          <p className="text-[12px] mt-1" style={{ color: TEXT }}>{title}</p>
+          <p className="text-[16px] font-bold leading-none" style={{ color: theme.title }}>{count}</p>
+          <p className="text-[12px] mt-1" style={{ color: theme.text }}>{title}</p>
         </div>
       </div>
     </div>
@@ -176,7 +177,7 @@ function buildMonthly6(monthly) {
   return months
 }
 
-function AreaChartSVG({ data }) {
+function AreaChartSVG({ data, theme }) {
   const W = 560, H = 140, TOP = 20, BOTTOM = 110
   const n = Math.max(data.length, 1)
   const maxM = Math.max(...data.map((d) => d.montant), 1)
@@ -202,7 +203,7 @@ function AreaChartSVG({ data }) {
       <div className="relative" style={{ height: 150 }}>
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
           {[35, 70, 105].map((y) => (
-            <line key={y} x1="0" y1={y} x2={W} y2={y} stroke="#334155" strokeOpacity="0.3" strokeWidth="1" />
+            <line key={y} x1="0" y1={y} x2={W} y2={y} stroke={theme.grid} strokeWidth="1" />
           ))}
           <path d={areaPath(mPts)} fill="#3B82F6" fillOpacity="0.1" />
           <path d={linePath(mPts)} fill="none" stroke="#3B82F6" strokeWidth="2" />
@@ -212,18 +213,18 @@ function AreaChartSVG({ data }) {
           <circle cx={lastQ[0]} cy={lastQ[1]} r="5" fill="#10B981" stroke="#0B1120" strokeWidth="2" />
         </svg>
       </div>
-      <div className="flex justify-between mt-1.5 text-xs" style={{ color: TEXT }}>
+      <div className="flex justify-between mt-1.5 text-xs" style={{ color: theme.text }}>
         {data.map((d) => <span key={d.label}>{d.label}</span>)}
       </div>
     </div>
   )
 }
 
-function ChartCard({ title, children }) {
+function ChartCard({ title, children, theme }) {
   return (
-    <div className="h-full flex flex-col shadow-sm" style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
-      <div className="px-4 py-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
-        <h2 className="font-semibold text-[15px] text-white">{title}</h2>
+    <div className="h-full flex flex-col shadow-sm" style={{ backgroundColor: theme.surface, boxShadow: `inset 0 0 0 1px ${theme.border}`, borderRadius: 14, overflow: 'hidden' }}>
+      <div className="px-4 py-3" style={{ borderBottom: `1px solid ${theme.border}` }}>
+        <h2 className="font-semibold text-[15px]" style={{ color: theme.title }}>{title}</h2>
       </div>
       <div className="p-4 flex-1 flex flex-col">{children}</div>
     </div>
@@ -233,6 +234,22 @@ function ChartCard({ title, children }) {
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
   const [error, setError] = useState(null)
+  const { dark } = useTheme()
+  const theme = dark ? {
+    surface: '#151E32',
+    border: '#1E293B',
+    grid: 'rgba(51,65,85,0.3)',
+    track: '#334155',
+    text: '#94A3B8',
+    title: '#ffffff',
+  } : {
+    surface: 'rgba(59,130,246,0.08)',
+    border: 'rgba(59,130,246,0.22)',
+    grid: 'rgba(100,116,139,0.18)',
+    track: '#e2e8f0',
+    text: '#64748b',
+    title: '#1a2b5c',
+  }
 
   useEffect(() => {
     let active = true
@@ -270,7 +287,7 @@ export default function AdminDashboard() {
   }, [])
 
   const kpis = stats ? [
-    { label: 'Employés Total', value: stats.employes, color: TEXT, icon: 'employes' },
+    { label: 'Employés Total', value: stats.employes, color: INDIGO, icon: 'employes' },
     { label: "Demandes d'achat Total", value: stats.total, color: BLUE, icon: 'demandes', trend: stats.ceMois ? `+${stats.ceMois} ce mois` : undefined },
     { label: 'Bon de Commandes', value: stats.bonsCommande, color: CYAN, icon: 'bons' },
   ] : []
@@ -291,13 +308,13 @@ export default function AdminDashboard() {
 
       {/* Cartes KPI */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {kpis.map((k) => <KpiCard key={k.label} {...k} />)}
+        {kpis.map((k) => <KpiCard key={k.label} {...k} theme={theme} />)}
       </div>
 
       {/* DOT + jauges de progression */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="lg:col-span-3">
-          <ChartCard title="Demandes par DOT">
+          <ChartCard title="Demandes par DOT" theme={theme}>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={stats?.dot || []}>
                 <defs>
@@ -306,11 +323,11 @@ export default function AdminDashboard() {
                     <stop offset="100%" stopColor="#3B82F6" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: TEXT }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: TEXT }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: theme.text }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: theme.text }} />
                 <Tooltip content={<DarkTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                <Bar dataKey="value" name="Demandes" fill="url(#dotGrad)" radius={[6, 6, 0, 0]} label={{ position: 'top', fill: TEXT, fontSize: 12 }} />
+                <Bar dataKey="value" name="Demandes" fill="url(#dotGrad)" radius={[6, 6, 0, 0]} label={{ position: 'top', fill: theme.text, fontSize: 12 }} />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -318,14 +335,14 @@ export default function AdminDashboard() {
 
         {/* Jauges de progression (droite, dans un cadre) */}
         <div className="lg:col-span-2">
-          <div className="shadow-sm" style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
-            <div className="px-4 py-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
-              <h2 className="font-semibold text-[15px] text-white">Performance</h2>
+          <div className="shadow-sm" style={{ backgroundColor: theme.surface, boxShadow: `inset 0 0 0 1px ${theme.border}`, borderRadius: 14, overflow: 'hidden' }}>
+            <div className="px-4 py-3" style={{ borderBottom: `1px solid ${theme.border}` }}>
+              <h2 className="font-semibold text-[15px]" style={{ color: theme.title }}>Performance</h2>
             </div>
             <div className="p-4 grid grid-cols-2 gap-3">
               {progress.map((p, i) => (
                 <div key={p.title} className={i === progress.length - 1 ? 'col-span-2' : ''}>
-                  <ProgressCard {...p} />
+                  <ProgressCard {...p} theme={theme} />
                 </div>
               ))}
             </div>
@@ -336,14 +353,14 @@ export default function AdminDashboard() {
       {/* Montant & Quantité + Anneau */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="lg:col-span-3 h-full">
-        <ChartCard title="Montant & Quantité par mois">
-          <p className="text-[11.5px] mb-4" style={{ color: TEXT }}>6 derniers mois</p>
-          <AreaChartSVG data={stats ? buildMonthly6(stats.monthly) : []} />
+        <ChartCard title="Montant & Quantité par mois" theme={theme}>
+          <p className="text-[11.5px] mb-4" style={{ color: theme.text }}>6 derniers mois</p>
+          <AreaChartSVG data={stats ? buildMonthly6(stats.monthly) : []} theme={theme} />
         </ChartCard>
         </div>
 
         <div className="lg:col-span-2 h-full">
-          <ChartCard title="Statut des demandes">
+          <ChartCard title="Statut des demandes" theme={theme}>
             <div className="flex-1 flex flex-col justify-center">
               <div className="relative" style={{ height: 180 }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -355,11 +372,11 @@ export default function AdminDashboard() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-sm font-bold text-white">Statuts</span>
-                  <span className="text-xs" style={{ color: TEXT }}>Répartition</span>
+                  <span className="text-sm font-bold" style={{ color: theme.title }}>Statuts</span>
+                  <span className="text-xs" style={{ color: theme.text }}>Répartition</span>
                 </div>
               </div>
-              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-3 text-[11px]" style={{ color: TEXT }}>
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-3 text-[11px]" style={{ color: theme.text }}>
                 {(stats?.statuts || []).map((s, i) => (
                   <span key={i} className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />

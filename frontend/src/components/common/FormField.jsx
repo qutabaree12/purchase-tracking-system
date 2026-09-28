@@ -1,3 +1,5 @@
+import Select from './Select'
+
 export default function FormField({
   label,
   name,
@@ -17,22 +19,15 @@ export default function FormField({
   const renderInput = () => {
     if (type === 'select' && options) {
       return (
-        <select
-          id={id}
+        <Select
           name={name}
           value={value}
           onChange={onChange}
+          options={options}
           disabled={disabled}
-          className={`input ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
-          required={required}
-        >
-          <option value="">Sélectionner...</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          error={!!error}
+          placeholder={placeholder || 'Sélectionner...'}
+        />
       )
     }
 

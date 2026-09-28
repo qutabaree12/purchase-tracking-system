@@ -17,6 +17,10 @@ const defaultTitles = [
   { match: '/purchases/dashboard', title: 'Tableau de bord' },
   { match: '/purchases/dossiers', title: "Dossiers d'importation" },
   { match: '/purchases/documents-transport', title: 'Documents de transport' },
+  { match: '/purchases/assurances', title: 'Assurances' },
+  { match: '/purchases/suivi-transport', title: 'Suivi du transport' },
+  { match: '/purchases/reception', title: 'Réception des colis' },
+  { match: '/purchases/historique', title: 'Historique' },
 ]
 
 function defaultTitleFor(pathname) {

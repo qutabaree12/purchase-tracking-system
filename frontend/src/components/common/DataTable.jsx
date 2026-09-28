@@ -62,14 +62,14 @@ export default function DataTable({
         <table className="w-full text-sm">
 
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+            <tr className="bg-gray-50 border-b border-gray-200 dark:bg-gradient-to-b dark:from-[#1a2b4a] dark:to-[#0d1730] dark:border-[#1e293b]">
 
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-3 text-left font-medium text-gray-600 ${
+                  className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-blue-100/70 ${
                     col.sortable
-                      ? 'cursor-pointer hover:text-gray-900 select-none'
+                      ? 'cursor-pointer hover:text-gray-900 dark:hover:text-white select-none'
                       : ''
                   }`}
                   onClick={() => col.sortable && handleSort(col.key)}
@@ -103,7 +103,7 @@ export default function DataTable({
               ))}
 
               {(onEdit || onDelete || onReject || onAssign || onView || onRegroup || onPdf) && (
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-blue-100/70">
                   {actionsLabel}
                 </th>
               )}
@@ -111,7 +111,7 @@ export default function DataTable({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-200/60 dark:divide-[#334155]/40">
 
             {sorted.length === 0 ? (
 
@@ -143,13 +143,13 @@ export default function DataTable({
                     item.num_produit ??
                     item.id_fournisseur
                   } // end NEW_03 27-09
-                  className="hover:bg-gray-50 transition-colors"
+                  className="align-middle transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
                 >
 
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className="px-4 py-3 text-gray-700"
+                      className="px-4 py-3 text-gray-700 dark:text-gray-200"
                     >
                       {col.render ? col.render(item) : item[col.key]}
                     </td>
@@ -164,7 +164,7 @@ export default function DataTable({
                         {onView && (
                           <button
                             onClick={() => onView(item)}
-                            className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+                            className="text-blue-600 hover:text-blue-500 dark:text-[#93bbfd] dark:hover:text-[#bfdbfe] text-sm font-medium transition-colors"
                           >
                             Fiche
                           </button>
@@ -191,7 +191,7 @@ export default function DataTable({
                         {onEdit && (
                           <button
                             onClick={() => onEdit(item)}
-                            className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+                            className="text-blue-600 hover:text-blue-500 dark:text-[#93bbfd] dark:hover:text-[#bfdbfe] text-sm font-medium transition-colors"
                           >
                             Modifier
                           </button>

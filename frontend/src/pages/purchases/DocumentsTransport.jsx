@@ -73,9 +73,9 @@ export const DOSSIERS = [
 ]
 
 const STATUS = {
-  fourni: { label: 'Fourni', cls: 'bg-green-100 text-green-800 dark:bg-[#166534] dark:text-[#86efac]' },
-  a_verifier: { label: 'À vérifier', cls: 'bg-amber-100 text-amber-800 dark:bg-[#854d0e] dark:text-[#fde047]' },
-  manquant: { label: 'Manquant', cls: 'bg-red-100 text-red-800 dark:bg-[#991b1b] dark:text-[#fca5a5]' },
+  fourni: { label: 'Fourni', cls: 'bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-500/30 shadow-sm dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25' },
+  a_verifier: { label: 'À vérifier', cls: 'bg-amber-500/10 text-amber-700 ring-1 ring-amber-500/30 shadow-sm dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/25' },
+  manquant: { label: 'Manquant', cls: 'bg-rose-500/10 text-rose-700 ring-1 ring-rose-500/30 shadow-sm dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25' },
 }
 
 function Badge({ tone, children }) {
@@ -239,7 +239,7 @@ export default function DocumentsTransport() {
                     className={`inline-block mt-2 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                       active
                         ? 'bg-white/20 text-white'
-                        : 'bg-red-100 text-red-700 dark:bg-[#991b1b] dark:text-[#fca5a5]'
+                        : 'bg-rose-500/10 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300'
                     }`}
                   >
                     {manquants} manquant{manquants > 1 ? 's' : ''}
@@ -261,14 +261,14 @@ export default function DocumentsTransport() {
             </span>
           </div>
 
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="divide-y divide-gray-200/60 dark:divide-[#334155]/40">
             {selected.docs.map((doc) => {
               const meta = doc.status === 'fourni' || doc.status === 'a_verifier'
                 ? `PDF · ${doc.taille} · déposé le ${doc.date}`
                 : '—'
               const st = STATUS[doc.status]
               return (
-                <div key={doc.nom} className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-center px-6 py-3">
+                <div key={doc.nom} className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-center px-6 py-3 transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]">
                   {/* Milieu : document */}
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="w-9 h-9 shrink-0 rounded-lg bg-gray-100 dark:bg-[#15224a] flex items-center justify-center">
@@ -289,7 +289,7 @@ export default function DocumentsTransport() {
                       <button
                         type="button"
                         onClick={() => setPreview({ dossier: selected, doc })}
-                        className="text-primary-600 hover:text-primary-800 dark:text-[#93bbfd] text-sm font-medium"
+                        className="text-blue-600 hover:text-blue-500 dark:text-[#93bbfd] dark:hover:text-[#bfdbfe] text-sm font-medium transition-colors"
                       >
                         Voir
                       </button>
@@ -297,7 +297,7 @@ export default function DocumentsTransport() {
                       <button
                         type="button"
                         onClick={() => openImport(doc)}
-                        className="text-primary-600 hover:text-primary-800 dark:text-[#93bbfd] text-sm font-medium"
+                        className="text-blue-600 hover:text-blue-500 dark:text-[#93bbfd] dark:hover:text-[#bfdbfe] text-sm font-medium transition-colors"
                       >
                         Importer
                       </button>

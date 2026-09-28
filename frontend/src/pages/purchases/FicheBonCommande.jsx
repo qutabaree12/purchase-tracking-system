@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import StatusBadge from '../../components/common/StatusBadge'
+import Select from '../../components/common/Select'
 import { formatCurrency, modeExpeditionLabel } from '../../utils/format'
 import { exporterPdfUn } from '../../utils/bcPdf'
 import { useAuth } from '../../context/AuthContext'
@@ -639,29 +640,21 @@ export default function FicheBonCommande() {
                   <>
                     <div className="flex gap-3">
 
-                      <select
-                        className="input flex-1"
+                      <Select
+                        className="flex-1"
                         value={transitaireSelectionne}
                         onChange={(e) => {
                           setTransitaireSelectionne(e.target.value)
                           setAssignError(null)
                           setSuccess(null)
                         }}
+                        options={transitaires.map((transitaire) => ({
+                          value: transitaire.id_emp,
+                          label: transitaire.full_name,
+                        }))}
+                        placeholder="Sélectionner un transitaire"
                         disabled={assigning}
-                      >
-                        <option value="">
-                          Sélectionner un transitaire
-                        </option>
-
-                        {transitaires.map((transitaire) => (
-                          <option
-                            key={transitaire.id_emp}
-                            value={transitaire.id_emp}
-                          >
-                            {transitaire.full_name}
-                          </option>
-                        ))}
-                      </select>
+                      />
 
                       <button
                         type="button"
@@ -733,19 +726,20 @@ export default function FicheBonCommande() {
                                     <label className="block text-xs font-semibold text-gray-500 mb-1">
                                       Mode d'expédition <span className="text-red-500">*</span>
                                     </label>
-                                    <select
-                                      className="input w-full"
+                                    <Select
+                                      className="w-full"
                                       value={dossierForm.mode_expedition}
                                       onChange={(e) =>
                                         setDossierForm({ ...dossierForm, mode_expedition: e.target.value })
                                       }
-                                    >
-                                      <option value="">Sélectionner...</option>
-                                      <option value="maritime">Maritime</option>
-                                      <option value="aerien">Aérien</option>
-                                      <option value="terrestre">Terrestre</option>
-                                      <option value="ferroviaire">Ferroviaire</option>
-                                    </select>
+                                      options={[
+                                        { value: 'maritime', label: 'Maritime' },
+                                        { value: 'aerien', label: 'Aérien' },
+                                        { value: 'terrestre', label: 'Terrestre' },
+                                        { value: 'ferroviaire', label: 'Ferroviaire' },
+                                      ]}
+                                      placeholder="Sélectionner..."
+                                    />
                                   </div>
 
                                     <div>

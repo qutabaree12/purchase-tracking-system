@@ -25,6 +25,10 @@ const DossiersImportation = lazy(() => import('./pages/purchases/DossiersImporta
 const Regroupement = lazy(() => import('./pages/purchases/Regroupement'))
 const DemandesApprouvees = lazy(() => import('./pages/purchases/DemandesApprouvees'))
 const DocumentsTransport = lazy(() => import('./pages/purchases/DocumentsTransport'))
+const Assurances = lazy(() => import('./pages/purchases/Assurances'))
+const SuiviTransport = lazy(() => import('./pages/purchases/SuiviTransport'))
+const ReceptionColis = lazy(() => import('./pages/purchases/ReceptionColis'))
+const Historique = lazy(() => import('./pages/purchases/Historique'))
 const Profile = lazy(() => import('./pages/Profile'))
 import FicheBonCommande from './pages/purchases/FicheBonCommande'
 
@@ -81,6 +85,10 @@ export default function App() {
             <Route path="purchases/order/:id/fiche" element={<FicheBonCommande />} />
             <Route path="purchases/regroupement" element={<Regroupement />} />
             <Route path="purchases/documents-transport" element={<DocumentsTransport />} />
+            <Route path="purchases/assurances" element={<Assurances />} />
+            <Route path="purchases/suivi-transport" element={<SuiviTransport />} />
+            <Route path="purchases/reception" element={<ReceptionColis />} />
+            <Route path="purchases/historique" element={<Historique />} />
           </Route>
         </Routes>
         </Suspense>

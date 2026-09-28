@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";  // useEffect ajouté
 import { useNavigate, useParams } from "react-router-dom";  // useParams ajouté
 import api from "../../services/api";
 
+import Select from "../../components/common/Select";
+
 import PurchaseRequestForm from "../../components/forms/PurchaseRequestForm";
 
 
@@ -263,55 +265,12 @@ export default function PurchaseRequest() {
 
                         <div className="col-span-4">
 
-                          <select
-
-                            className="input"
-
+                          <Select
                             value={ligne.produit}
-
-                            onChange={(e) =>
-
-                              handleLineChange(
-
-                                index,
-
-                                "produit",
-
-                                e.target.value
-
-                              )
-
-                            }
-
-                          >
-
-                            <option value="">
-
-                              Sélectionner
-
-                            </option>
-
-                            {
-
-                              productOptions.map((p) => (
-
-                                <option
-
-                                  key={p.value}
-
-                                  value={p.value}
-
-                                >
-
-                                  {p.label}
-
-                                </option>
-
-                              ))
-
-                            }
-
-                          </select>
+                            onChange={(e) => handleLineChange(index, "produit", e.target.value)}
+                            options={productOptions}
+                            placeholder="Sélectionner"
+                          />
 
                         </div>
 

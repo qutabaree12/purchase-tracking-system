@@ -37,8 +37,12 @@ export const ROLE_ACCESS = {
       { name: 'Tableau de bord', path: '/purchases/dashboard' },
       { name: "Dossiers d'importation", path: '/purchases/dossiers' },
       { name: 'Documents de transport', path: '/purchases/documents-transport' },
+      { name: 'Assurances', path: '/purchases/assurances' },
+      { name: 'Suivi du transport', path: '/purchases/suivi-transport' },
+      { name: 'Réception des colis', path: '/purchases/reception' },
+      { name: 'Historique', path: '/purchases/historique' },
     ],
-    prefixes: ['/purchases/dashboard', '/purchases/dossiers', '/purchases/order', '/purchases/documents-transport'],
+    prefixes: ['/purchases/dashboard', '/purchases/dossiers', '/purchases/order', '/purchases/documents-transport', '/purchases/assurances', '/purchases/suivi-transport', '/purchases/reception', '/purchases/historique'],
   },
   directeur: {
     home: '/admin',

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
+import Select from '../../components/common/Select'
 import { formatDate, modeExpeditionLabel } from '../../utils/format'
 
 const COLUMNS = [
@@ -86,17 +87,17 @@ export default function DossiersImportation() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select
-          className="input"
-          style={{ width: 'auto' }}
+        <Select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="all">Tous les statuts</option>
-          <option value="a traiter">À traiter</option>
-          <option value="en cours">En cours</option>
-          <option value="livré">Livré</option>
-        </select>
+          options={[
+            { value: 'all', label: 'Tous les statuts' },
+            { value: 'a traiter', label: 'À traiter' },
+            { value: 'en cours', label: 'En cours' },
+            { value: 'livré', label: 'Livré' },
+          ]}
+          className="w-48"
+        />
       </div>
 
       <DataTable

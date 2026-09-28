@@ -1,4 +1,5 @@
 import FormField from '../common/FormField'
+import Select from '../common/Select'
 
 const statusOptions = [
   { value: 'pending', label: 'En attente' },
@@ -32,16 +33,12 @@ export default function DeliveryForm({
         {data.items.map((item, index) => (
           <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2">
             <div className="flex-1">
-              <select
+              <Select
                 value={item.product_id}
                 onChange={(e) => onItemChange(index, 'product_id', Number(e.target.value))}
-                className="input text-sm"
-              >
-                <option value="">Sélectionner un produit</option>
-                {productOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+                options={productOptions}
+                placeholder="Sélectionner un produit"
+              />
             </div>
             <input
               type="number"

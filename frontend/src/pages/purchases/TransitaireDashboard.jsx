@@ -6,11 +6,11 @@ import DataTable from '../../components/common/DataTable'
 import { formatDate, modeExpeditionLabel } from '../../utils/format'
 import { DOSSIERS } from './DocumentsTransport'
 
-function Kpi({ label, value, color }) {
+function Kpi({ label, value, tone }) {
   return (
-    <div className="card px-6 py-5">
-      <p className="text-[12px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
-      <p className={`text-3xl font-bold mt-2 ${color}`}>{value}</p>
+    <div className={`rounded-2xl p-5 ring-1 shadow-sm ${tone}`}>
+      <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">{label}</p>
+      <p className="text-3xl font-bold mt-2">{value}</p>
     </div>
   )
 }
@@ -89,10 +89,10 @@ export default function TransitaireDashboard() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Kpi label="À traiter" value={aTraiter} color="text-amber-500" />
-        <Kpi label="En cours" value={enCours} color="text-blue-600" />
-        <Kpi label="Livrés" value={livres} color="text-green-600" />
-        <Kpi label="En retard" value={enRetard} color="text-red-500" />
+        <Kpi label="À traiter" value={aTraiter} tone="bg-amber-500/10 text-amber-700 ring-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/25" />
+        <Kpi label="En cours" value={enCours} tone="bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25" />
+        <Kpi label="Livrés" value={livres} tone="bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25" />
+        <Kpi label="En retard" value={enRetard} tone="bg-rose-500/10 text-rose-700 ring-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25" />
       </div>
 
       <div className="card overflow-hidden">
@@ -138,37 +138,54 @@ export default function TransitaireDashboard() {
           </button>
         </div>
 
-        {DOCUMENTS_MANQUANTS.length === 0 ? (
-          <div className="px-6 py-8 text-center text-gray-500">Aucun document manquant</div>
-        ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {DOCUMENTS_MANQUANTS.map((m) => (
-              <div key={`${m.bc}-${m.nom}`} className="flex items-center gap-3 px-6 py-3">
-                <span className="w-9 h-9 shrink-0 rounded-lg bg-gray-100 dark:bg-[#15224a] flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 text-brand-navy dark:text-white/80"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                  </svg>
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{m.nom}</p>
-                  <p className="text-xs text-gray-500">{m.bc} · {m.fournisseur}</p>
-                </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-[#991b1b] dark:text-[#fca5a5]">
-                  Manquant
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 dark:bg-gradient-to-b dark:from-[#1a2b4a] dark:to-[#0d1730] dark:border-[#1e293b]">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-blue-100/70">Document</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-blue-100/70">Référence</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-blue-100/70">Statut</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200/60 dark:divide-[#334155]/40">
+              {DOCUMENTS_MANQUANTS.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-8 text-center text-gray-500">Aucun document manquant</td>
+                </tr>
+              ) : (
+                DOCUMENTS_MANQUANTS.map((m) => (
+                  <tr key={`${m.bc}-${m.nom}`} className="align-middle transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="w-9 h-9 shrink-0 rounded-lg bg-gray-100 dark:bg-[#15224a] flex items-center justify-center">
+                          <svg
+                            className="w-5 h-5 text-brand-navy dark:text-white/80"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                          </svg>
+                        </span>
+                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{m.nom}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-200">{m.bc} · {m.fournisseur}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-700 ring-1 ring-rose-500/30 shadow-sm dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25">
+                        Manquant
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
