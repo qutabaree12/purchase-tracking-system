@@ -32,6 +32,7 @@ const Historique = lazy(() => import('./pages/purchases/Historique'))
 const ControleurLayout = lazy(() => import('./pages/controleur/ControleurLayout'))
 const ControleurDashboard = lazy(() => import('./pages/controleur/ControleurDashboard'))
 const ControleurDossiers = lazy(() => import('./pages/controleur/ControleurDossiers'))
+const ControleurVerifies = lazy(() => import('./pages/controleur/ControleurVerifies'))
 const Profile = lazy(() => import('./pages/Profile'))
 import FicheBonCommande from './pages/purchases/FicheBonCommande'
 
@@ -95,6 +96,7 @@ export default function App() {
             <Route path="controleur" element={<ControleurLayout />}>
               <Route index element={<ControleurDashboard />} />
               <Route path="dossiers" element={<ControleurDossiers />} />
+              <Route path="verifies" element={<ControleurVerifies />} />
             </Route>
           </Route>
         </Routes>

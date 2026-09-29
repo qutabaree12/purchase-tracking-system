@@ -22,6 +22,7 @@ const defaultTitles = [
   { match: '/purchases/reception', title: 'Réception des colis' },
   { match: '/purchases/historique', title: 'Historique' },
   { match: '/controleur/dossiers', title: 'Dossier à vérifier' },
+  { match: '/controleur/verifies', title: 'Dossier vérifié' },
   { match: '/controleur', title: 'Tableau de bord' },
 ]
 
