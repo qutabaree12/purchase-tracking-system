@@ -23,6 +23,7 @@ const defaultTitles = [
   { match: '/purchases/historique', title: 'Historique' },
   { match: '/controleur/dossiers', title: 'Dossier à vérifier' },
   { match: '/controleur/verifies', title: 'Dossier vérifié' },
+  { match: '/controleur/lettres', title: 'Lettre de crédit' },
   { match: '/controleur', title: 'Tableau de bord' },
 ]
 

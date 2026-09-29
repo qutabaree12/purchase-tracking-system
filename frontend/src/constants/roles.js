@@ -55,6 +55,7 @@ export const ROLE_ACCESS = {
       { name: 'Tableau de bord', path: '/controleur' },
       { name: 'Dossier à vérifier', path: '/controleur/dossiers' },
       { name: 'Dossier vérifié', path: '/controleur/verifies' },
+      { name: 'Lettre de crédit', path: '/controleur/lettres' },
     ],
     prefixes: ['/controleur'],
   },
