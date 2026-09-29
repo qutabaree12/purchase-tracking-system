@@ -53,6 +53,7 @@ export const ROLE_ACCESS = {
     home: '/controleur',
     nav: [
       { name: 'Tableau de bord', path: '/controleur' },
+      { name: 'Dossier à vérifier', path: '/controleur/dossiers' },
     ],
     prefixes: ['/controleur'],
   },

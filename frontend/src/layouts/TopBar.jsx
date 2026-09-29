@@ -21,6 +21,7 @@ const defaultTitles = [
   { match: '/purchases/suivi-transport', title: 'Suivi du transport' },
   { match: '/purchases/reception', title: 'Réception des colis' },
   { match: '/purchases/historique', title: 'Historique' },
+  { match: '/controleur/dossiers', title: 'Dossier à vérifier' },
   { match: '/controleur', title: 'Tableau de bord' },
 ]
 
