@@ -49,6 +49,13 @@ export const ROLE_ACCESS = {
     nav: [{ name: 'Tableau de bord', path: '/admin' }],
     paths: ['/admin'],
   },
+  controleur: {
+    home: '/controleur',
+    nav: [
+      { name: 'Tableau de bord', path: '/controleur' },
+    ],
+    prefixes: ['/controleur'],
+  },
 }
 
 export function getRoleAccess(role) {

@@ -29,6 +29,8 @@ const Assurances = lazy(() => import('./pages/purchases/Assurances'))
 const SuiviTransport = lazy(() => import('./pages/purchases/SuiviTransport'))
 const ReceptionColis = lazy(() => import('./pages/purchases/ReceptionColis'))
 const Historique = lazy(() => import('./pages/purchases/Historique'))
+const ControleurLayout = lazy(() => import('./pages/controleur/ControleurLayout'))
+const ControleurDashboard = lazy(() => import('./pages/controleur/ControleurDashboard'))
 const Profile = lazy(() => import('./pages/Profile'))
 import FicheBonCommande from './pages/purchases/FicheBonCommande'
 
@@ -89,6 +91,9 @@ export default function App() {
             <Route path="purchases/suivi-transport" element={<SuiviTransport />} />
             <Route path="purchases/reception" element={<ReceptionColis />} />
             <Route path="purchases/historique" element={<Historique />} />
+            <Route path="controleur" element={<ControleurLayout />}>
+              <Route index element={<ControleurDashboard />} />
+            </Route>
           </Route>
         </Routes>
         </Suspense>

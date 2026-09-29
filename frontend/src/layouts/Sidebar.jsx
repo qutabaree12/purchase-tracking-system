@@ -119,6 +119,16 @@ function NavIcon({ path }) {
       </svg>
     )
   }
+  if (path === '/controleur') {
+    return (
+      <svg {...props}>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </svg>
+    )
+  }
   if (path === '/admin/produits') {
     return (
       <svg {...props}>
@@ -188,7 +198,7 @@ export default function Sidebar() {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/admin'}
+              end={item.path === '/admin' || item.path === '/controleur'}
               className={({ isActive }) =>
                 `relative flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
                   isActive

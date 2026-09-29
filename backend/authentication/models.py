@@ -38,6 +38,7 @@ class Employe(models.Model):
         CHEF_DEPARTEMENT = 'chef département', 'Chef de département'
         ACHETEUR = 'acheteur', 'Acheteur'
         TRANSITAIRE = 'transitaire', 'Transitaire'
+        CONTROLEUR = 'controleur', 'Contrôleur'
         DIRECTEUR = 'directeur', 'Directeur'
 
     class Etat(models.TextChoices):
