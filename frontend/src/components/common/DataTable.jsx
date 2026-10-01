@@ -94,7 +94,7 @@ export default function DataTable({
                     {col.header}
 
                     {col.sortable && sortKey === col.key && (
-                      <span aria-hidden="true">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>
+                      <span aria-hidden="true" className="text-sm normal-case font-bold" style={{ fontSize: '22px' }}>{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>
                       //end NEW 27-09
                     )}
                   
