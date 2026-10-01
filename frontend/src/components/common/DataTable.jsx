@@ -131,9 +131,6 @@ export default function DataTable({
 
               sorted.map((item) => (
                 <tr
-                  //NEW_03 27-09: -DUPLICATION DES LIGNES BC -
-                  // Regler probleme de clé unique pour les lignes
-                  // du tableau, en utilisant plusieurs champs possibles
                   key={item.id ??
                     item.id_bc ??
                     item.id_dossier ??
@@ -142,9 +139,10 @@ export default function DataTable({
                     item.id_notification ??
                     item.num_produit ??
                     item.id_fournisseur
-                  } // end NEW_03 27-09
-                  className="align-middle transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
-                >
+                }
+                onClick={onView ? () => onView(item) : undefined}
+                className={`align-middle transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04] ${onView ? 'cursor-pointer' : ''}`}
+              >
 
                   {columns.map((col) => (
                     <td
@@ -157,7 +155,7 @@ export default function DataTable({
 
                   {(onEdit || onDelete || onReject || onAssign || onView || onRegroup || onPdf) && (
 
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
 
                       <div className="flex items-center gap-3">
 
