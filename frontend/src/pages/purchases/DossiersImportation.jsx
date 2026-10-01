@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
@@ -25,7 +25,8 @@ export default function DossiersImportation() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(location.state?.filter || 'all')
+
 
   useEffect(() => {
     let active = true
@@ -49,9 +50,17 @@ export default function DossiersImportation() {
     }
   }, [])
 
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+
   const q = search.trim().toLowerCase()
   const filtered = dossiers.filter((d) => {
-    if (filter !== 'all' && d.statut !== filter) return false
+    if (filter === 'en_retard') {
+      const enRetard = d.statut !== 'livré' && d.date_livraison_prevue && new Date(d.date_livraison_prevue) < now
+      if (!enRetard) return false
+    } else if (filter !== 'all' && d.statut !== filter) {
+      return false
+    }
     if (q) {
       const ref = (d.bc_reference || `BC-${d.id_bc}`).toLowerCase()
       const four = (d.fournisseur_nom || '').toLowerCase()
