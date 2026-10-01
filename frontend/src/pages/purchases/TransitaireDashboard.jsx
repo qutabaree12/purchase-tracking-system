@@ -6,9 +6,15 @@ import DataTable from '../../components/common/DataTable'
 import { formatDate, modeExpeditionLabel } from '../../utils/format'
 import { DOSSIERS } from './DocumentsTransport'
 
-function Kpi({ label, value, tone }) {
+function Kpi({ label, value, tone, onClick }) {
   return (
-    <div className={`rounded-2xl p-5 ring-1 shadow-sm ${tone}`}>
+    <div
+      className={`rounded-2xl p-5 ring-1 shadow-sm ${tone} ${onClick ? 'cursor-pointer hover:brightness-95 transition' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } } : undefined}
+    >
       <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">{label}</p>
       <p className="text-3xl font-bold mt-2">{value}</p>
     </div>
@@ -89,10 +95,10 @@ export default function TransitaireDashboard() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Kpi label="À traiter" value={aTraiter} tone="bg-amber-500/10 text-amber-700 ring-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/25" />
-        <Kpi label="En cours" value={enCours} tone="bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25" />
-        <Kpi label="Livrés" value={livres} tone="bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25" />
-        <Kpi label="En retard" value={enRetard} tone="bg-rose-500/10 text-rose-700 ring-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25" />
+        <Kpi label="À traiter" value={aTraiter} tone="bg-amber-500/10 text-amber-700 ring-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/25" onClick={() => navigate('/purchases/dossiers', { state: { filter: 'a traiter' } })} />
+        <Kpi label="En cours" value={enCours} tone="bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25" onClick={() => navigate('/purchases/dossiers', { state: { filter: 'en cours' } })} />
+        <Kpi label="Livrés" value={livres} tone="bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25" onClick={() => navigate('/purchases/dossiers', { state: { filter: 'livré' } })} />
+        <Kpi label="En retard" value={enRetard} tone="bg-rose-500/10 text-rose-700 ring-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25" onClick={() => navigate('/purchases/dossiers', { state: { filter: 'en_retard' } })} />
       </div>
 
       <div className="card overflow-hidden">
