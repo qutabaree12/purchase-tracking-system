@@ -23,6 +23,7 @@ export default function PurchaseRequestList() {
 
   const [data, setData] = useState([]);
   const [demandeurFilter, setDemandeurFilter] = useState('toutes');
+  const [chefFilter, setChefFilter] = useState('toutes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({ arrivees: 0, approuvees: 0, bonsCommande: 0 });
@@ -93,13 +94,23 @@ export default function PurchaseRequestList() {
 
 
 
-  // Filtre utilisé uniquement pour le demandeur
-  const filteredData = isDemandeur
+    // Filtre utilisé uniquement pour le demandeur
+    const demandeurFilteredData = isDemandeur
     ? data.filter((demande) => {
         if (demandeurFilter === 'toutes') return true;
         return demande.statut === demandeurFilter;
       })
     : data;
+
+  // Filtre utilisé uniquement pour le chef de département
+  const filteredData = isChef
+    ? demandeurFilteredData.filter((demande) => {
+        if (chefFilter === 'toutes') return true;
+        if (chefFilter === 'sans_acheteur') return !demande.acheteur_nom;
+        if (chefFilter === 'avec_acheteur') return !!demande.acheteur_nom;
+        return true;
+      })
+    : demandeurFilteredData;
 
   // ---------- Actions ----------
 
@@ -204,10 +215,44 @@ export default function PurchaseRequestList() {
             </div>
           ))}
         </div>
-       )}
-       
-      <div className="flex justify-between items-center">
+              )}
 
+              {isChef && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div
+                    onClick={() => setChefFilter('toutes')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setChefFilter('toutes') } }}
+                    className="rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25"
+                  >
+                    <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">Demandes du département</p>
+                    <p className="text-3xl font-bold mt-2">{data.length}</p>
+                  </div>
+                  <div
+                    onClick={() => setChefFilter('sans_acheteur')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setChefFilter('sans_acheteur') } }}
+                    className="rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition bg-rose-500/10 text-rose-700 ring-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25"
+                  >
+                    <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">Sans acheteur assigné</p>
+                    <p className="text-3xl font-bold mt-2">{data.filter((d) => !d.acheteur_nom).length}</p>
+                  </div>
+                  <div
+                    onClick={() => setChefFilter('avec_acheteur')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setChefFilter('avec_acheteur') } }}
+                    className="rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25"
+                  >
+                    <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">Assignées</p>
+                    <p className="text-3xl font-bold mt-2">{data.filter((d) => d.acheteur_nom).length}</p>
+                  </div>
+                </div>
+              )}
+        
+              <div className="flex justify-between items-center">
         <div>
 
           <p className="text-sm text-gray-500 mt-1">
