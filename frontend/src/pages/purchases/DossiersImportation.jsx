@@ -21,6 +21,7 @@ const COLUMNS = [
 
 export default function DossiersImportation() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [dossiers, setDossiers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
