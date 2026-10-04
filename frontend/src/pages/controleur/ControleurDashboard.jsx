@@ -10,9 +10,15 @@ const KPI_TONES = {
   blue: 'bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25',
 }
 
-function Kpi({ label, value, tone }) {
+function Kpi({ label, value, tone, onClick }) {
   return (
-    <div className={`rounded-2xl p-5 ring-1 shadow-sm ${KPI_TONES[tone] || KPI_TONES.blue}`}>
+    <div
+      className={`rounded-2xl p-5 ring-1 shadow-sm ${KPI_TONES[tone] || KPI_TONES.blue} ${onClick ? 'cursor-pointer hover:brightness-95 transition' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } } : undefined}
+    >
       <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">{label}</p>
       <p className="text-3xl font-bold mt-2">{value}</p>
     </div>
@@ -49,10 +55,10 @@ export default function ControleurDashboard() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Kpi label="Total dossier" value={dossiers.length} tone="violet" />
-        <Kpi label="À vérifier" value={aVerifier.length} tone="amber" />
-        <Kpi label="Vérifiés" value={verifies.length} tone="emerald" />
-        <Kpi label="Lettres de crédit" value={lettres.length} tone="blue" />
+      <Kpi label="Total dossier" value={dossiers.length} tone="violet" onClick={() => navigate('/controleur/dossiers')} />
+      <Kpi label="À vérifier" value={aVerifier.length} tone="amber" onClick={() => navigate('/controleur/dossiers')} />
+      <Kpi label="Vérifiés" value={verifies.length} tone="emerald" onClick={() => navigate('/controleur/dossiers')} />
+      <Kpi label="Lettres de crédit" value={lettres.length} tone="blue" onClick={() => navigate('/controleur/lettres')} />
       </div>
 
       <div className="card overflow-hidden">
