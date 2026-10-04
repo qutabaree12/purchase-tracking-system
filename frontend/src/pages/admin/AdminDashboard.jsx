@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell, BarChart, Bar,
@@ -114,9 +115,16 @@ function KpiIcon({ type }) {
   )
 }
 
-function KpiCard({ label, value, color, icon, trend, theme }) {
+function KpiCard({ label, value, color, icon, trend, theme, onClick }) {
   return (
-    <div className="relative shadow-sm" style={{ backgroundColor: `${color}1A`, boxShadow: `inset 0 0 0 1px ${color}40`, borderRadius: 16, minHeight: 92 }}>
+    <div
+      className={onClick ? 'cursor-pointer hover:brightness-95 transition' : undefined}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } } : undefined}
+      style={{ position: 'relative', backgroundColor: `${color}1A`, boxShadow: `inset 0 0 0 1px ${color}40`, borderRadius: 16, minHeight: 92 }}
+    >
       <div className="absolute top-3 right-3" style={{ color }}>
         <KpiIcon type={icon} />
       </div>
@@ -133,10 +141,14 @@ function KpiCard({ label, value, color, icon, trend, theme }) {
   )
 }
 
-function ProgressCard({ color, title, value, count, display, theme }) {
+function ProgressCard({ color, title, value, count, display, theme, onClick }) {
   return (
     <div
-      className="relative overflow-hidden shadow-sm transition-transform hover:-translate-y-0.5"
+      className={`relative overflow-hidden shadow-sm transition-transform hover:-translate-y-0.5 ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } } : undefined}
       style={{ backgroundColor: theme.surface, boxShadow: `inset 0 0 0 1px ${theme.border}`, borderRadius: 14, padding: 14 }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: color }} />
@@ -232,6 +244,7 @@ function ChartCard({ title, children, theme }) {
 }
 
 export default function AdminDashboard() {
+  const navigate = useNavigate()
   const [stats, setStats] = useState(null)
   const [error, setError] = useState(null)
   const { dark } = useTheme()
@@ -287,17 +300,17 @@ export default function AdminDashboard() {
   }, [])
 
   const kpis = stats ? [
-    { label: 'Employés Total', value: stats.employes, color: INDIGO, icon: 'employes' },
-    { label: "Demandes d'achat Total", value: stats.total, color: BLUE, icon: 'demandes', trend: stats.ceMois ? `+${stats.ceMois} ce mois` : undefined },
-    { label: 'Bon de Commandes', value: stats.bonsCommande, color: CYAN, icon: 'bons' },
+    { label: 'Employés Total', value: stats.employes, color: INDIGO, icon: 'employes', onClick: () => navigate('/admin/users') },
+    { label: "Demandes d'achat Total", value: stats.total, color: BLUE, icon: 'demandes', trend: stats.ceMois ? `+${stats.ceMois} ce mois` : undefined, onClick: () => navigate('/admin/demandes') },
+    { label: 'Bon de Commandes', value: stats.bonsCommande, color: CYAN, icon: 'bons', onClick: () => navigate('/admin/bons-commande') },
   ] : []
 
   const progress = stats ? [
     { title: 'Demandes approuvées', color: GREEN, count: stats.approuvees, value: stats.total ? (stats.approuvees / stats.total) * 100 : 0, display: `${Math.round((stats.approuvees / Math.max(stats.total, 1)) * 100)}%` },
     { title: 'Demandes rejetées', color: RED, count: stats.rejetees, value: stats.total ? (stats.rejetees / stats.total) * 100 : 0, display: `${Math.round((stats.rejetees / Math.max(stats.total, 1)) * 100)}%` },
-    { title: 'Total Produits', color: CYAN, count: stats.produits, value: 100, display: String(stats.produits) },
+    { title: 'Total Produits', color: CYAN, count: stats.produits, value: 100, display: String(stats.produits), onClick: () => navigate('/admin/produits') },
     { title: 'Demandes assignées', color: ORANGE, count: stats.assignees, value: stats.enCours ? (stats.assignees / stats.enCours) * 100 : 0, display: `${Math.round((stats.assignees / Math.max(stats.enCours, 1)) * 100)}%` },
-    { title: 'Total Fournisseur', color: VIOLET, count: stats.fournisseurs, value: 100, display: String(stats.fournisseurs) },
+    { title: 'Total Fournisseur', color: VIOLET, count: stats.fournisseurs, value: 100, display: String(stats.fournisseurs), onClick: () => navigate('/admin/fournisseurs') },
   ] : []
 
   return (
