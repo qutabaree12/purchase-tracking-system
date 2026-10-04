@@ -57,7 +57,7 @@ export default function ControleurDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Kpi label="Total dossier" value={dossiers.length} tone="violet" onClick={() => navigate('/controleur/dossiers')} />
       <Kpi label="À vérifier" value={aVerifier.length} tone="amber" onClick={() => navigate('/controleur/dossiers')} />
-      <Kpi label="Vérifiés" value={verifies.length} tone="emerald" onClick={() => navigate('/controleur/dossiers')} />
+      <Kpi label="Vérifiés" value={verifies.length} tone="emerald" onClick={() => navigate('/controleur/verifies')} />
       <Kpi label="Lettres de crédit" value={lettres.length} tone="blue" onClick={() => navigate('/controleur/lettres')} />
       </div>
 
