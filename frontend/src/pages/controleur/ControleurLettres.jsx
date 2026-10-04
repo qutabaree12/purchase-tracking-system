@@ -6,6 +6,7 @@ export default function ControleurLettres() {
   const { setSubtitle } = useLayout()
   const { lettres } = useControleur()
   const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState(null)
 
   useEffect(() => {
     setSubtitle('Lettres générées et transmises à l\'acheteur')
@@ -55,7 +56,11 @@ export default function ControleurLettres() {
                 </tr>
               ) : (
                 filtered.map((l) => (
-                  <tr key={l.numero} className="align-middle transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]">
+                  <tr
+                    key={l.numero}
+                    onClick={() => setSelected(l)}
+                    className="align-middle cursor-pointer transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
+                  >
                     <td className="px-4 py-3 font-semibold text-gray-800 dark:text-gray-100">{l.numero}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200">{l.bc}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200">{l.fournisseur}</td>
@@ -67,8 +72,50 @@ export default function ControleurLettres() {
               )}
             </tbody>
           </table>
-        </div>
+          </div>
       </div>
+
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setSelected(null)} />
+          <div className="relative bg-white dark:bg-[#101a38] rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-[#1e293b] flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-brand-navy dark:text-white">
+                {selected.numero}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Bon de commande</span>
+                <span className="font-medium text-gray-800 dark:text-gray-200">{selected.bc}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Fournisseur</span>
+                <span className="font-medium text-gray-800 dark:text-gray-200">{selected.fournisseur}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Montant</span>
+                <span className="font-medium text-gray-800 dark:text-gray-200">{selected.montant}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Banque</span>
+                <span className="font-medium text-gray-800 dark:text-gray-200">{selected.banque}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Date</span>
+                <span className="font-medium text-gray-800 dark:text-gray-200">{selected.date}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
