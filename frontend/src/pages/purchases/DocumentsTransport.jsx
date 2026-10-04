@@ -268,8 +268,11 @@ export default function DocumentsTransport() {
                 : '—'
               const st = STATUS[doc.status]
               return (
-                <div key={doc.nom} className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-center px-6 py-3 transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]">
-                  {/* Milieu : document */}
+                <div
+                  key={doc.nom}
+                  onClick={() => (doc.status === 'fourni' || doc.status === 'a_verifier') && setPreview({ dossier: selected, doc })}
+                  className={`grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-center px-6 py-3 transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04] ${(doc.status === 'fourni' || doc.status === 'a_verifier') ? 'cursor-pointer' : ''}`}
+                >                  {/* Milieu : document */}
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="w-9 h-9 shrink-0 rounded-lg bg-gray-100 dark:bg-[#15224a] flex items-center justify-center">
                       <FileIcon />
@@ -288,7 +291,10 @@ export default function DocumentsTransport() {
                     {doc.status === 'fourni' || doc.status === 'a_verifier' ? (
                       <button
                         type="button"
-                        onClick={() => setPreview({ dossier: selected, doc })}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setPreview({ dossier: selected, doc })
+                        }}
                         className="text-blue-600 hover:text-blue-500 dark:text-[#93bbfd] dark:hover:text-[#bfdbfe] text-sm font-medium transition-colors"
                       >
                         Voir
@@ -296,7 +302,10 @@ export default function DocumentsTransport() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => openImport(doc)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openImport(doc)
+                        }}
                         className="text-blue-600 hover:text-blue-500 dark:text-[#93bbfd] dark:hover:text-[#bfdbfe] text-sm font-medium transition-colors"
                       >
                         Importer
