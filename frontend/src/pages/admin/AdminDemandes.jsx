@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
 import { formatDate } from '../../utils/format'
 
 export default function AdminDemandes() {
-  const navigate = useNavigate()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -46,7 +44,7 @@ export default function AdminDemandes() {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
       )}
-      <DataTable columns={columns} data={data} loading={loading} onView={(r) => navigate(`/purchases/request/${r.id_da}/fiche`)}/>
+      <DataTable columns={columns} data={data} loading={loading} />
     </div>
   )
 }
