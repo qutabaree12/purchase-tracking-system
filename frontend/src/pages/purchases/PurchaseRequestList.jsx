@@ -185,10 +185,10 @@ export default function PurchaseRequestList() {
   ];
 
   const demandeurStatsCards = [
-    { label: 'Mes demandes', value: demandeurStats.total, tone: 'bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25' },
-    { label: 'En cours', value: demandeurStats.enCours, tone: 'bg-sky-500/10 text-sky-700 ring-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/25' },
-    { label: 'Approuvées', value: demandeurStats.approuvees, tone: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25' },
-    { label: 'Refusées', value: demandeurStats.refusees, tone: 'bg-rose-500/10 text-rose-700 ring-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25' },
+    { label: 'Mes demandes', value: demandeurStats.total, filter: 'toutes', tone: 'bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25' },
+    { label: 'En cours', value: demandeurStats.enCours, filter: 'en_cours', tone: 'bg-sky-500/10 text-sky-700 ring-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/25' },
+    { label: 'Approuvées', value: demandeurStats.approuvees, filter: 'approuvee', tone: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25' },
+    { label: 'Refusées', value: demandeurStats.refusees, filter: 'refusee', tone: 'bg-rose-500/10 text-rose-700 ring-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25' },
   ];
 
    return (
@@ -221,13 +221,27 @@ export default function PurchaseRequestList() {
       {isDemandeur && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {demandeurStatsCards.map((stat) => (
-            <div key={stat.label} className={`rounded-2xl p-5 ring-1 shadow-sm ${stat.tone}`}>
-              <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">{stat.label}</p>
+            <div
+              key={stat.label}
+              onClick={() => setDemandeurFilter(stat.filter)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setDemandeurFilter(stat.filter);
+                }
+              }}
+              className={`rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition ${stat.tone}`}
+            >
+              <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">
+                {stat.label}
+              </p>
               <p className="text-3xl font-bold mt-2">{stat.value}</p>
             </div>
           ))}
         </div>
-              )}
+      )}
 
               {isChef && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -289,28 +303,7 @@ export default function PurchaseRequestList() {
         </div>
       )}
 
-      {isDemandeur && (
-        <div className="flex flex-wrap gap-2">
-          {[
-            { key: 'toutes', label: 'Toutes' },
-            { key: 'en_cours', label: 'En cours' },
-            { key: 'approuvee', label: 'Approuvées' },
-            { key: 'refusee', label: 'Refusées' },
-          ].map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => setDemandeurFilter(filter.key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                demandeurFilter === filter.key
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-       )}
+   
        
       <DataTable
         columns={columns}
