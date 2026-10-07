@@ -179,9 +179,9 @@ export default function PurchaseRequestList() {
   ];
 
   const statsCards = [
-    { label: 'Demandes arrivées', value: stats.arrivees, tone: 'bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25' },
-    { label: 'Demandes approuvées', value: stats.approuvees, tone: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25' },
-    { label: 'Bons de commande', value: stats.bonsCommande, tone: 'bg-sky-500/10 text-sky-700 ring-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/25' },
+    { label: 'Demandes arrivées', value: stats.arrivees, path: '/purchases/requests', tone: 'bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25' },
+    { label: 'Demandes approuvées', value: stats.approuvees, path: '/purchases/approved-requests', tone: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25' },
+    { label: 'Bons de commande', value: stats.bonsCommande, path: '/purchases/orders', tone: 'bg-sky-500/10 text-sky-700 ring-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/25' },
   ];
 
   const demandeurStatsCards = [
@@ -197,7 +197,19 @@ export default function PurchaseRequestList() {
       {isAcheteur && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {statsCards.map((stat) => (
-            <div key={stat.label} className={`rounded-2xl p-5 ring-1 shadow-sm ${stat.tone}`}>
+            <div
+              key={stat.label}
+              onClick={() => navigate(stat.path)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  navigate(stat.path)
+                }
+              }}
+              className={`rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition ${stat.tone}`}
+            >
               <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">{stat.label}</p>
               <p className="text-3xl font-bold mt-2">{stat.value}</p>
             </div>
