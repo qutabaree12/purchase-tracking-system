@@ -13,9 +13,12 @@ export const ROLE_ACCESS = {
   },
   'chef département': {
     home: '/purchases/requests',
-    nav: [{ name: "Demandes d'achat", path: '/purchases/requests' }],
-    prefixes: ['/purchases/request'],
-  },
+    nav: [
+      { name: "Demandes d'achat", path: '/purchases/requests' },
+      { name: 'Bons de commande', path: '/purchases/orders' },
+  ],
+  prefixes: ['/purchases/request', '/purchases/orders', '/purchases/order'],
+},
   demandeur: {
     home: '/purchases/requests',
     nav: [{ name: "Demandes d'achat", path: '/purchases/requests' }],
