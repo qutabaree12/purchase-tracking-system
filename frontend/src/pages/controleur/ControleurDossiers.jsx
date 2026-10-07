@@ -85,7 +85,11 @@ export default function ControleurDossiers() {
                 </tr>
               ) : (
                 aVerifier.map((d) => (
-                  <tr key={d.bc} className="align-middle transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]">
+                  <tr
+                    key={d.bc}
+                    onClick={() => setSelected(d)}
+                    className="align-middle cursor-pointer transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
+                  >
                     <td className="px-4 py-3 font-semibold text-gray-800 dark:text-gray-100">{d.bc}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200">{d.fournisseur}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200 tabular-nums">{d.da}</td>
@@ -96,7 +100,7 @@ export default function ControleurDossiers() {
                         {d.auto}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => setSelected(d)}
