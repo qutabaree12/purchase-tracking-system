@@ -187,6 +187,14 @@ class BonDeCommandeViewSet(viewsets.ModelViewSet):
         if getattr(user, 'role', None) == 'acheteur':
             qs = qs.filter(id_acheteur=user)
 
+        # Le chef de département voit uniquement les BC
+        # liés aux DA des demandeurs de son département
+        elif getattr(user, 'role', None) == 'chef département':
+            qs = qs.filter(
+                id_da__id_demandeur__id_departement__id_chef=user
+            )
+
+            
         # Le transitaire voit uniquement les BC
         # dont le dossier d'importation lui est assigné
         elif getattr(user, 'role', None) == 'transitaire':
