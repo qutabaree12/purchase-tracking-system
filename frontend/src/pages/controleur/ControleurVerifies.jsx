@@ -6,6 +6,7 @@ export default function ControleurVerifies() {
   const { setSubtitle } = useLayout()
   const { dossiers } = useControleur()
   const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState(null)
 
   useEffect(() => {
     setSubtitle('Dossiers contrôlés et clôturés')
@@ -55,7 +56,11 @@ export default function ControleurVerifies() {
                 </tr>
               ) : (
                 verifies.map((d) => (
-                  <tr key={d.bc} className="align-middle transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]">
+                    <tr
+                      key={d.bc}
+                      onClick={() => setSelected(d)}
+                      className="align-middle cursor-pointer transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
+                    >
                     <td className="px-4 py-3 font-semibold text-gray-800 dark:text-gray-100">{d.bc}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200">{d.fournisseur}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200 tabular-nums">{d.da}</td>
@@ -73,6 +78,63 @@ export default function ControleurVerifies() {
           </table>
         </div>
       </div>
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setSelected(null)} />
+          <div className="relative bg-white dark:bg-[#101a38] rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-[#1e293b] flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-brand-navy dark:text-white">
+                Dossier vérifié — {selected.bc}
+              </h2>
+              <button type="button" onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+            </div>
+
+            <div className="px-6 py-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 dark:bg-[#15224a] rounded-lg px-4 py-3 mb-4">
+                <div>
+                  <p className="text-[11px] text-gray-500">N° Bon de commande</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{selected.bc}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500">Demande d'achat</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{selected.da}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500">Fournisseur</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{selected.fournisseur}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500">Montant</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{selected.montant}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 mb-4 text-sm">
+                <div>
+                  <p className="text-[11px] text-gray-500">Tarif douane</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selected.tarif}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500">Vérifié le</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selected.dateVerif || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500">Statut</p>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25">
+                    Vérifié
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button type="button" className="btn-secondary" onClick={() => setSelected(null)}>
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
