@@ -26,6 +26,7 @@ const defaultTitles = [
   { match: '/controleur/lettres', title: 'Lettre de crédit' },
   { match: '/purchases/deliveries', title: 'Suivi des livraisons' },
   { match: '/purchases/notifications', title: 'Notifications' },
+  { match: '/purchases/departement', title: 'Tableau de bord' },
   { match: '/purchases/mon-espace', title: 'Tableau de bord' },
   { match: '/controleur', title: 'Tableau de bord' },
 ]

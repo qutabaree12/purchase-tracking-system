@@ -12,13 +12,15 @@ export const ROLE_ACCESS = {
     paths: ['/admin', '/admin/users', '/admin/demandes', '/admin/bons-commande', '/admin/produits', '/admin/fournisseurs'],
   },
   'chef département': {
-    home: '/purchases/requests',
+    home: '/purchases/departement',
     nav: [
+      { name: 'Tableau de bord', path: '/purchases/departement' },
       { name: "Demandes d'achat", path: '/purchases/requests' },
       { name: 'Bons de commande', path: '/purchases/orders' },
-  ],
-  prefixes: ['/purchases/request', '/purchases/orders', '/purchases/order'],
-},
+      { name: 'Notifications', path: '/purchases/notifications' },
+    ],
+    prefixes: ['/purchases/departement', '/purchases/request', '/purchases/orders', '/purchases/order', '/purchases/notifications'],
+  },
   demandeur: {
     home: '/purchases/mon-espace',
     nav: [

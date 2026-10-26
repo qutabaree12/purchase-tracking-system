@@ -7,6 +7,7 @@ import DataTable from "../../components/common/DataTable";
 import StatusBadge from "../../components/common/StatusBadge";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import Select from "../../components/common/Select";
+import FilterTabs from "../../components/common/FilterTabs";
 
 import { formatDate } from "../../utils/format";
 
@@ -25,7 +26,10 @@ export default function PurchaseRequestList() {
   useEffect(() => {
     setDemandeurFilter(routerLocation.state?.filter || 'toutes');
   }, [routerLocation.key]);
-  const [chefFilter, setChefFilter] = useState('toutes');
+  const [chefFilter, setChefFilter] = useState(routerLocation.state?.chefFilter || 'toutes');
+  useEffect(() => {
+    setChefFilter(routerLocation.state?.chefFilter || 'toutes');
+  }, [routerLocation.key]);  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({ arrivees: 0, approuvees: 0, bonsCommande: 0 });
@@ -50,7 +54,7 @@ export default function PurchaseRequestList() {
         if (!active) return;
 
         const toutes = demandesRes.data || [];
-        const demandesVisibles = isDemandeur
+        const demandesVisibles = (isDemandeur || isChef)
           ? toutes
           : toutes.filter((d) => d.statut !== 'approuvee');
         
@@ -106,14 +110,22 @@ export default function PurchaseRequestList() {
 
   // Filtre utilisé uniquement pour le chef de département
   const filteredData = isChef
-    ? demandeurFilteredData.filter((demande) => {
-        if (chefFilter === 'toutes') return true;
-        if (chefFilter === 'sans_acheteur') return !demande.acheteur_nom;
-        if (chefFilter === 'avec_acheteur') return !!demande.acheteur_nom;
+    ? demandeurFilteredData.filter((d) => {
+        if (chefFilter === 'sans_acheteur') return d.statut === 'en_cours' && !d.id_acheteur;
+        if (chefFilter === 'en_traitement') return d.statut === 'en_cours' && !!d.id_acheteur;
+        if (chefFilter === 'approuvee') return d.statut === 'approuvee';
+        if (chefFilter === 'refusee') return d.statut === 'refusee';
         return true;
       })
     : demandeurFilteredData;
 
+  const chefTabs = [
+    { label: 'Toutes', filter: 'toutes', value: data.length },
+    { label: 'À assigner', filter: 'sans_acheteur', value: data.filter((d) => d.statut === 'en_cours' && !d.id_acheteur).length },
+    { label: 'En traitement', filter: 'en_traitement', value: data.filter((d) => d.statut === 'en_cours' && !!d.id_acheteur).length },
+    { label: 'Approuvées', filter: 'approuvee', value: data.filter((d) => d.statut === 'approuvee').length },
+    { label: 'Refusées', filter: 'refusee', value: data.filter((d) => d.statut === 'refusee').length },
+  ];
   // ---------- Actions ----------
 
   const handleAssign = async (request) => {
@@ -142,9 +154,10 @@ export default function PurchaseRequestList() {
     setAssignError('');      // AJOUT : nettoie une éventuelle erreur précédente
   
     try {
-      await api.post(`/demandes/${selectedRequestId}/assigner_acheteur/`, {
+      const res = await api.post(`/demandes/${selectedRequestId}/assigner_acheteur/`, {
         acheteur_id: Number(selectedAcheteur),
       })
+      setData((prev) => prev.map((d) => (d.id_da === res.data.id_da ? res.data : d)))
       setOpenAssign(false)
     } catch (err) {
       setAssignError(err.response?.data?.detail || "Erreur lors de l'assignation.")
@@ -173,6 +186,7 @@ export default function PurchaseRequestList() {
     { key: "numero_da", header: "N° DA", sortable: true },
     { key: "dot", header: "DOT" },
     ...(isDemandeur ? [] : [{ key: "demandeur_nom", header: "Demandeur", sortable: true }]),
+    ...(isChef ? [{ key: "acheteur_nom", header: "Acheteur", render: (r) => r.acheteur_nom || <span className="text-gray-400">Non assigné</span> }] : []),
     { key: "date_creation", header: "Date", sortable: true, render: (r) => formatDate(r.date_creation) },
     { key: "objet", header: "Objet" },
     { key: "statut", header: "Statut", render: (r) => <StatusBadge status={r.statut} /> },
@@ -219,54 +233,31 @@ export default function PurchaseRequestList() {
 
       {/* NOUVEAU : bloc stats demandeur, même pattern que celui de l'acheteur */}
       {isDemandeur && (
-        <div className="flex flex-wrap gap-2">
-          {demandeurStatsCards.map((stat) => (
-            <button
-              key={stat.label}
-              type="button"
-              onClick={() => setDemandeurFilter(stat.filter)}
-              className={demandeurFilter === stat.filter ? 'btn-primary' : 'btn-secondary'}
-            >
-              {stat.label} ({stat.value})
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-6 border-b border-gray-200 dark:border-white/10">
+          {demandeurStatsCards.map((stat) => {
+            const actif = demandeurFilter === stat.filter;
+            return (
+              <button
+                key={stat.label}
+                type="button"
+                onClick={() => setDemandeurFilter(stat.filter)}
+                className={`-mb-px pb-2 text-sm font-medium border-b-2 transition-colors ${
+                  actif
+                    ? 'border-[#007a33] text-[#007a33] dark:border-[#00a651] dark:text-[#00a651]'
+                    : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                }`}
+              >
+                {stat.label}
+                <span className="ml-1.5 text-xs opacity-70">{stat.value}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
-              {isChef && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div
-                    onClick={() => setChefFilter('toutes')}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setChefFilter('toutes') } }}
-                    className="rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25"
-                  >
-                    <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">Demandes du département</p>
-                    <p className="text-3xl font-bold mt-2">{data.length}</p>
-                  </div>
-                  <div
-                    onClick={() => setChefFilter('sans_acheteur')}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setChefFilter('sans_acheteur') } }}
-                    className="rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition bg-rose-500/10 text-rose-700 ring-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25"
-                  >
-                    <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">Sans acheteur assigné</p>
-                    <p className="text-3xl font-bold mt-2">{data.filter((d) => !d.acheteur_nom).length}</p>
-                  </div>
-                  <div
-                    onClick={() => setChefFilter('avec_acheteur')}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setChefFilter('avec_acheteur') } }}
-                    className="rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25"
-                  >
-                    <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">Assignées</p>
-                    <p className="text-3xl font-bold mt-2">{data.filter((d) => d.acheteur_nom).length}</p>
-                  </div>
-                </div>
-              )}
+      {isChef && (
+        <FilterTabs tabs={chefTabs} value={chefFilter} onChange={setChefFilter} />
+      )}
         
               <div className="flex justify-between items-center">
         <div>
@@ -302,8 +293,8 @@ export default function PurchaseRequestList() {
         onEdit={isDemandeur ? (request) => navigate(`/purchases/request/${request.id_da}`) : undefined}
         onDelete={isDemandeur ? handleDelete : undefined}
         canEdit={(r) => r.statut === 'en_cours' && !r.id_acheteur}
-        canDelete={(r) => r.statut === 'en_cours' && !r.id_acheteur}        onAssign={isChef ? handleAssign : undefined}
-        // CHANGÉ : onView maintenant pour acheteur ET demandeur (avant : isAcheteur seul)
+        canDelete={(r) => r.statut === 'en_cours' && !r.id_acheteur}
+        onAssign={isChef ? handleAssign : undefined}        // CHANGÉ : onView maintenant pour acheteur ET demandeur (avant : isAcheteur seul)
         onView={(isAcheteur || isDemandeur || isChef) ? handleViewFiche : undefined}
       />
       {/* Assignation acheteur (chef département) */}
