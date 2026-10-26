@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { getRoleAccess } from './constants/roles'
+import FicheBonCommande from './pages/purchases/FicheBonCommande'
+
 
 // Chargement paresseux (lazy) des pages : chaque page n'est téléchargée
 // que lorsqu'on la visite → le bundle initial est beaucoup plus léger.
@@ -35,7 +37,8 @@ const ControleurDossiers = lazy(() => import('./pages/controleur/ControleurDossi
 const ControleurVerifies = lazy(() => import('./pages/controleur/ControleurVerifies'))
 const ControleurLettres = lazy(() => import('./pages/controleur/ControleurLettres'))
 const Profile = lazy(() => import('./pages/Profile'))
-import FicheBonCommande from './pages/purchases/FicheBonCommande'
+const SuiviLivraisons = lazy(() => import('./pages/purchases/SuiviLivraisons'))
+const Notifications = lazy(() => import('./pages/purchases/Notifications'))
 
 
 function HomeRedirect() {
@@ -94,6 +97,8 @@ export default function App() {
             <Route path="purchases/suivi-transport" element={<SuiviTransport />} />
             <Route path="purchases/reception" element={<ReceptionColis />} />
             <Route path="purchases/historique" element={<Historique />} />
+            <Route path="purchases/deliveries" element={<SuiviLivraisons />} />
+            <Route path="purchases/notifications" element={<Notifications />} />
             <Route path="controleur" element={<ControleurLayout />}>
               <Route index element={<ControleurDashboard />} />
               <Route path="dossiers" element={<ControleurDossiers />} />

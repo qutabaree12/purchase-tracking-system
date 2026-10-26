@@ -19,8 +19,7 @@ export default function PurchaseRequestList() {
   const isAcheteur = role === 'acheteur';
   const isDemandeur = role === 'demandeur';
   const isChef = role === 'chef département';
-  const canCreate = !['acheteur', 'chef département'].includes(role);
-
+  const canCreate = isDemandeur;
   const [data, setData] = useState([]);
   const [demandeurFilter, setDemandeurFilter] = useState('toutes');
   const [chefFilter, setChefFilter] = useState('toutes');
@@ -162,8 +161,7 @@ export default function PurchaseRequestList() {
       await api.delete(`/demandes/${request.id_da}/`);
       setData((prev) => prev.filter((d) => d.id_da !== request.id_da));  // retire de la liste affichée
     } catch (err) {
-      console.error(err.response?.data || err);
-    }
+      setError(err.response?.data?.detail || 'Suppression impossible.');    }
   };
 
   // ---------- Colonnes du tableau ----------

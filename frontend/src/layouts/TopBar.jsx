@@ -24,6 +24,8 @@ const defaultTitles = [
   { match: '/controleur/dossiers', title: 'Dossier à vérifier' },
   { match: '/controleur/verifies', title: 'Dossier vérifié' },
   { match: '/controleur/lettres', title: 'Lettre de crédit' },
+  { match: '/purchases/deliveries', title: 'Suivi des livraisons' },
+  { match: '/purchases/notifications', title: 'Notifications' },
   { match: '/controleur', title: 'Tableau de bord' },
 ]
 
@@ -265,6 +267,16 @@ export default function TopBar() {
                   )}
 
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNotifOpen(false)
+                    navigate('/purchases/notifications')
+                  }}
+                  className="w-full px-4 py-2.5 text-center text-xs font-medium text-brand-navy hover:bg-gray-50 border-t border-gray-200"
+                >
+                  Voir toutes les notifications
+                </button>
               </div>
             )}
           </div>

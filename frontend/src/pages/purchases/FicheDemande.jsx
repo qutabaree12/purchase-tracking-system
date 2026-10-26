@@ -8,7 +8,8 @@ import RejectionLetterForm from '../../components/forms/RejectionLetterForm'
 import { useAuth } from '../../context/AuthContext'
 import { formatDate, formatCurrency } from '../../utils/format'
 import { exporterDaPdf } from '../../utils/daPdf'
-
+import EtapeBadge from '../../components/common/EtapeBadge'
+import { etapeSuivi } from '../../utils/suivi'
 
 export default function FicheDemande() {
   const { id } = useParams()
@@ -142,6 +143,29 @@ export default function FicheDemande() {
         </div>
       </div>
 
+      {demande.suivi?.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Suivi de la commande
+            </span>
+          </div>
+          <div className="card-body space-y-3">
+            {demande.suivi.map((bc) => (
+              <div key={bc.id_bc} className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{bc.reference}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Livraison prévue : {bc.date_livraison_prevue ? formatDate(bc.date_livraison_prevue) : '—'}
+                    {bc.date_reception_reelle && ` · Reçue le ${formatDate(bc.date_reception_reelle)}`}
+                  </p>
+                </div>
+                <EtapeBadge etape={etapeSuivi(bc)} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="card">
         <div className="card-header">
           <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">

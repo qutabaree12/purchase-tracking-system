@@ -154,6 +154,35 @@ function NavIcon({ path }) {
       </svg>
     )
   }
+
+    if (path === '/purchases/deliveries') {
+    return (
+      <svg {...props}>
+        <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z" />
+        <polyline points="3.3 8.3 12 13 20.7 8.3" />
+        <line x1="12" y1="13" x2="12" y2="21" />
+      </svg>
+    )
+  }
+
+  if (path === '/purchases/notifications') {
+    return (
+      <svg {...props}>
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+    )
+  }
+
+  if (path === '/purchases/request/new') {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="16" />
+        <line x1="8" y1="12" x2="16" y2="12" />
+      </svg>
+    )
+  }
   if (path === '/admin/produits') {
     return (
       <svg {...props}>
