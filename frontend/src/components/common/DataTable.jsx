@@ -11,6 +11,8 @@ export default function DataTable({
   onView,
   onRegroup,
   onPdf,
+  canEdit,
+  canDelete,
   actionsLabel = 'Actions',
   total,
   page,
@@ -186,7 +188,7 @@ export default function DataTable({
                           </button>
                         )}
 
-                        {onEdit && (
+                        {onEdit && (!canEdit || canEdit(item)) && (
                           <button
                             onClick={() => onEdit(item)}
                             className="text-blue-600 hover:text-blue-500 dark:text-[#93bbfd] dark:hover:text-[#bfdbfe] text-sm font-medium transition-colors"
@@ -195,7 +197,7 @@ export default function DataTable({
                           </button>
                         )}
 
-                        {onDelete && (
+                        {onDelete && (!canDelete || canDelete(item)) && (
                           <button
                             onClick={() => onDelete(item)}
                             className="text-red-600 hover:text-red-800 text-sm font-medium"

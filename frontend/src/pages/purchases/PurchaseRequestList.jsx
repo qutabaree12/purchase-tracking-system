@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 
@@ -9,10 +9,11 @@ import ConfirmDialog from "../../components/common/ConfirmDialog";
 import Select from "../../components/common/Select";
 
 import { formatDate } from "../../utils/format";
-
+import StatCard from "../../components/common/StatCard";
 
 export default function PurchaseRequestList() {
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const { user } = useAuth();
 
   const role = user?.role;
@@ -21,7 +22,10 @@ export default function PurchaseRequestList() {
   const isChef = role === 'chef département';
   const canCreate = isDemandeur;
   const [data, setData] = useState([]);
-  const [demandeurFilter, setDemandeurFilter] = useState('toutes');
+  const [demandeurFilter, setDemandeurFilter] = useState(routerLocation.state?.filter || 'toutes');
+  useEffect(() => {
+    setDemandeurFilter(routerLocation.state?.filter || 'toutes');
+  }, [routerLocation.key]);
   const [chefFilter, setChefFilter] = useState('toutes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -169,8 +173,7 @@ export default function PurchaseRequestList() {
   const columns = [
     { key: "numero_da", header: "N° DA", sortable: true },
     { key: "dot", header: "DOT" },
-    { key: "demandeur_nom", header: "Demandeur", sortable: true },
-    { key: "acheteur_nom", header: "Acheteur" },
+    ...(isDemandeur ? [] : [{ key: "demandeur_nom", header: "Demandeur", sortable: true }]),
     { key: "date_creation", header: "Date", sortable: true, render: (r) => formatDate(r.date_creation) },
     { key: "objet", header: "Objet" },
     { key: "statut", header: "Statut", render: (r) => <StatusBadge status={r.statut} /> },
@@ -183,10 +186,10 @@ export default function PurchaseRequestList() {
   ];
 
   const demandeurStatsCards = [
-    { label: 'Mes demandes', value: demandeurStats.total, filter: 'toutes', tone: 'bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25' },
-    { label: 'En cours', value: demandeurStats.enCours, filter: 'en_cours', tone: 'bg-sky-500/10 text-sky-700 ring-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/25' },
-    { label: 'Approuvées', value: demandeurStats.approuvees, filter: 'approuvee', tone: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25' },
-    { label: 'Refusées', value: demandeurStats.refusees, filter: 'refusee', tone: 'bg-rose-500/10 text-rose-700 ring-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/25' },
+    { label: 'Mes demandes', value: demandeurStats.total, filter: 'toutes', tone: 'blue', icon: 'file' },
+    { label: 'En cours', value: demandeurStats.enCours, filter: 'en_cours', tone: 'sky', icon: 'clock' },
+    { label: 'Approuvées', value: demandeurStats.approuvees, filter: 'approuvee', tone: 'emerald', icon: 'check' },
+    { label: 'Refusées', value: demandeurStats.refusees, filter: 'refusee', tone: 'rose', icon: 'x' },
   ];
 
    return (
@@ -218,25 +221,17 @@ export default function PurchaseRequestList() {
       {/* NOUVEAU : bloc stats demandeur, même pattern que celui de l'acheteur */}
       {isDemandeur && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {demandeurStatsCards.map((stat) => (
-            <div
+          {demandeurStatsCards.map((stat, i) => (
+            <StatCard
               key={stat.label}
+              label={stat.label}
+              value={stat.value}
+              icon={stat.icon}
+              tone={stat.tone}
+              delay={i * 60}
+              active={demandeurFilter === stat.filter}
               onClick={() => setDemandeurFilter(stat.filter)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setDemandeurFilter(stat.filter);
-                }
-              }}
-              className={`rounded-2xl p-5 ring-1 shadow-sm cursor-pointer hover:brightness-95 transition ${stat.tone}`}
-            >
-              <p className="text-[12px] font-semibold uppercase tracking-wide opacity-75">
-                {stat.label}
-              </p>
-              <p className="text-3xl font-bold mt-2">{stat.value}</p>
-            </div>
+            />
           ))}
         </div>
       )}
@@ -308,8 +303,9 @@ export default function PurchaseRequestList() {
         data={filteredData}
         loading={loading}
         onEdit={isDemandeur ? (request) => navigate(`/purchases/request/${request.id_da}`) : undefined}
-        onDelete={isDemandeur ? (request) => request.statut === 'en_cours' && handleDelete(request) : undefined}
-        onAssign={isChef ? handleAssign : undefined}
+        onDelete={isDemandeur ? handleDelete : undefined}
+        canEdit={(r) => r.statut === 'en_cours' && !r.id_acheteur}
+        canDelete={(r) => r.statut === 'en_cours' && !r.id_acheteur}        onAssign={isChef ? handleAssign : undefined}
         // CHANGÉ : onView maintenant pour acheteur ET demandeur (avant : isAcheteur seul)
         onView={(isAcheteur || isDemandeur || isChef) ? handleViewFiche : undefined}
       />

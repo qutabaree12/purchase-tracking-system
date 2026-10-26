@@ -20,13 +20,14 @@ export const ROLE_ACCESS = {
   prefixes: ['/purchases/request', '/purchases/orders', '/purchases/order'],
 },
   demandeur: {
-    home: '/purchases/requests',
+    home: '/purchases/mon-espace',
     nav: [
+      { name: 'Tableau de bord', path: '/purchases/mon-espace' },
       { name: "Demandes d'achat", path: '/purchases/requests' },
       { name: 'Nouvelle demande', path: '/purchases/request/new' },
       { name: 'Suivi des livraisons', path: '/purchases/deliveries' },
     ],
-    prefixes: ['/purchases/request', '/purchases/deliveries', '/purchases/notifications'],
+    prefixes: ['/purchases/mon-espace', '/purchases/request', '/purchases/deliveries', '/purchases/notifications'],
   },
   acheteur: {
     home: '/purchases/requests',

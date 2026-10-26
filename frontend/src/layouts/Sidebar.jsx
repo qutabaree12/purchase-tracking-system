@@ -25,7 +25,7 @@ function NavIcon({ path }) {
     viewBox: '0 0 24 24',
   }
 
-  if (path === '/purchases/dashboard') {
+  if (path === '/purchases/dashboard' || path === '/purchases/mon-espace') {
     return (
       <svg {...props}>
         <rect x="3" y="3" width="7" height="7" rx="1.5" />
