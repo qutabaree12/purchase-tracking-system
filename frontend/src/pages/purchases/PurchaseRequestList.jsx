@@ -9,7 +9,6 @@ import ConfirmDialog from "../../components/common/ConfirmDialog";
 import Select from "../../components/common/Select";
 
 import { formatDate } from "../../utils/format";
-import StatCard from "../../components/common/StatCard";
 
 export default function PurchaseRequestList() {
   const navigate = useNavigate();
@@ -186,7 +185,7 @@ export default function PurchaseRequestList() {
   ];
 
   const demandeurStatsCards = [
-    { label: 'Mes demandes', value: demandeurStats.total, filter: 'toutes', tone: 'blue', icon: 'file' },
+    { label: 'Toutes', value: demandeurStats.total, filter: 'toutes', tone: 'blue', icon: 'file' },
     { label: 'En cours', value: demandeurStats.enCours, filter: 'en_cours', tone: 'sky', icon: 'clock' },
     { label: 'Approuvées', value: demandeurStats.approuvees, filter: 'approuvee', tone: 'emerald', icon: 'check' },
     { label: 'Refusées', value: demandeurStats.refusees, filter: 'refusee', tone: 'rose', icon: 'x' },
@@ -220,18 +219,16 @@ export default function PurchaseRequestList() {
 
       {/* NOUVEAU : bloc stats demandeur, même pattern que celui de l'acheteur */}
       {isDemandeur && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {demandeurStatsCards.map((stat, i) => (
-            <StatCard
+        <div className="flex flex-wrap gap-2">
+          {demandeurStatsCards.map((stat) => (
+            <button
               key={stat.label}
-              label={stat.label}
-              value={stat.value}
-              icon={stat.icon}
-              tone={stat.tone}
-              delay={i * 60}
-              active={demandeurFilter === stat.filter}
+              type="button"
               onClick={() => setDemandeurFilter(stat.filter)}
-            />
+              className={demandeurFilter === stat.filter ? 'btn-primary' : 'btn-secondary'}
+            >
+              {stat.label} ({stat.value})
+            </button>
           ))}
         </div>
       )}
