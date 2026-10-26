@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 import { formatDate } from '../../utils/format'
 import { etapeSuivi } from '../../utils/suivi'
 
@@ -16,9 +17,10 @@ const PROGRESS = {
 
 const FILTRES = [
   { value: 'toutes', label: 'Toutes', test: () => true },
-  { value: 'preparation', label: 'En préparation', test: (e) => e === 'attente_bc' || e === 'a_traiter' },
-  { value: 'en_cours', label: 'En cours', test: (e) => e === 'en_cours' },
-  { value: 'livre', label: 'Livrées', test: (e) => e === 'livre' },
+  { value: 'preparation', label: 'En préparation', test: (r) => r.etape === 'attente_bc' || r.etape === 'a_traiter' },
+  { value: 'en_cours', label: 'En cours', test: (r) => r.etape === 'en_cours' },
+  { value: 'retard', label: 'En retard', test: (r) => r.enRetard },
+  { value: 'livre', label: 'Livrées', test: (r) => r.etape === 'livre' },
 ]
 
 function Track({ etape }) {
@@ -50,9 +52,19 @@ function Track({ etape }) {
                 }`}
               />
             )}
-            <span className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${circle}`}>
+            <span
+              className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${circle}`}
+            >
               {isDone ? (
-                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               ) : (
@@ -69,6 +81,9 @@ function Track({ etape }) {
 
 export default function SuiviLivraisons() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const isChef = user?.role === 'chef département'
+
   const [demandes, setDemandes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -95,32 +110,47 @@ export default function SuiviLivraisons() {
 
   // Une ligne par commande ; une DA sans BC donne une seule ligne "en attente"
   const lignes = useMemo(() => {
+    const aujourdhui = new Date()
+    aujourdhui.setHours(0, 0, 0, 0)
+
+    const enRetard = (etape, bc) =>
+      etape !== 'livre' &&
+      etape !== 'annule' &&
+      !!bc?.date_livraison_prevue &&
+      new Date(bc.date_livraison_prevue) < aujourdhui
+
     const rows = []
     demandes.forEach((d) => {
       if (!d.suivi || d.suivi.length === 0) {
-        rows.push({ key: `da-${d.id_da}`, demande: d, bc: null, etape: 'attente_bc' })
+        rows.push({ key: `da-${d.id_da}`, demande: d, bc: null, etape: 'attente_bc', enRetard: false })
       } else {
-        d.suivi.forEach((bc) =>
-          rows.push({ key: `bc-${bc.id_bc}-${d.id_da}`, demande: d, bc, etape: etapeSuivi(bc) })
-        )
+        d.suivi.forEach((bc) => {
+          const etape = etapeSuivi(bc)
+          rows.push({
+            key: `bc-${bc.id_bc}-${d.id_da}`,
+            demande: d,
+            bc,
+            etape,
+            enRetard: enRetard(etape, bc),
+          })
+        })
       }
     })
     return rows
   }, [demandes])
 
   const test = FILTRES.find((f) => f.value === filtre).test
-  const visibles = lignes.filter((r) => test(r.etape))
-
-  const aujourdhui = new Date()
-  aujourdhui.setHours(0, 0, 0, 0)
+  const visibles = lignes.filter(test)
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-gray-500">
-          Où en sont vos demandes approuvées, du bon de commande jusqu'à la livraison.
+          {isChef
+            ? "Où en sont les demandes approuvées de votre département, du bon de commande jusqu'à la livraison."
+            : "Où en sont vos demandes approuvées, du bon de commande jusqu'à la livraison."}
         </p>
-        <div className="inline-flex rounded-2xl bg-gray-100 p-1 dark:bg-white/5">
+        <div className="inline-flex flex-wrap rounded-2xl bg-gray-100 p-1 dark:bg-white/5">
           {FILTRES.map((f) => (
             <button
               key={f.value}
@@ -131,7 +161,7 @@ export default function SuiviLivraisons() {
               }`}
             >
               {f.label}
-              <span className="ml-1.5 text-xs opacity-60">{lignes.filter((r) => f.test(r.etape)).length}</span>
+              <span className="ml-1.5 text-xs opacity-60">{lignes.filter(f.test).length}</span>
             </button>
           ))}
         </div>
@@ -150,8 +180,6 @@ export default function SuiviLivraisons() {
           visibles.map((r) => {
             const prevue = r.bc?.date_livraison_prevue
             const recue = r.bc?.date_reception_reelle
-            const enRetard =
-              r.etape !== 'livre' && r.etape !== 'annule' && prevue && new Date(prevue) < aujourdhui
             const ouvrir = () => navigate(`/purchases/request/${r.demande.id_da}/fiche`)
             return (
               <div
@@ -171,7 +199,8 @@ export default function SuiviLivraisons() {
                   <p className="truncate text-sm font-semibold">
                     {r.demande.numero_da} · {r.demande.objet}
                   </p>
-                  <p className="mt-0.5 text-xs text-gray-500">
+                  <p className="mt-0.5 truncate text-xs text-gray-500">
+                    {isChef && `${r.demande.demandeur_nom} · `}
                     {r.bc ? r.bc.reference : 'Bon de commande à venir'}
                   </p>
                 </div>
@@ -185,13 +214,21 @@ export default function SuiviLivraisons() {
                     ) : prevue ? (
                       <>
                         <p className="text-gray-600">Prévue le {formatDate(prevue)}</p>
-                        {enRetard && <p className="font-semibold text-rose-600">En retard</p>}
+                        {r.enRetard && <p className="font-semibold text-rose-600">En retard</p>}
                       </>
                     ) : (
                       <p className="text-gray-400">Date non définie</p>
                     )}
                   </div>
-                  <svg className="h-4 w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <svg
+                    className="h-4 w-4 shrink-0 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    viewBox="0 0 24 24"
+                  >
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
                 </div>

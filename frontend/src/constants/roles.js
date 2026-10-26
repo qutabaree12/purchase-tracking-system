@@ -16,10 +16,10 @@ export const ROLE_ACCESS = {
     nav: [
       { name: 'Tableau de bord', path: '/purchases/departement' },
       { name: "Demandes d'achat", path: '/purchases/requests' },
+      { name: 'Suivi des livraisons', path: '/purchases/deliveries' },
       { name: 'Bons de commande', path: '/purchases/orders' },
-      { name: 'Notifications', path: '/purchases/notifications' },
     ],
-    prefixes: ['/purchases/departement', '/purchases/request', '/purchases/orders', '/purchases/order', '/purchases/notifications'],
+    prefixes: ['/purchases/departement', '/purchases/request', '/purchases/deliveries', '/purchases/orders', '/purchases/order', '/purchases/notifications'],
   },
   demandeur: {
     home: '/purchases/mon-espace',
