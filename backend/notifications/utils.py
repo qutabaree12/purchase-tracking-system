@@ -79,7 +79,7 @@ def notifier_dossier_mis_a_jour(dossier):
     Notification.objects.create(
         destinataire=dossier.id_bc.id_acheteur,
         bon_commande=dossier.id_bc,
-        type=Notification.Type.BC_PRIS_EN_CHARGE,
+        type=Notification.Type.DOSSIER_MIS_A_JOUR,
         titre="Dossier d'importation mis à jour",
         message=(
             f"Le dossier d'importation du "

@@ -109,4 +109,5 @@ class DossierImportationSerializer(serializers.ModelSerializer):
             'transitaire_nom',
             'id_transitaire',
             'date_reception_reelle',
+            'statut',
         ]
