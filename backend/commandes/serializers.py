@@ -7,6 +7,14 @@ from .models import (
 )
 
 
+def _references_da(bc):
+    """N° des DA regroupées dans le BC (repli sur id_da pour les anciennes données)."""
+    refs = sorted(d.numero_da for d in bc.demandes.all())
+    if not refs and bc.id_da_id:
+        refs = [bc.id_da.numero_da]
+    return ', '.join(refs) or None
+
+
 class LigneBonDeCommandeSerializer(serializers.ModelSerializer):
     produit_nom = serializers.CharField(
         source='num_produit.nom_produit',
@@ -47,11 +55,9 @@ class BonDeCommandeSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
-    da_reference = serializers.CharField(
-        source='id_da.numero_da',
-        read_only=True,
-        allow_null=True,
-    )
+    da_reference = serializers.SerializerMethodField()
+
+    demandes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = BonDeCommande
@@ -59,6 +65,7 @@ class BonDeCommandeSerializer(serializers.ModelSerializer):
             'id_bc',
             'reference',
             'id_da',
+            'demandes',
             'da_reference',
             'id_acheteur',
             'acheteur_nom',
@@ -69,6 +76,9 @@ class BonDeCommandeSerializer(serializers.ModelSerializer):
             'status',
             'lignes',
         ]
+
+    def get_da_reference(self, obj):
+        return _references_da(obj)
 
 
 class DossierImportationSerializer(serializers.ModelSerializer):
@@ -88,11 +98,7 @@ class DossierImportationSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
 
-    da_reference = serializers.CharField(
-        source='id_bc.id_da.numero_da',
-        read_only=True,
-        allow_null=True,
-    )
+    da_reference = serializers.SerializerMethodField()
 
     montant = serializers.FloatField(
         source='id_bc.montant',
@@ -149,3 +155,6 @@ class DossierImportationSerializer(serializers.ModelSerializer):
             'banque_lc',
             'date_lc',
         ]
+
+    def get_da_reference(self, obj):
+        return _references_da(obj.id_bc)

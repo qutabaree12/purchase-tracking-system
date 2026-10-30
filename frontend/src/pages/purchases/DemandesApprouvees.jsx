@@ -36,7 +36,7 @@ export default function DemandesApprouvees() {
   }
 
   // Uniquement les demandes approuvées sans bon de commande : prêtes à regrouper
-  const demandesPretes = data.filter((d) => d.statut === 'approuvee' && !d.has_bc)
+  const demandesPretes = data.filter((d) => d.statut === 'approuvee' && d.reste_a_commander)
 
   const handleRegrouper = () => {
     const ids = demandesPretes.map((d) => d.id_da)

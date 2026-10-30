@@ -2,8 +2,8 @@ import datetime
 
 from django.db import models, transaction
 from django.db.utils import IntegrityError
-from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework import status, viewsets
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -12,15 +12,10 @@ from authentication.models import Employe
 from config.pagination import OptionalPagination
 from config.permissions import roles_autorises
 from demandes.models import DemandeAchat, LigneDemandeAchat
-from notifications.utils import (
-    notifier_dossier_assigne,
-    notifier_dossier_mis_a_jour,
-    notifier_reception_validee,
-)
 from produits.models import Fournisseur, Produit
 
 from .models import BonDeCommande, DossierImportation, LigneBonDeCommande
-from .serializers import BonDeCommandeSerializer, DossierImportationSerializer
+from .serializers import BonDeCommandeSerializer
 
 EstAcheteur = roles_autorises(Employe.Role.ACHETEUR)
 
@@ -33,9 +28,11 @@ def _erreur(detail, code=status.HTTP_400_BAD_REQUEST):
 # Regroupement
 # ---------------------------------------------------------------------------
 
-def _regrouper_par_fournisseur(lignes):
+def _regrouper_par_fournisseur(lignes, couverts=frozenset()):
     """Regroupe les lignes par fournisseur du produit et somme les quantités.
-    Retourne (paniers, produits_sans_fournisseur)."""
+    `couverts` : ensemble de (id_da, id_fournisseur) déjà commandés (BC actif) : ignorés.
+    Retourne (paniers, produits_sans_fournisseur). Chaque panier indique `ids_da`,
+    les DA dont il est issu."""
     paniers = {}
     ignores = {}
     for ligne in lignes:
@@ -44,12 +41,16 @@ def _regrouper_par_fournisseur(lignes):
         if not fournisseur:
             ignores[produit.pk] = {'produit_id': produit.pk, 'nom': produit.nom_produit}
             continue
+        if (ligne.id_da_id, fournisseur.pk) in couverts:
+            continue
         if fournisseur.pk not in paniers:
             paniers[fournisseur.pk] = {
                 'fournisseur_id': fournisseur.pk,
                 'fournisseur_nom': fournisseur.nom_fournisseur,
                 'produits': {},
+                'ids_da': set(),
             }
+        paniers[fournisseur.pk]['ids_da'].add(ligne.id_da_id)
         prix = float(ligne.prix_unit or produit.prix_unit or 0)
         entry = paniers[fournisseur.pk]['produits']
         if produit.pk in entry:
@@ -65,6 +66,7 @@ def _regrouper_par_fournisseur(lignes):
         {
             'fournisseur_id': p['fournisseur_id'],
             'fournisseur_nom': p['fournisseur_nom'],
+            'ids_da': sorted(p['ids_da']),
             'produits': list(p['produits'].values()),
         }
         for p in paniers.values()
@@ -76,32 +78,63 @@ def _regrouper_par_fournisseur(lignes):
 @permission_classes([IsAuthenticated, EstAcheteur])
 def regroupement(request):
     """POST /api/regroupement/  { ids_da }
-    Regroupe par fournisseur les DA APPROUVÉES de l'acheteur connecté,
-    sans bon de commande, parmi celles sélectionnées.
+    Regroupe par fournisseur ce qui reste à commander dans les DA APPROUVÉES de
+    l'acheteur connecté, parmi celles sélectionnées.
     La réponse contient aussi 'ignores' : produits sans fournisseur,
     qui ne peuvent pas être commandés."""
     ids_da = request.data.get('ids_da')
     if not ids_da or not isinstance(ids_da, list):
         return Response({'paniers': [], 'ignores': []})
+    try:
+        ids_da = [int(i) for i in ids_da]
+    except (TypeError, ValueError):
+        return _erreur('Liste de demandes invalide.')
 
     demandes = DemandeAchat.objects.filter(
         statut=DemandeAchat.Statut.APPROUVEE,
         id_acheteur=request.user,
-        bons_commande__isnull=True,
         id_da__in=ids_da,
+    )
+    # (DA, fournisseur) déjà couverts par un bon de commande actif
+    couverts = set(
+        BonDeCommande.demandes.through.objects
+        .filter(
+            demandeachat__in=demandes,
+            bondecommande__status=BonDeCommande.Statut.EN_COURS,
+        )
+        .values_list('demandeachat_id', 'bondecommande__id_fournisseur')
     )
     lignes = (
         LigneDemandeAchat.objects
         .filter(id_da__in=demandes)
         .select_related('id_produit__id_fournisseur')
     )
-    paniers, ignores = _regrouper_par_fournisseur(lignes)
+    paniers, ignores = _regrouper_par_fournisseur(lignes, couverts)
     return Response({'paniers': paniers, 'ignores': ignores})
 
 
 # ---------------------------------------------------------------------------
 # Génération des bons de commande
 # ---------------------------------------------------------------------------
+
+def _demandes_eligibles(acheteur, fournisseur_id):
+    """DA approuvées de l'acheteur qui ont au moins une ligne chez ce fournisseur
+    et qui ne sont pas déjà couvertes par un BC actif de ce fournisseur."""
+    couvertes = BonDeCommande.demandes.through.objects.filter(
+        bondecommande__id_fournisseur=fournisseur_id,
+        bondecommande__status=BonDeCommande.Statut.EN_COURS,
+    ).values('demandeachat_id')
+    return (
+        DemandeAchat.objects
+        .filter(
+            statut=DemandeAchat.Statut.APPROUVEE,
+            id_acheteur=acheteur,
+            lignes__id_produit__id_fournisseur=fournisseur_id,
+        )
+        .exclude(pk__in=couvertes)
+        .distinct()
+    )
+
 
 def _creer_bc(acheteur, panier, aujourdhui, prochain_num):
     """Valide un panier et crée BC + dossier + lignes.
@@ -133,26 +166,28 @@ def _creer_bc(acheteur, panier, aujourdhui, prochain_num):
                           f"{fournisseur.nom_fournisseur}."
             })
 
-    # DA d'origine : uniquement une DA approuvée de cet acheteur, sans BC.
-    eligibles = DemandeAchat.objects.filter(
-        statut=DemandeAchat.Statut.APPROUVEE,
-        id_acheteur=acheteur,
-        bons_commande__isnull=True,
-    )
-    id_da = panier.get('id_da')
-    if id_da:
+    # DA regroupées : celles indiquées par le client, re-vérifiées côté serveur.
+    # Sans liste, on prend toutes les DA éligibles pour ce fournisseur.
+    eligibles = _demandes_eligibles(acheteur, fournisseur.pk)
+    ids_da = panier.get('ids_da')
+    if ids_da is not None:
         try:
-            demande = eligibles.filter(pk=int(id_da)).first()
+            ids_da = {int(i) for i in ids_da}
         except (TypeError, ValueError):
-            demande = None
-        if demande is None:
-            raise ValidationError({'detail': "La demande indiquée n'est pas éligible."})
+            raise ValidationError({'detail': 'Liste de demandes invalide.'})
+        demandes = list(eligibles.filter(pk__in=ids_da))
+        if not ids_da or len(demandes) != len(ids_da):
+            raise ValidationError({
+                'detail': "Une des demandes indiquées n'est pas éligible pour "
+                          f"{fournisseur.nom_fournisseur}."
+            })
     else:
-        demande = (
-            eligibles.filter(lignes__id_produit__in=list(quantites))
-            .order_by('id_da')
-            .first()
-        )
+        demandes = list(eligibles)
+    if not demandes:
+        raise ValidationError({
+            'detail': f"Aucune demande approuvée n'est à commander chez {fournisseur.nom_fournisseur}."
+        })
+    demandes.sort(key=lambda d: d.pk)
 
     # Le montant est recalculé côté serveur : le prix envoyé par le client est ignoré.
     montant = sum(
@@ -160,13 +195,14 @@ def _creer_bc(acheteur, panier, aujourdhui, prochain_num):
     )
 
     bc = BonDeCommande.objects.create(
-        id_da=demande,
+        id_da=demandes[0],
         id_acheteur=acheteur,
         id_fournisseur=fournisseur,
         date_creation=aujourdhui,
         montant=montant,
         status=BonDeCommande.Statut.EN_COURS,
     )
+    bc.demandes.set(demandes)
     DossierImportation.objects.create(id_bc=bc, statut=DossierImportation.Statut.A_TRAITER)
     for pid, qte in quantites.items():
         LigneBonDeCommande.objects.create(
@@ -183,7 +219,7 @@ def _creer_bc(acheteur, panier, aujourdhui, prochain_num):
 @permission_classes([IsAuthenticated, EstAcheteur])
 def generer_bons_commande(request):
     """POST /api/bons-commande/generer/
-    Body : { paniers: [{ fournisseur_id, produits: [{produit_id, quantite}] }] }
+    Body : { paniers: [{ fournisseur_id, ids_da, produits: [{produit_id, quantite}] }] }
     Crée un BC par panier, tout ou rien."""
     paniers = request.data.get('paniers')
     if not isinstance(paniers, list) or not paniers:
@@ -237,7 +273,7 @@ class BonDeCommandeViewSet(viewsets.ReadOnlyModelViewSet):
         qs = (
             BonDeCommande.objects
             .select_related('id_acheteur', 'id_fournisseur', 'id_da')
-            .prefetch_related('lignes__num_produit')
+            .prefetch_related('lignes__num_produit', 'demandes')
         )
         user = self.request.user
         role = getattr(user, 'role', None)
@@ -245,11 +281,11 @@ class BonDeCommandeViewSet(viewsets.ReadOnlyModelViewSet):
         if role == Employe.Role.ACHETEUR:
             qs = qs.filter(id_acheteur=user)
         elif role == Employe.Role.CHEF_DEPARTEMENT:
-            qs = qs.filter(id_da__id_demandeur__id_departement__id_chef=user)
+            qs = qs.filter(demandes__id_demandeur__id_departement__id_chef=user).distinct()
         elif role == Employe.Role.TRANSITAIRE:
             qs = qs.filter(dossier_importation__id_transitaire=user)
         elif role == Employe.Role.DEMANDEUR:
-            qs = qs.filter(id_da__id_demandeur=user)
+            qs = qs.filter(demandes__id_demandeur=user).distinct()
         elif role in (Employe.Role.ADMIN, Employe.Role.DIRECTEUR, Employe.Role.CONTROLEUR):
             pass
         else:

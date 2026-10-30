@@ -36,7 +36,7 @@ class DemandeAchatViewSet(viewsets.ModelViewSet):
             .prefetch_related(
                 'lettres_rejet',
                 Prefetch(
-                    'bons_commande',
+                    'commandes_liees',
                     queryset=BonDeCommande.objects.select_related('dossier_importation'),
                 ),
                 Prefetch(

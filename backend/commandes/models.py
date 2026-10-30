@@ -21,6 +21,14 @@ class BonDeCommande(models.Model):
         blank=True,
         related_name='bons_commande',
     )
+    # Source de vérité : toutes les DA regroupées dans ce BC.
+    # `id_da` est conservée pour compatibilité (= première DA liée).
+    demandes = models.ManyToManyField(
+        DemandeAchat,
+        blank=True,
+        related_name='commandes_liees',
+        db_table='bon_commande_demande',
+    )
     id_acheteur = models.ForeignKey(
         Employe,
         on_delete=models.PROTECT,
@@ -54,6 +62,12 @@ class BonDeCommande(models.Model):
 
     def __str__(self):
         return self.reference
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # La DA principale fait toujours partie des DA liées.
+        if self.id_da_id:
+            self.demandes.add(self.id_da_id)
 
     @property
     def reference(self):

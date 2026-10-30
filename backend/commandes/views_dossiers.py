@@ -49,7 +49,7 @@ class DossierImportationViewSet(
             'id_bc__id_acheteur',
             'id_bc__id_da',
             'id_transitaire',
-        )
+        ).prefetch_related('id_bc__demandes')
         user = self.request.user
         role = getattr(user, 'role', None)
 
@@ -58,7 +58,7 @@ class DossierImportationViewSet(
         elif role == Employe.Role.ACHETEUR:
             qs = qs.filter(id_bc__id_acheteur=user)
         elif role == Employe.Role.CHEF_DEPARTEMENT:
-            qs = qs.filter(id_bc__id_da__id_demandeur__id_departement__id_chef=user)
+            qs = qs.filter(id_bc__demandes__id_demandeur__id_departement__id_chef=user).distinct()
         elif role == Employe.Role.CONTROLEUR:
             # Le contrôleur ne voit que les dossiers que le transitaire a renseignés
             # (transitaire assigné + mode, lieu et date prévue). `__gt=''` écarte
