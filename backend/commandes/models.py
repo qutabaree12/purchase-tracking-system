@@ -206,5 +206,12 @@ class DossierImportation(models.Model):
     def __str__(self):
         return f"Dossier importation - {self.id_bc.reference}"
 
-    
-    
+    @property
+    def pret_pour_controle(self):
+        """Le transitaire a renseigné l'essentiel : le contrôleur peut statuer."""
+        return bool(
+            self.id_transitaire_id
+            and self.mode_expedition
+            and self.lieu_chargement
+            and self.date_livraison_prevue
+        )

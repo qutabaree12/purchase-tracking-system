@@ -440,7 +440,7 @@ export default function FicheBonCommande() {
                 Demande d'achat
               </p>
               <p className="text-sm font-medium mt-1">
-                {bon.id_da ? `DA #${bon.id_da}` : 'Aucune DA associée'}
+                {bon.da_reference || 'Aucune DA associée'}
               </p>
             </div>
             <div>
@@ -719,6 +719,35 @@ export default function FicheBonCommande() {
                   INFORMATIONS IMPORTATION
               ========================= */}
                             <div className="border-t border-gray-200 pt-5">
+                              <h3 className="text-sm font-semibold text-gray-700 mb-3">Contrôle du dossier</h3>
+
+                              {dossier.statut_controle === 'valide' ? (
+                                <div className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+                                  <p className="font-medium">
+                                    Dossier validé par le contrôleur
+                                    {dossier.date_controle ? ` le ${formatDate(dossier.date_controle)}` : ''}.
+                                  </p>
+                                  <p className="mt-1">
+                                    Lettre de crédit {dossier.numero_lc} · {dossier.banque_lc} · {formatDate(dossier.date_lc)}
+                                  </p>
+                                </div>
+                              ) : dossier.statut_controle === 'refuse' ? (
+                                <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                                  <p className="font-medium">Dossier refusé par le contrôleur</p>
+                                  <p className="mt-1">Motif : {dossier.commentaire_controle || '—'}</p>
+                                  <p className="mt-1 text-xs">
+                                    Corrigez le dossier puis enregistrez : il repartira automatiquement en vérification.
+                                  </p>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500">
+                                  {dossier.pret_pour_controle
+                                    ? 'En attente de la vérification du contrôleur.'
+                                    : "Renseignez le mode d'expédition, le lieu de chargement et la date de livraison prévue pour envoyer le dossier au contrôleur."}
+                                </p>
+                              )}
+                            </div>
+                            <div className="border-t border-gray-200 pt-5">
 
                               <h3 className="text-sm font-semibold text-gray-700 mb-4">
                                 Informations d'importation
@@ -861,7 +890,7 @@ export default function FicheBonCommande() {
                                       type="button"
                                       className="btn-primary"
                                       onClick={enregistrerDossier}
-                                      disabled={saving}
+                                      disabled={saving || dossier.statut_controle === 'valide' || dossier.statut === 'livré'}
                                     >
                                       {saving ? 'Enregistrement...' : 'Enregistrer'}
                                     </button>
@@ -871,7 +900,7 @@ export default function FicheBonCommande() {
                                         type="button"
                                         className="btn-secondary"
                                         onClick={validerReception}
-                                        disabled={validating}
+                                        disabled={validating || dossier.statut_controle !== 'valide'}
                                       >
                                         {validating ? 'Validation...' : 'Valider la réception'}
                                       </button>

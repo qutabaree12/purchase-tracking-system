@@ -126,3 +126,59 @@ def notifier_reception_validee(dossier):
                 f"{bc.id_da.reference} a été livrée."
             ),
         )
+
+# ---------------------------------------------------------------------------
+# Circuit de contrôle du dossier d'importation
+# ---------------------------------------------------------------------------
+
+def notifier_dossier_a_verifier(dossier):
+    """Prévient les contrôleurs actifs qu'un dossier est prêt pour vérification."""
+    from authentication.models import Employe
+
+    bc = dossier.id_bc
+    for controleur in Employe.objects.filter(
+        role=Employe.Role.CONTROLEUR, etat=Employe.Etat.ACTIF
+    ):
+        Notification.objects.create(
+            destinataire=controleur,
+            bon_commande=bc,
+            type=Notification.Type.DOSSIER_MIS_A_JOUR,
+            titre="Dossier à vérifier",
+            message=f"Le dossier d'importation du {bc.reference} est prêt pour vérification.",
+        )
+
+
+def notifier_controle_decision(dossier):
+    """Informe le transitaire et l'acheteur de la décision du contrôleur."""
+    bc = dossier.id_bc
+    valide = dossier.statut_controle == 'valide'
+
+    if valide:
+        type_notif = Notification.Type.LC_CREEE
+        titre = "Dossier validé par le contrôleur"
+        message = (
+            f"Le dossier du {bc.reference} est validé. "
+            f"Lettre de crédit {dossier.numero_lc} ({dossier.banque_lc})."
+        )
+    else:
+        type_notif = Notification.Type.DOSSIER_MIS_A_JOUR
+        titre = "Dossier refusé par le contrôleur"
+        message = (
+            f"Le dossier du {bc.reference} est refusé. "
+            f"Motif : {dossier.commentaire_controle}"
+        )
+
+    destinataires = []
+    if dossier.id_transitaire:
+        destinataires.append(dossier.id_transitaire)
+    if bc.id_acheteur and bc.id_acheteur not in destinataires:
+        destinataires.append(bc.id_acheteur)
+
+    for destinataire in destinataires:
+        Notification.objects.create(
+            destinataire=destinataire,
+            bon_commande=bc,
+            type=type_notif,
+            titre=titre,
+            message=message[:500],
+        )

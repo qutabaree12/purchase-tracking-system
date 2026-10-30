@@ -47,12 +47,19 @@ class BonDeCommandeSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    da_reference = serializers.CharField(
+        source='id_da.numero_da',
+        read_only=True,
+        allow_null=True,
+    )
+
     class Meta:
         model = BonDeCommande
         fields = [
             'id_bc',
             'reference',
             'id_da',
+            'da_reference',
             'id_acheteur',
             'acheteur_nom',
             'id_fournisseur',
@@ -81,12 +88,29 @@ class DossierImportationSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
 
+    da_reference = serializers.CharField(
+        source='id_bc.id_da.numero_da',
+        read_only=True,
+        allow_null=True,
+    )
+
+    montant = serializers.FloatField(
+        source='id_bc.montant',
+        read_only=True,
+        allow_null=True,
+    )
+
+    pret_pour_controle = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = DossierImportation
         fields = [
             'id_dossier',
             'id_bc',
             'bc_reference',
+            'da_reference',
+            'montant',
+            'pret_pour_controle',
             'fournisseur_nom',
             'id_transitaire',
             'transitaire_nom',

@@ -127,13 +127,29 @@ export default function ControleurVerifies() {
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-500">Vérifié le</p>
-                  <p className="font-medium text-gray-800 dark:text-gray-200">{selected.dateVerif || '—'}</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selected.date_controle ? new Date(selected.date_controle + 'T00:00:00').toLocaleDateString('fr-FR') : '—'}</p>
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-500">Statut</p>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25">
                     Vérifié
                   </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3 mb-4 text-sm">
+                <div>
+                  <p className="text-[11px] text-gray-500">Lettre de crédit</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selected.numero_lc || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500">Banque</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selected.banque_lc || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500">Date de la lettre</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">
+                    {selected.date_lc ? new Date(selected.date_lc + 'T00:00:00').toLocaleDateString('fr-FR') : '—'}
+                  </p>
                 </div>
               </div>
 

@@ -177,6 +177,8 @@ class DossierImportationTest(BaseTest):
         self.assertEqual(DossierImportation.objects.count(), 1)
 
     def test_reception_validee_puis_double_validation_refusee(self):
+        self.dossier.statut_controle = 'valide'
+        self.dossier.save()
         self.se_connecter(self.transitaire)
         r = self.client.post(self.url + 'valider_reception/')
         self.assertEqual(r.status_code, 200, r.data)
@@ -187,6 +189,8 @@ class DossierImportationTest(BaseTest):
         self.assertEqual(r.status_code, 400)
 
     def test_reception_bloquee_si_autorisation_manquante(self):
+        self.dossier.statut_controle = 'valide'
+        self.dossier.save()
         self.dossier.autorisation_necessaire = True
         self.dossier.autorisation_obtenue = False
         self.dossier.save()
