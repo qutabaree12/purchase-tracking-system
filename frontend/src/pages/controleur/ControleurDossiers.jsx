@@ -300,18 +300,33 @@ export default function ControleurDossiers() {
                 </h3>
 
                 <div>
-                  <label className="block text-sm mb-1">
-                    Décision
-                  </label>
-                  <select
-                    className="input w-full"
-                    value={decision}
-                    onChange={(e) => setDecision(e.target.value)}
+                  <p className="block text-sm mb-1">Décision</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
                     disabled={saving}
+                    onClick={() => setDecision('valide')}
+                    className={`rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
+                      decision === 'valide'
+                        ? 'border-emerald-600 bg-emerald-600 text-white'
+                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/5'
+                    }`}
                   >
-                    <option value="valide">Valider le dossier</option>
-                    <option value="refuse">Refuser le dossier</option>
-                  </select>
+                    Valider le dossier
+                  </button>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => setDecision('refuse')}
+                    className={`rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
+                      decision === 'refuse'
+                        ? 'border-rose-600 bg-rose-600 text-white'
+                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    Refuser le dossier
+                  </button>
+                </div>
                 </div>
 
                 {decision === 'valide' && (

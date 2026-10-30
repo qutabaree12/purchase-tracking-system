@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLayout } from '../context/LayoutContext'
 import { useTheme } from '../context/ThemeContext'
 import api from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 const defaultTitles = [
   { match: '/admin/users', title: 'Utilisateurs' },
@@ -72,6 +73,7 @@ function ThemeToggle() {
 export default function TopBar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const { title, subtitle, actions, toggleSidebar } = useLayout()
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
@@ -148,7 +150,10 @@ export default function TopBar() {
 
     setNotifOpen(false)
 
-    if (notification.demande) {
+    // Le contrôleur n'a pas accès aux fiches BC : on l'envoie vers son espace.
+    if (user?.role === 'controleur') {
+      navigate('/controleur/dossiers')
+    } else if (notification.demande) {
       navigate(`/purchases/request/${notification.demande}/fiche`)
     } else if (notification.bon_commande) {
       navigate(`/purchases/order/${notification.bon_commande}/fiche`)
