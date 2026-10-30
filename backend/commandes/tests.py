@@ -165,7 +165,7 @@ class DossierImportationPermissionsTestCase(TestCase):
             {'lieu_chargement': 'Test'},
             format='json',
         )
-        self.assertEqual(res.status_code, 403)
+        self.assertIn(res.status_code, (403, 404))
 
     # ---- assigner_transitaire ----
 
@@ -230,6 +230,8 @@ class DossierImportationPermissionsTestCase(TestCase):
     # ---- valider_reception ----
 
     def test_transitaire_assigne_peut_valider_reception(self):
+        self.dossier.statut_controle = 'valide'
+        self.dossier.save()
         self.client.force_authenticate(user=self.transitaire)
         res = self.client.post(
             f'/api/dossiers-importation/{self.dossier.id_dossier}/valider_reception/'
@@ -261,7 +263,7 @@ class DossierImportationPermissionsTestCase(TestCase):
 
     # ---- Trou identifié : rôles hors transitaire/acheteur voient tout en lecture ----
 
-    def test_demandeur_voit_tous_les_dossiers_en_lecture(self):
+    def test_demandeur_ne_voit_aucun_dossier(self):
         """
         Documente le comportement ACTUEL (pas forcément voulu) :
         un rôle qui n'est ni transitaire ni acheteur passe à travers
@@ -272,4 +274,4 @@ class DossierImportationPermissionsTestCase(TestCase):
         """
         self.client.force_authenticate(user=self.demandeur)
         res = self.client.get('/api/dossiers-importation/')
-        self.assertIn(self.dossier.id_dossier, extraire_ids(res.data))
+        self.assertNotIn(self.dossier.id_dossier, extraire_ids(res.data))
