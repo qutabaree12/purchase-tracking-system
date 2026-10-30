@@ -99,6 +99,12 @@ class DossierImportationSerializer(serializers.ModelSerializer):
             'date_livraison_prevue',
             'date_reception_reelle',
             'statut',
+            'statut_controle',
+            'commentaire_controle',
+            'date_controle',
+            'numero_lc',
+            'banque_lc',
+            'date_lc',
         ]
 
         read_only_fields = [
@@ -110,4 +116,12 @@ class DossierImportationSerializer(serializers.ModelSerializer):
             'id_transitaire',
             'date_reception_reelle',
             'statut',
+
+            # Champs réservés au contrôleur
+            'statut_controle',
+            'commentaire_controle',
+            'date_controle',
+            'numero_lc',
+            'banque_lc',
+            'date_lc',
         ]

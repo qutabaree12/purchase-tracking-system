@@ -159,6 +159,44 @@ class DossierImportation(models.Model):
         default=Statut.A_TRAITER,
     )
 
+    class StatutControle(models.TextChoices):
+        A_VERIFIER = 'a_verifier', 'À vérifier'
+        VALIDE = 'valide', 'Validé'
+        REFUSE = 'refuse', 'Refusé'
+    
+    statut_controle = models.CharField(
+        max_length=20,
+        choices=StatutControle.choices,
+        default=StatutControle.A_VERIFIER,
+    )
+    
+    commentaire_controle = models.TextField(
+        blank=True,
+        default='',
+    )
+    
+    date_controle = models.DateField(
+        null=True,
+        blank=True,
+    )
+    
+    numero_lc = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+    )
+    
+    banque_lc = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+    )
+    
+    date_lc = models.DateField(
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         db_table = 'DossierImportation'
         verbose_name = "Dossier d'importation"
@@ -167,3 +205,6 @@ class DossierImportation(models.Model):
 
     def __str__(self):
         return f"Dossier importation - {self.id_bc.reference}"
+
+    
+    

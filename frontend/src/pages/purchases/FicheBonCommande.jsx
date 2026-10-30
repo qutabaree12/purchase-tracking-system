@@ -435,7 +435,14 @@ export default function FicheBonCommande() {
                 {bon.fournisseur_nom || '-'}
               </p>
             </div>
-
+            <div>
+              <p className="text-xs font-semibold text-gray-500">
+                Demande d'achat
+              </p>
+              <p className="text-sm font-medium mt-1">
+                {bon.id_da ? `DA #${bon.id_da}` : 'Aucune DA associée'}
+              </p>
+            </div>
             <div>
               <p className="text-xs font-semibold text-gray-500">
                 Acheteur
@@ -512,7 +519,7 @@ export default function FicheBonCommande() {
 
           <span className="text-sm font-semibold text-gray-700">
             Montant total :{' '}
-            {formatCurrency(bon.montant)}
+            {formatCurrency(bon.montant ?? bon.amount)}
           </span>
         </div>
 

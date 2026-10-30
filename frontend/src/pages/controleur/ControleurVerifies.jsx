@@ -4,7 +4,7 @@ import { useControleur } from './ControleurContext'
 
 export default function ControleurVerifies() {
   const { setSubtitle } = useLayout()
-  const { dossiers } = useControleur()
+  const { dossiers, loading, error } = useControleur()  
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
 
@@ -14,11 +14,20 @@ export default function ControleurVerifies() {
 
   const q = search.trim().toLowerCase()
   const verifies = dossiers.filter(
-    (d) => d.statut === 'verifie' && (!q || `${d.bc} ${d.fournisseur}`.toLowerCase().includes(q))
+    (d) =>
+      d.statut_controle === 'valide' &&
+      (!q || `${d.bc} ${d.fournisseur}`.toLowerCase().includes(q))
   )
 
   return (
     <div className="space-y-6">
+      {loading && (
+        <p className="text-sm text-gray-500">Chargement des dossiers...</p>
+      )}
+
+      {error && (
+        <p className="text-sm text-red-600" role="alert">{error}</p>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -68,7 +77,9 @@ export default function ControleurVerifies() {
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-200 tabular-nums">{d.tarif}</td>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-500/30 shadow-sm dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/25">
-                        {d.dateVerif || '—'}
+                        {d.date_controle
+                          ? new Date(`${d.date_controle}T00:00:00`).toLocaleDateString('fr-FR')
+                          : '—'}
                       </span>
                     </td>
                   </tr>

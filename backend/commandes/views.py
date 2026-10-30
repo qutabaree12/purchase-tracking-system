@@ -355,6 +355,67 @@ class DossierImportationViewSet(
         return Response(self.get_serializer(dossier).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
+    def verifier_controleur(self, request, pk=None):
+        dossier = self.get_object()
+
+        if getattr(request.user, 'role', None) != Employe.Role.CONTROLEUR:
+            return _erreur(
+                "Seul le contrôleur peut effectuer cette vérification.",
+                status.HTTP_403_FORBIDDEN,
+            )
+
+        decision = request.data.get('decision')
+        commentaire = str(request.data.get('commentaire', '')).strip()
+
+        if decision not in ('valide', 'refuse'):
+            return _erreur(
+                "La décision doit être 'valide' ou 'refuse'."
+            )
+
+        if decision == 'refuse' and not commentaire:
+            return _erreur(
+                "Un commentaire est obligatoire en cas de refus."
+            )
+
+        numero_lc = str(request.data.get('numero_lc', '')).strip()
+        banque_lc = str(request.data.get('banque_lc', '')).strip()
+        date_lc = request.data.get('date_lc') or None
+
+        if decision == 'valide':
+            if not numero_lc or not banque_lc or not date_lc:
+                return _erreur(
+                    "Pour valider le dossier, renseignez le numéro, "
+                    "la banque et la date de la lettre de crédit."
+                )
+
+        dossier.statut_controle = decision
+        dossier.commentaire_controle = commentaire
+        dossier.date_controle = datetime.date.today()
+
+        if decision == 'valide':
+            dossier.numero_lc = numero_lc
+            dossier.banque_lc = banque_lc
+            dossier.date_lc = date_lc
+        else:
+            dossier.numero_lc = ''
+            dossier.banque_lc = ''
+            dossier.date_lc = None
+
+        dossier.save(update_fields=[
+            'statut_controle',
+            'commentaire_controle',
+            'date_controle',
+            'numero_lc',
+            'banque_lc',
+            'date_lc',
+        ])
+
+        return Response(
+            self.get_serializer(dossier).data,
+            status=status.HTTP_200_OK,
+        )
+    
+    @action(detail=True, methods=['post'])
     def valider_reception(self, request, pk=None):
         dossier = self.get_object()
         refus = self._refus_si_pas_transitaire_assigne(
@@ -371,6 +432,14 @@ class DossierImportationViewSet(
                 return _erreur('La réception de ce dossier a déjà été validée.')
             if dossier.statut != DossierImportation.Statut.EN_COURS:
                 return _erreur("Le dossier doit être en cours pour valider la réception.")
+            if (
+                dossier.statut_controle
+                != DossierImportation.StatutControle.VALIDE
+            ):
+                return _erreur(
+                    "Le contrôle du dossier doit être validé avant "
+                    "de poursuivre le processus."
+                )
             # Règle proposée : retire ce bloc si tu ne veux pas ce blocage.
             if dossier.autorisation_necessaire and not dossier.autorisation_obtenue:
                 return _erreur("Une autorisation est nécessaire et n'a pas encore été obtenue.")

@@ -1,39 +1,114 @@
-import { createContext, useContext, useState } from 'react'
+
+import { createContext, useContext, useEffect, useState } from 'react'
+import api from '../../services/api'
 
 const ControleurContext = createContext(null)
 
-export const INITIAL_DOSSIERS = [
-  { bc: 'BC-2026-0142', fournisseur: 'ALFATRON', da: 'DA-2026-0001', montant: '425 000 DZD', tarif: '42 000 DZD', auto: 'Nécessaire — obtenue', autoState: 'blue', mode: 'Maritime', lieu: 'Marseille, France', statut: 'a_verifier' },
-  { bc: 'BC-2026-0140', fournisseur: 'Huawei', da: 'DA-2026-0012', montant: '1 200 000 DZD', tarif: '33 400 DZD', auto: 'Aucune', autoState: 'gray', mode: 'Aérien', lieu: 'Shenzhen, Chine', statut: 'a_verifier' },
-  { bc: 'BC-2026-0143', fournisseur: 'Paper & Co', da: 'DA-2026-0015', montant: '27 000 DZD', tarif: '8 600 DZD', auto: 'Aucune', autoState: 'gray', mode: 'Aérien', lieu: 'Paris, France', statut: 'a_verifier' },
-  { bc: 'BC-2026-0139', fournisseur: 'Siemens AG', da: 'DA-2026-0009', montant: '980 000 DZD', tarif: '120 000 DZD', auto: 'Nécessaire — obtenue', autoState: 'blue', mode: 'Maritime', lieu: 'Hambourg, Allemagne', statut: 'verifie', dateVerif: '22/09/2026' },
-]
-
-export const INITIAL_LETTRES = [
-  { numero: 'LC-2026-0041', bc: 'BC-2026-0139', fournisseur: 'Siemens AG', montant: '980 000 DZD', banque: 'BNA — Agence Alger Centre', date: '22/09/2026' },
-]
-
 export function ControleurProvider({ children }) {
-  const [dossiers, setDossiers] = useState(INITIAL_DOSSIERS)
-  const [lettres, setLettres] = useState(INITIAL_LETTRES)
+  const [dossiers, setDossiers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  const verifier = (bc) => {
-    const d = dossiers.find((x) => x.bc === bc)
-    if (!d) return null
-    const date = new Date().toLocaleDateString('fr-FR')
-    const numero = 'LC-2026-' + String(42 + lettres.length).padStart(4, '0')
-    setDossiers((prev) =>
-      prev.map((x) => (x.bc === bc ? { ...x, statut: 'verifie', dateVerif: date } : x))
-    )
-    setLettres((prev) => [
-      ...prev,
-      { numero, bc: d.bc, fournisseur: d.fournisseur, montant: d.montant, banque: 'BNA — Agence Alger Centre', date },
-    ])
-    return numero
+  // Charger les vrais dossiers depuis Django
+  const chargerDossiers = async () => {
+    setError('')
+
+    try {
+      const response = await api.get('/dossiers-importation/')
+      const data = response.data
+
+      // Compatible avec une réponse paginée ou une liste simple
+      const liste = Array.isArray(data) ? data : data.results || []
+
+      setDossiers(
+        liste.map((d) => ({
+          ...d,
+          bc: d.bc_reference || `BC #${d.id_bc}`,
+          fournisseur: d.fournisseur_nom || '—',
+          da: d.da_reference || '—',
+          montant: d.montant ?? d.amount ?? '—',
+          tarif: d.tarif_douane ?? '—',
+          auto: d.autorisation_necessaire
+            ? d.autorisation_obtenue
+              ? 'Nécessaire — obtenue'
+              : 'Nécessaire — en attente'
+            : 'Aucune',
+          autoState: d.autorisation_necessaire ? 'blue' : 'gray',
+          mode: d.mode_expedition || '—',
+          lieu: d.lieu_chargement || '—',
+          statut_controle: d.statut_controle || 'a_verifier',
+        }))
+      )
+    } catch (err) {
+      console.error('Erreur chargement dossiers contrôleur :', err)
+      setError(
+        err.response?.data?.detail ||
+        'Impossible de charger les dossiers. Vérifie la connexion à l’API.'
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
+  useEffect(() => {
+    chargerDossiers()
+  }, [])
+
+  // Enregistrer la décision dans la base via Django
+  const verifier = async (idDossier, donnees) => {
+    setSaving(true)
+    setError('')
+
+    try {
+      await api.post(
+        `/dossiers-importation/${idDossier}/verifier_controleur/`,
+        donnees
+      )
+
+      // Relire les données sauvegardées en base
+      await chargerDossiers()
+      return true
+    } catch (err) {
+      const data = err.response?.data
+      const message =
+        data?.detail ||
+        (typeof data === 'object'
+          ? Object.values(data).flat().join(' ')
+          : null) ||
+        'La vérification a échoué.'
+
+      setError(message)
+      throw new Error(message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const dossiersAVerifier = dossiers.filter(
+    (d) => d.statut_controle === 'a_verifier'
+  )
+
+  const dossiersVerifies = dossiers.filter(
+    (d) => d.statut_controle === 'valide'
+  )
+
+  const lettres = dossiersVerifies.filter((d) => d.numero_lc)
+
   return (
-    <ControleurContext.Provider value={{ dossiers, lettres, verifier }}>
+    <ControleurContext.Provider
+      value={{
+        dossiers,
+        lettres,
+        dossiersAVerifier,
+        dossiersVerifies,
+        loading,
+        error,
+        saving,
+        verifier,
+        recharger: chargerDossiers,
+      }}
+    >
       {children}
     </ControleurContext.Provider>
   )
@@ -41,6 +116,12 @@ export function ControleurProvider({ children }) {
 
 export function useControleur() {
   const ctx = useContext(ControleurContext)
-  if (!ctx) throw new Error('useControleur must be used within ControleurProvider')
+
+  if (!ctx) {
+    throw new Error(
+      'useControleur must be used within ControleurProvider'
+    )
+  }
+
   return ctx
 }
