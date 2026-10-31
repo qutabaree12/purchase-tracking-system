@@ -2,7 +2,6 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLayout } from '../context/LayoutContext'
 import { getRoleAccess } from '../constants/roles'
-import useNavBadges from '../hooks/useNavBadges'
 import atLogo from '../assets/images/logo.webp'
 
 function initials(name = '') {
@@ -215,11 +214,7 @@ export default function Sidebar() {
   const { user } = useAuth()
   const { sidebarOpen, toggleSidebar } = useLayout()
   const navigate = useNavigate()
-  const badges = useNavBadges(user?.role)
-  const navigation = getRoleAccess(user?.role).nav.map((item) => ({
-    ...item,
-    badge: badges[item.path] || 0,
-  }))
+  const navigation = getRoleAccess(user?.role).nav
 
   return (
     <>
@@ -277,14 +272,6 @@ export default function Sidebar() {
                   )}
                   <NavIcon path={item.path} />
                   <span className="flex-1 truncate">{item.name}</span>
-                  {item.badge > 0 && (
-                    <span
-                      className="min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full text-[11px] font-semibold text-white"
-                      style={{ backgroundColor: '#dc3545' }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
                 </>
               )}
             </NavLink>
