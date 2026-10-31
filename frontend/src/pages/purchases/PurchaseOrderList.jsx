@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
+import EtatDossierBadge from '../../components/common/EtatDossierBadge'
+import { etatDossier } from '../../utils/etatDossier'
 import { exporterPdfUn, exporterPdfTous } from '../../utils/bcPdf'
 
 function formatDate(date) {
@@ -99,6 +101,25 @@ export default function PurchaseOrderList() {
   const columns = [
     { key: 'reference', header: 'N° BC', sortable: true },
     { key: 'fournisseur_nom', header: 'Fournisseur', sortable: true },
+    {
+      key: 'transitaire_nom',
+      header: 'Transitaire',
+      render: (o) => o.transitaire_nom || <span className="text-rose-600">Non affecté</span>,
+    },
+    {
+      key: 'dossier',
+      header: 'Dossier',
+      render: (o) => (
+        <EtatDossierBadge
+          etat={etatDossier({
+            id_transitaire: o.id_transitaire ?? null,
+            statut: o.dossier_statut,
+            statut_controle: o.dossier_controle,
+            pret_pour_controle: o.dossier_pret,
+          })}
+        />
+      ),
+    },
     { key: 'date_creation', header: 'Date', sortable: true, render: (o) => formatDate(o.date_creation) },
     { key: 'montant', header: 'Montant', render: (o) => `${Number(o.montant || 0).toLocaleString('fr-FR')} DZD` },
     { key: 'status', header: 'Statut', render: (o) => <StatusBadge status={o.status} /> },

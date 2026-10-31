@@ -27,7 +27,7 @@ export function ControleurProvider({ children }) {
           bc: d.bc_reference || `BC #${d.id_bc}`,
           fournisseur: d.fournisseur_nom || '—',
           da: d.da_reference || '—',
-          montant: d.montant ?? d.amount ?? '—',
+          montant: d.montant != null ? `${Number(d.montant).toLocaleString('fr-FR')} DZD` : '—',
           tarif: d.tarif_douane ?? '—',
           auto: d.autorisation_necessaire
             ? d.autorisation_obtenue

@@ -4,7 +4,14 @@ import { useControleur } from './ControleurContext'
 
 export default function ControleurLettres() {
   const { setSubtitle } = useLayout()
-  const { lettres } = useControleur()
+  const { lettres: dossiersLc } = useControleur()
+  // Les lettres viennent des dossiers validés : on adapte les noms de champs à l'affichage.
+  const lettres = dossiersLc.map((d) => ({
+    ...d,
+    numero: d.numero_lc,
+    banque: d.banque_lc,
+    date: d.date_lc ? new Date(`${d.date_lc}T00:00:00`).toLocaleDateString('fr-FR') : '—',
+  }))
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
 
@@ -57,7 +64,7 @@ export default function ControleurLettres() {
               ) : (
                 filtered.map((l) => (
                   <tr
-                    key={l.numero}
+                    key={l.id_dossier}
                     onClick={() => setSelected(l)}
                     className="align-middle cursor-pointer transition-colors even:bg-gray-50/60 hover:bg-gray-50 dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
                   >

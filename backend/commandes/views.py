@@ -17,6 +17,8 @@ from produits.models import Fournisseur, Produit
 from .models import BonDeCommande, DossierImportation, LigneBonDeCommande
 from .serializers import BonDeCommandeSerializer
 
+from .serializers import BonDeCommandeListeSerializer
+
 EstAcheteur = roles_autorises(Employe.Role.ACHETEUR)
 
 
@@ -266,7 +268,7 @@ def generer_bons_commande(request):
 # ---------------------------------------------------------------------------
 
 class BonDeCommandeViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = BonDeCommandeSerializer
+    serializer_class = BonDeCommandeListeSerializer
     pagination_class = OptionalPagination
 
     def get_queryset(self):

@@ -49,8 +49,8 @@ export default function ControleurDashboard() {
     setSubtitle("Vérification des dossiers d'achat")
   }, [setSubtitle])
 
-  const aVerifier = dossiers.filter((d) => d.statut === 'a_verifier')
-  const verifies = dossiers.filter((d) => d.statut === 'verifie')
+  const aVerifier = dossiers.filter((d) => d.statut_controle === 'a_verifier')
+  const verifies = dossiers.filter((d) => d.statut_controle === 'valide')
 
   return (
     <div className="space-y-6">

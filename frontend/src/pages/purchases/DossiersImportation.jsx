@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
-import StatusBadge from '../../components/common/StatusBadge'
+import EtatDossierBadge from '../../components/common/EtatDossierBadge'
+import { etatDossier, ETATS_FILTRABLES } from '../../utils/etatDossier'
 import Select from '../../components/common/Select'
 import { formatDate, modeExpeditionLabel } from '../../utils/format'
 
@@ -16,7 +17,7 @@ const COLUMNS = [
     sortable: true,
     render: (d) => (d.date_livraison_prevue ? formatDate(d.date_livraison_prevue) : '-'),
   },
-  { key: 'statut', header: 'Statut', render: (d) => <StatusBadge status={d.statut} /> },
+  { key: 'etat', header: 'Avancement', render: (d) => <EtatDossierBadge etat={etatDossier(d)} /> },
 ]
 
 export default function DossiersImportation() {
@@ -59,6 +60,8 @@ export default function DossiersImportation() {
     if (filter === 'en_retard') {
       const enRetard = d.statut !== 'livré' && d.date_livraison_prevue && new Date(d.date_livraison_prevue) < now
       if (!enRetard) return false
+    } else if (ETATS_FILTRABLES.includes(filter)) {
+      if (etatDossier(d) !== filter) return false
     } else if (filter !== 'all' && d.statut !== filter) {
       return false
     }
@@ -105,6 +108,11 @@ export default function DossiersImportation() {
             { value: 'a traiter', label: 'À traiter' },
             { value: 'en cours', label: 'En cours' },
             { value: 'livré', label: 'Livré' },
+            { value: 'non_commence', label: 'Non commencé' },
+            { value: 'remplissage', label: 'En cours de remplissage' },
+            { value: 'soumis', label: 'Soumis au contrôleur' },
+            { value: 'refuse', label: 'Refusé — à corriger' },
+            { value: 'valide', label: 'Validé — réception possible' },
           ]}
           className="w-48"
         />

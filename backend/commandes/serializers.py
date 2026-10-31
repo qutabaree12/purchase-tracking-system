@@ -158,3 +158,42 @@ class DossierImportationSerializer(serializers.ModelSerializer):
 
     def get_da_reference(self, obj):
         return _references_da(obj.id_bc)
+
+
+class BonDeCommandeListeSerializer(BonDeCommandeSerializer):
+    """Liste des BC : ajoute l'état du dossier d'importation (transitaire, contrôle)."""
+
+    id_transitaire = serializers.IntegerField(
+        source='dossier_importation.id_transitaire_id',
+        read_only=True,
+        allow_null=True,
+    )
+    transitaire_nom = serializers.CharField(
+        source='dossier_importation.id_transitaire.full_name',
+        read_only=True,
+        allow_null=True,
+    )
+    dossier_statut = serializers.CharField(
+        source='dossier_importation.statut',
+        read_only=True,
+        allow_null=True,
+    )
+    dossier_controle = serializers.CharField(
+        source='dossier_importation.statut_controle',
+        read_only=True,
+        allow_null=True,
+    )
+    dossier_pret = serializers.BooleanField(
+        source='dossier_importation.pret_pour_controle',
+        read_only=True,
+        allow_null=True,
+    )
+
+    class Meta(BonDeCommandeSerializer.Meta):
+        fields = list(BonDeCommandeSerializer.Meta.fields) + [
+            'id_transitaire',
+            'transitaire_nom',
+            'dossier_statut',
+            'dossier_controle',
+            'dossier_pret',
+        ]
