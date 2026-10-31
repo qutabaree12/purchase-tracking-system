@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from authentication.models import Employe
 from config.pagination import OptionalPagination
 from notifications.utils import (
+    marquer_vues_par_autres_controleurs,
     notifier_controle_decision,
     notifier_dossier_a_verifier,
     notifier_dossier_assigne,
@@ -36,8 +37,8 @@ class DossierImportationViewSet(
     """Dossiers d'importation : pas de création ni de suppression par l'API.
 
     Circuit : acheteur assigne un transitaire -> le transitaire renseigne le dossier
-    -> le contrôleur valide (lettre de crédit) ou refuse -> le transitaire valide
-    la réception."""
+    -> un contrôleur le prend en charge, puis valide (lettre de crédit) ou refuse
+    -> le transitaire valide la réception."""
 
     serializer_class = DossierImportationSerializer
     pagination_class = OptionalPagination
@@ -49,7 +50,8 @@ class DossierImportationViewSet(
             'id_bc__id_acheteur',
             'id_bc__id_da',
             'id_transitaire',
-        ).prefetch_related('id_bc__demandes')
+            'id_controleur',
+        )
         user = self.request.user
         role = getattr(user, 'role', None)
 
@@ -58,7 +60,7 @@ class DossierImportationViewSet(
         elif role == Employe.Role.ACHETEUR:
             qs = qs.filter(id_bc__id_acheteur=user)
         elif role == Employe.Role.CHEF_DEPARTEMENT:
-            qs = qs.filter(id_bc__demandes__id_demandeur__id_departement__id_chef=user).distinct()
+            qs = qs.filter(id_bc__id_da__id_demandeur__id_departement__id_chef=user)
         elif role == Employe.Role.CONTROLEUR:
             # Le contrôleur ne voit que les dossiers que le transitaire a renseignés
             # (transitaire assigné + mode, lieu et date prévue). `__gt=''` écarte
@@ -72,6 +74,12 @@ class DossierImportationViewSet(
                     date_livraison_prevue__isnull=False,
                 )
                 .exclude(Q(statut=Statut.LIVRE) & Q(statut_controle=Controle.A_VERIFIER))
+                # Un dossier en attente pris en charge par un AUTRE contrôleur ne m'est plus montré.
+                .exclude(
+                    Q(statut_controle=Controle.A_VERIFIER)
+                    & Q(id_controleur__isnull=False)
+                    & ~Q(id_controleur=user)
+                )
             )
         elif role in (Employe.Role.ADMIN, Employe.Role.DIRECTEUR):
             pass
@@ -113,7 +121,10 @@ class DossierImportationViewSet(
         etait_refuse = serializer.instance.statut_controle == Controle.REFUSE
 
         # Un dossier refusé, une fois corrigé, repart automatiquement en vérification.
-        extra = {'statut_controle': Controle.A_VERIFIER} if etait_refuse else {}
+        extra = (
+            {'statut_controle': Controle.A_VERIFIER, 'id_controleur': None}
+            if etait_refuse else {}
+        )
         dossier = serializer.save(**extra)
 
         notifier_dossier_mis_a_jour(dossier)
@@ -163,18 +174,69 @@ class DossierImportationViewSet(
         return Response(self.get_serializer(dossier).data, status=status.HTTP_200_OK)
 
     # ------------------------------------------------------------------
-    # Le contrôleur décide
+    # Le contrôleur prend en charge, puis décide
     # ------------------------------------------------------------------
+
+    def _refus_si_pas_controleur(self):
+        if getattr(self.request.user, 'role', None) != Employe.Role.CONTROLEUR:
+            return _erreur(
+                "Seul un contrôleur peut effectuer cette action.",
+                status.HTTP_403_FORBIDDEN,
+            )
+        return None
+
+    @action(detail=True, methods=['post'])
+    def prendre_en_charge(self, request, pk=None):
+        """Réserve le dossier pour le contrôleur connecté (réservoir commun)."""
+        dossier = self.get_object()
+        refus = self._refus_si_pas_controleur()
+        if refus:
+            return refus
+
+        with transaction.atomic():
+            dossier = DossierImportation.objects.select_for_update().get(pk=dossier.pk)
+
+            if dossier.statut != Statut.EN_COURS or dossier.statut_controle != Controle.A_VERIFIER:
+                return _erreur("Ce dossier n'est plus en attente de vérification.")
+            if not dossier.pret_pour_controle:
+                return _erreur("Le dossier n'est pas encore complet.")
+            if dossier.id_controleur_id and dossier.id_controleur_id != request.user.pk:
+                return _erreur("Ce dossier est déjà pris en charge par un autre contrôleur.")
+
+            dossier.id_controleur = request.user
+            dossier.save(update_fields=['id_controleur'])
+            marquer_vues_par_autres_controleurs(dossier, request.user)
+
+        return Response(self.get_serializer(dossier).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def liberer(self, request, pk=None):
+        """Remet le dossier dans le réservoir commun (contrôleur absent, changement d'avis)."""
+        dossier = self.get_object()
+        refus = self._refus_si_pas_controleur()
+        if refus:
+            return refus
+
+        with transaction.atomic():
+            dossier = DossierImportation.objects.select_for_update().get(pk=dossier.pk)
+
+            if dossier.statut_controle != Controle.A_VERIFIER:
+                return _erreur("Ce dossier a déjà fait l'objet d'une décision.")
+            if dossier.id_controleur_id != request.user.pk:
+                return _erreur("Vous n'avez pas pris ce dossier en charge.")
+
+            dossier.id_controleur = None
+            dossier.save(update_fields=['id_controleur'])
+            notifier_dossier_a_verifier(dossier)
+
+        return Response(self.get_serializer(dossier).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def verifier_controleur(self, request, pk=None):
         dossier = self.get_object()
-
-        if getattr(request.user, 'role', None) != Employe.Role.CONTROLEUR:
-            return _erreur(
-                "Seul le contrôleur peut effectuer cette vérification.",
-                status.HTTP_403_FORBIDDEN,
-            )
+        refus = self._refus_si_pas_controleur()
+        if refus:
+            return refus
 
         decision = request.data.get('decision')
         commentaire = str(request.data.get('commentaire') or '').strip()
@@ -219,7 +281,15 @@ class DossierImportationViewSet(
                     "Le dossier n'est pas complet : le transitaire doit renseigner "
                     "le mode d'expédition, le lieu de chargement et la date de livraison prévue."
                 )
+            if dossier.id_controleur_id and dossier.id_controleur_id != request.user.pk:
+                return _erreur("Ce dossier est pris en charge par un autre contrôleur.")
+            # Une lettre de crédit = un seul dossier (le numéro est délivré par la banque).
+            if decision == 'valide' and DossierImportation.objects.filter(
+                statut_controle=Controle.VALIDE, numero_lc__iexact=numero_lc,
+            ).exclude(pk=dossier.pk).exists():
+                return _erreur("Ce numéro de lettre de crédit est déjà utilisé par un autre dossier.")
 
+            dossier.id_controleur = request.user   # décision sans prise en charge préalable : on réserve
             dossier.statut_controle = decision
             dossier.commentaire_controle = commentaire
             dossier.date_controle = datetime.date.today()
@@ -227,6 +297,7 @@ class DossierImportationViewSet(
             dossier.banque_lc = banque_lc
             dossier.date_lc = date_lc
             dossier.save(update_fields=[
+                'id_controleur',
                 'statut_controle',
                 'commentaire_controle',
                 'date_controle',

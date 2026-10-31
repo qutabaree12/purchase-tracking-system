@@ -32,14 +32,15 @@ export const ROLE_ACCESS = {
     prefixes: ['/purchases/mon-espace', '/purchases/request', '/purchases/deliveries', '/purchases/notifications'],
   },
   acheteur: {
-    home: '/purchases/requests',
+    home: '/purchases/tableau-acheteur',
     nav: [
+      { name: 'Tableau de bord', path: '/purchases/tableau-acheteur' },
       { name: "Demandes d'achat", path: '/purchases/requests' },
       { name: 'Demandes Approuvées', path: '/purchases/approved-requests' },
       { name: 'Regroupement', path: '/purchases/regroupement' },
       { name: 'Bons de commande', path: '/purchases/orders' },
     ],
-    prefixes: ['/purchases/regroupement', '/purchases/order', '/purchases/request', '/purchases/approved-requests'],
+    prefixes: ['/purchases/tableau-acheteur', '/purchases/regroupement', '/purchases/order', '/purchases/request', '/purchases/approved-requests'],
   },
   transitaire: {
     home: '/purchases/dashboard',

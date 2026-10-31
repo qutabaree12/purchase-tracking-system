@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLayout } from '../context/LayoutContext'
 import { getRoleAccess } from '../constants/roles'
+import useNavBadges from '../hooks/useNavBadges'
 import atLogo from '../assets/images/logo.webp'
 
 function initials(name = '') {
@@ -25,7 +26,7 @@ function NavIcon({ path }) {
     viewBox: '0 0 24 24',
   }
 
-  if (path === '/purchases/dashboard' || path === '/purchases/departement' || path === '/purchases/mon-espace') {
+  if (path === '/purchases/dashboard' || path === '/purchases/tableau-acheteur' || path === '/purchases/departement' || path === '/purchases/mon-espace') {
     return (
       <svg {...props}>
         <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -214,7 +215,11 @@ export default function Sidebar() {
   const { user } = useAuth()
   const { sidebarOpen, toggleSidebar } = useLayout()
   const navigate = useNavigate()
-  const navigation = getRoleAccess(user?.role).nav
+  const badges = useNavBadges(user?.role)
+  const navigation = getRoleAccess(user?.role).nav.map((item) => ({
+    ...item,
+    badge: badges[item.path] || 0,
+  }))
 
   return (
     <>

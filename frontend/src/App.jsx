@@ -39,6 +39,7 @@ const ControleurLettres = lazy(() => import('./pages/controleur/ControleurLettre
 const Profile = lazy(() => import('./pages/Profile'))
 const SuiviLivraisons = lazy(() => import('./pages/purchases/SuiviLivraisons'))
 const Notifications = lazy(() => import('./pages/purchases/Notifications'))
+const AcheteurDashboard = lazy(() => import('./pages/purchases/AcheteurDashboard'))
 const DepartementDashboard = lazy(() => import('./pages/purchases/DepartementDashboard'))
 const DemandeurDashboard = lazy(() => import('./pages/purchases/DemandeurDashboard'))
 
@@ -101,6 +102,7 @@ export default function App() {
             <Route path="purchases/historique" element={<Historique />} />
             <Route path="purchases/deliveries" element={<SuiviLivraisons />} />
             <Route path="purchases/notifications" element={<Notifications />} />
+            <Route path="purchases/tableau-acheteur" element={<AcheteurDashboard />} />
             <Route path="purchases/departement" element={<DepartementDashboard />} />
             <Route path="purchases/mon-espace" element={<DemandeurDashboard />} />
             <Route path="controleur" element={<ControleurLayout />}>

@@ -211,6 +211,16 @@ class DossierImportation(models.Model):
         blank=True,
     )
 
+    # Contrôleur qui a pris le dossier en charge (réservoir commun : vide = non attribué).
+    id_controleur = models.ForeignKey(
+        Employe,
+        on_delete=models.SET_NULL,
+        db_column='id_controleur',
+        null=True,
+        blank=True,
+        related_name='dossiers_controle',
+    )
+
     class Meta:
         db_table = 'DossierImportation'
         verbose_name = "Dossier d'importation"

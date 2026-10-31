@@ -85,6 +85,26 @@ export function ControleurProvider({ children }) {
     }
   }
 
+  // Prise en charge / libération d'un dossier (réservoir commun des contrôleurs).
+  const actionDossier = async (idDossier, action) => {
+    setSaving(true)
+    setError('')
+    try {
+      await api.post(`/dossiers-importation/${idDossier}/${action}/`)
+      await chargerDossiers()
+      return true
+    } catch (err) {
+      const message = err.response?.data?.detail || 'Action impossible.'
+      setError(message)
+      throw new Error(message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const prendreEnCharge = (idDossier) => actionDossier(idDossier, 'prendre_en_charge')
+  const liberer = (idDossier) => actionDossier(idDossier, 'liberer')
+
   const dossiersAVerifier = dossiers.filter(
     (d) => d.statut_controle === 'a_verifier'
   )
@@ -106,6 +126,8 @@ export function ControleurProvider({ children }) {
         error,
         saving,
         verifier,
+        prendreEnCharge,
+        liberer,
         recharger: chargerDossiers,
       }}
     >

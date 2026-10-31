@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useLayout } from '../../context/LayoutContext'
 import { useControleur } from './ControleurContext'
+import { useAuth } from '../../context/AuthContext'
 
 const AUTO_TONES = {
   blue: 'bg-blue-500/10 text-blue-700 ring-1 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25',
@@ -10,7 +11,8 @@ const AUTO_TONES = {
 
 export default function ControleurDossiers() {
   const { setSubtitle } = useLayout()
-  const { dossiers, verifier, loading, error, saving } = useControleur()
+  const { dossiers, verifier, prendreEnCharge, liberer, loading, error, saving } = useControleur()
+  const { user } = useAuth()
 
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
@@ -383,6 +385,50 @@ export default function ControleurDossiers() {
                     disabled={saving}
                   />
                 </div>
+              </div>
+
+              <div className="mb-4 rounded-lg border border-gray-200 dark:border-[#1e293b] px-4 py-3 text-sm flex flex-wrap items-center justify-between gap-3">
+                <span className="text-gray-600 dark:text-gray-300">
+                  {selected.id_controleur
+                    ? (selected.id_controleur === user?.id_emp
+                        ? 'Ce dossier est pris en charge par vous.'
+                        : `Pris en charge par ${selected.controleur_nom}.`)
+                    : 'Dossier non attribué : le premier contrôleur qui le prend en charge le réserve.'}
+                </span>
+                {!selected.id_controleur && (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    disabled={saving}
+                    onClick={async () => {
+                      try {
+                        await prendreEnCharge(selected.id_dossier)
+                        setSelected({ ...selected, id_controleur: user?.id_emp, controleur_nom: user?.full_name })
+                      } catch (err) {
+                        window.alert(err.message || 'Action impossible.')
+                      }
+                    }}
+                  >
+                    Prendre en charge
+                  </button>
+                )}
+                {selected.id_controleur && selected.id_controleur === user?.id_emp && (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    disabled={saving}
+                    onClick={async () => {
+                      try {
+                        await liberer(selected.id_dossier)
+                        setSelected({ ...selected, id_controleur: null, controleur_nom: null })
+                      } catch (err) {
+                        window.alert(err.message || 'Action impossible.')
+                      }
+                    }}
+                  >
+                    Libérer
+                  </button>
+                )}
               </div>
 
               <div className="flex justify-end gap-3">

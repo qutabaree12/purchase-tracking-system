@@ -11,6 +11,10 @@ class EmployeJWTAuthentication(JWTAuthentication):
     def get_user(self, validated_token):
         user_id = validated_token[api_settings.USER_ID_CLAIM]
         try:
-            return Employe.objects.get(pk=user_id)
+            employe = Employe.objects.get(pk=user_id)
         except Employe.DoesNotExist:
             raise InvalidToken('Utilisateur introuvable.')
+        # Un compte archivé perd l'accès immédiatement, même avec un jeton encore valide.
+        if employe.etat != Employe.Etat.ACTIF:
+            raise InvalidToken('Compte archivé ou inactif.')
+        return employe

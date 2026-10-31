@@ -182,3 +182,13 @@ def notifier_controle_decision(dossier):
             titre=titre,
             message=message[:500],
         )
+
+
+def marquer_vues_par_autres_controleurs(dossier, controleur):
+    """Quand un contrôleur prend un dossier en charge, les autres n'ont plus à s'en occuper :
+    leurs notifications « Dossier à vérifier » pour ce BC passent à « lues »."""
+    Notification.objects.filter(
+        bon_commande=dossier.id_bc,
+        titre="Dossier à vérifier",
+        destinataire__role='controleur',
+    ).exclude(destinataire=controleur).update(lu=True)
