@@ -15,3 +15,6 @@ MIGRATION_MODULES = {
     'commandes': None,
     'notifications': None,
 }
+
+# Les anciens tests ne déposent pas de pièces : la règle a ses propres tests.
+EXIGER_PIECES_OBLIGATOIRES = False

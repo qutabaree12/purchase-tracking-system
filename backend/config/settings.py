@@ -179,3 +179,6 @@ CORS_ALLOWED_ORIGINS = [
 import os as _os
 MEDIA_ROOT = _os.path.join(str(BASE_DIR), 'media')
 MEDIA_URL = '/media/'
+
+# Pièces obligatoires avant l'envoi du dossier au contrôleur.
+EXIGER_PIECES_OBLIGATOIRES = True

@@ -6,6 +6,7 @@ import Select from '../../components/common/Select'
 import { formatCurrency, modeExpeditionLabel } from '../../utils/format'
 import { exporterPdfUn } from '../../utils/bcPdf'
 import { useAuth } from '../../context/AuthContext'
+import DocumentsPanel from '../../components/purchases/DocumentsPanel'
 
 function formatDate(date) {
   if (!date) return '-'
@@ -743,10 +744,24 @@ export default function FicheBonCommande() {
                                 <p className="text-sm text-gray-500">
                                   {dossier.pret_pour_controle
                                     ? 'En attente de la vérification du contrôleur.'
-                                    : "Renseignez le mode d'expédition, le lieu de chargement et la date de livraison prévue pour envoyer le dossier au contrôleur."}
+                                    : "Renseignez le mode d'expédition, le lieu de chargement, la date de livraison prévue et déposez les pièces obligatoires pour envoyer le dossier au contrôleur."}
                                 </p>
                               )}
                             </div>
+              {dossier && (
+                <DocumentsPanel
+                  dossierId={dossier.id_dossier}
+                  canEdit={isTransitaire && dossier.statut_controle !== 'valide' && dossier.statut !== 'livré'}
+                  onChange={async () => {
+                    try {
+                      const res = await api.get(`/dossiers-importation/${dossier.id_dossier}/`)
+                      setDossier(res.data)
+                    } catch (err) {
+                      console.error('Rafraîchissement du dossier impossible', err)
+                    }
+                  }}
+                />
+              )}
                             <div className="border-t border-gray-200 pt-5">
 
                               <h3 className="text-sm font-semibold text-gray-700 mb-4">

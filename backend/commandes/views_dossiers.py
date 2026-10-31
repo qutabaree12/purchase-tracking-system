@@ -19,6 +19,7 @@ from notifications.utils import (
 
 from .models import DossierImportation
 from .serializers import DossierImportationSerializer
+from .pieces import masquer_sans_pieces
 
 Statut = DossierImportation.Statut
 Controle = DossierImportation.StatutControle
@@ -51,7 +52,7 @@ class DossierImportationViewSet(
             'id_bc__id_da',
             'id_transitaire',
             'id_controleur',
-        )
+        ).prefetch_related('documents')
         user = self.request.user
         role = getattr(user, 'role', None)
 
@@ -81,6 +82,7 @@ class DossierImportationViewSet(
                     & ~Q(id_controleur=user)
                 )
             )
+            qs = masquer_sans_pieces(qs, Controle.A_VERIFIER)
         elif role in (Employe.Role.ADMIN, Employe.Role.DIRECTEUR):
             pass
         else:
@@ -279,7 +281,7 @@ class DossierImportationViewSet(
             if not dossier.pret_pour_controle:
                 return _erreur(
                     "Le dossier n'est pas complet : le transitaire doit renseigner "
-                    "le mode d'expédition, le lieu de chargement et la date de livraison prévue."
+                    "le mode d'expédition, le lieu de chargement, la date de livraison prévue et les pièces obligatoires."
                 )
             if dossier.id_controleur_id and dossier.id_controleur_id != request.user.pk:
                 return _erreur("Ce dossier est pris en charge par un autre contrôleur.")

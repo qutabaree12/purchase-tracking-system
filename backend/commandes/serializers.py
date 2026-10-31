@@ -108,6 +108,11 @@ class DossierImportationSerializer(serializers.ModelSerializer):
 
     pret_pour_controle = serializers.BooleanField(read_only=True)
 
+    documents_manquants = serializers.ListField(
+        child=serializers.CharField(),
+        read_only=True,
+    )
+
     controleur_nom = serializers.CharField(
         source='id_controleur.full_name',
         read_only=True,
@@ -123,6 +128,7 @@ class DossierImportationSerializer(serializers.ModelSerializer):
             'da_reference',
             'montant',
             'pret_pour_controle',
+            'documents_manquants',
             'id_controleur',
             'controleur_nom',
             'fournisseur_nom',

@@ -3,6 +3,7 @@ from django.db import models
 from authentication.models import Employe
 from produits.models import Fournisseur, Produit
 from demandes.models import DemandeAchat
+from .pieces import TYPES_OBLIGATOIRES, exiger_pieces
 
 
 class BonDeCommande(models.Model):
@@ -231,14 +232,27 @@ class DossierImportation(models.Model):
         return f"Dossier importation - {self.id_bc.reference}"
 
     @property
-    def pret_pour_controle(self):
-        """Le transitaire a renseigné l'essentiel : le contrôleur peut statuer."""
+    def champs_renseignes(self):
+        """Transitaire assigné + mode, lieu et date prévue renseignés."""
         return bool(
             self.id_transitaire_id
             and self.mode_expedition
             and self.lieu_chargement
             and self.date_livraison_prevue
         )
+
+    @property
+    def documents_manquants(self):
+        """Types de pièces obligatoires pas encore déposés (vide si la règle est désactivée)."""
+        if not exiger_pieces():
+            return []
+        deposes = {d.type for d in self.documents.all()}
+        return [t for t in TYPES_OBLIGATOIRES if t not in deposes]
+
+    @property
+    def pret_pour_controle(self):
+        """Dossier renseigné ET pièces obligatoires déposées : le contrôleur peut statuer."""
+        return self.champs_renseignes and not self.documents_manquants
 
 
 def chemin_document(instance, nom_fichier):

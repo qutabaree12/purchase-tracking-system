@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from authentication.models import Employe
+from notifications.utils import notifier_dossier_a_verifier
 
 from .models import DocumentDossier, DossierImportation
 from .views_dossiers import DossierImportationViewSet
@@ -135,6 +136,7 @@ class DocumentDossierViewSet(viewsets.GenericViewSet):
         if dossier.documents.count() >= MAX_DOCUMENTS:
             return _erreur(f'Limite de {MAX_DOCUMENTS} pièces atteinte pour ce dossier.')
 
+        etait_pret = dossier.pret_pour_controle
         document = DocumentDossier.objects.create(
             id_dossier=dossier,
             type=type_doc,
@@ -142,6 +144,14 @@ class DocumentDossierViewSet(viewsets.GenericViewSet):
             nom_fichier=os.path.basename(fichier.name)[:255],
             id_depose_par=request.user,
         )
+        # La dernière pièce obligatoire vient d'arriver : on prévient les contrôleurs.
+        dossier = DossierImportation.objects.get(pk=dossier.pk)
+        if (
+            not etait_pret
+            and dossier.pret_pour_controle
+            and dossier.statut_controle == Controle.A_VERIFIER
+        ):
+            notifier_dossier_a_verifier(dossier)
         return Response(self.get_serializer(document).data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, pk=None):

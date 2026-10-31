@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useLayout } from '../../context/LayoutContext'
 import { useControleur } from './ControleurContext'
 import { useAuth } from '../../context/AuthContext'
+import DocumentsPanel from '../../components/purchases/DocumentsPanel'
 
 const AUTO_TONES = {
   blue: 'bg-blue-500/10 text-blue-700 ring-1 ring-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/25',
@@ -294,6 +295,10 @@ export default function ControleurDossiers() {
                     {selected.tarif ?? '—'}
                   </p>
                 </div>
+              </div>
+
+              <div className="mb-6">
+                <DocumentsPanel dossierId={selected.id_dossier} />
               </div>
 
               <div className="space-y-4 mb-6">
