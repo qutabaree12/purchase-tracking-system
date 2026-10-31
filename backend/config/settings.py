@@ -173,3 +173,9 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
+
+# Fichiers déposés par les utilisateurs (pièces justificatives).
+# Ils ne sont PAS servis publiquement : le téléchargement passe par l'API.
+import os as _os
+MEDIA_ROOT = _os.path.join(str(BASE_DIR), 'media')
+MEDIA_URL = '/media/'

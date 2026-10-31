@@ -239,3 +239,51 @@ class DossierImportation(models.Model):
             and self.lieu_chargement
             and self.date_livraison_prevue
         )
+
+
+def chemin_document(instance, nom_fichier):
+    # Nom aléatoire : on ne fait jamais confiance au nom envoyé par l'utilisateur.
+    import os
+    import uuid
+    ext = os.path.splitext(nom_fichier)[1].lower()
+    return f'dossiers/{instance.id_dossier_id}/{uuid.uuid4().hex}{ext}'
+
+
+class DocumentDossier(models.Model):
+    # Pièce justificative déposée par le transitaire sur un dossier d'importation.
+
+    class Type(models.TextChoices):
+        FACTURE = 'facture', 'Facture commerciale'
+        COLISAGE = 'colisage', 'Liste de colisage'
+        ORIGINE = 'origine', "Certificat d'origine"
+        TRANSPORT = 'transport', 'Titre de transport'
+        ASSURANCE = 'assurance', 'Assurance'
+        AUTRE = 'autre', 'Autre'
+
+    id_document = models.BigAutoField(primary_key=True)
+    id_dossier = models.ForeignKey(
+        DossierImportation,
+        on_delete=models.CASCADE,
+        db_column='id_dossier',
+        related_name='documents',
+    )
+    type = models.CharField(max_length=20, choices=Type.choices)
+    fichier = models.FileField(upload_to=chemin_document, max_length=255)
+    nom_fichier = models.CharField(max_length=255)
+    date_depot = models.DateTimeField(auto_now_add=True)
+    id_depose_par = models.ForeignKey(
+        Employe,
+        on_delete=models.PROTECT,
+        db_column='id_depose_par',
+        related_name='documents_deposes',
+    )
+
+    class Meta:
+        db_table = 'DocumentDossier'
+        verbose_name = 'Document du dossier'
+        verbose_name_plural = 'Documents des dossiers'
+        managed = True
+        ordering = ['-date_depot']
+
+    def __str__(self):
+        return f'{self.get_type_display()} - {self.nom_fichier}'

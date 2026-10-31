@@ -15,3 +15,5 @@ venv/
 
 # Présentations / schémas (non versionnés)
 docs/presentations/
+backend/media/
+*.bak
