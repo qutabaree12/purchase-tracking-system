@@ -17,3 +17,4 @@ venv/
 docs/presentations/
 backend/media/
 *.bak
+database/sql/seed_employe.sql
