@@ -13,6 +13,13 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  // Envoi de fichiers : sans cela, l'en-tête JSON par défaut pousse axios à convertir
+  // le FormData en JSON (le fichier devient {}), et Django répond 415.
+  // Le navigateur fixe alors lui-même « multipart/form-data » avec sa limite.
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    if (typeof config.headers?.delete === 'function') config.headers.delete('Content-Type')
+    else delete config.headers['Content-Type']
+  }
   return config
 })
 
