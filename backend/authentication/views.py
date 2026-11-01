@@ -3,8 +3,17 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from config.permissions import roles_autorises
+
 from .models import Employe
 from .serializers import EmployeSerializer, LoginSerializer
+
+# Qui peut consulter la liste des employés : administration et assignations.
+PeutConsulterEmployes = roles_autorises(
+    Employe.Role.ADMIN,
+    Employe.Role.CHEF_DEPARTEMENT,
+    Employe.Role.ACHETEUR,
+)
 
 
 @api_view(['POST'])
@@ -43,6 +52,14 @@ class EmployeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = Employe.objects.all()
 
+        # Un chef de département ne voit que les acheteurs (assignation des DA),
+        # un acheteur que les transitaires (assignation des dossiers).
+        role_connecte = getattr(self.request.user, 'role', None)
+        if role_connecte == Employe.Role.CHEF_DEPARTEMENT:
+            qs = qs.filter(role=Employe.Role.ACHETEUR)
+        elif role_connecte == Employe.Role.ACHETEUR:
+            qs = qs.filter(role=Employe.Role.TRANSITAIRE)
+
         role = self.request.query_params.get('role')
         etat = self.request.query_params.get('etat')
 
@@ -63,4 +80,4 @@ class EmployeViewSet(viewsets.ModelViewSet):
         ):
             return [permissions.IsAdminUser()]
 
-        return [permissions.IsAuthenticated()]
+        return [PeutConsulterEmployes()]

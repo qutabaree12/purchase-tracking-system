@@ -166,6 +166,9 @@ export default function FicheBonCommande() {
   // 3. Charger les transitaires actifs
   // ============================================================
   useEffect(() => {
+    // Seul l'acheteur assigne un transitaire : les autres rôles n'ont pas besoin de cette liste.
+    if (!isAcheteur) return undefined
+
     let active = true
 
     api
@@ -203,7 +206,7 @@ export default function FicheBonCommande() {
     return () => {
       active = false
     }
-  }, [])
+  }, [isAcheteur])
 
   // ============================================================
   // 4. Assigner le transitaire
