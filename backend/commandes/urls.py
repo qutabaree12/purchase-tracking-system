@@ -1,11 +1,14 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+from .views_reception import ReceptionViewSet
+
 from .views import BonDeCommandeViewSet, generer_bons_commande, regroupement
 from .views_dossiers import DossierImportationViewSet
 from .views_documents import DocumentDossierViewSet
 
 router = DefaultRouter()
+router.register('receptions', ReceptionViewSet, basename='receptions')
 router.register('bons-commande', BonDeCommandeViewSet, basename='bons-commande')
 router.register('dossiers-importation', DossierImportationViewSet, basename='dossiers-importation')  
 router.register('documents-dossier', DocumentDossierViewSet, basename='documents-dossier')

@@ -301,3 +301,62 @@ class DocumentDossier(models.Model):
 
     def __str__(self):
         return f'{self.get_type_display()} - {self.nom_fichier}'
+
+
+class Reception(models.Model):
+    """Une réception (totale ou partielle) de marchandise pour un dossier d'importation."""
+
+    id_reception = models.BigAutoField(primary_key=True)
+    id_dossier = models.ForeignKey(
+        DossierImportation,
+        on_delete=models.CASCADE,
+        db_column='id_dossier',
+        related_name='receptions',
+    )
+    id_transitaire = models.ForeignKey(
+        Employe,
+        on_delete=models.PROTECT,
+        db_column='id_transitaire',
+        related_name='receptions_enregistrees',
+    )
+    date_reception = models.DateField()
+    remarque = models.CharField(max_length=500, blank=True, default='')
+
+    class Meta:
+        db_table = 'Reception'
+        verbose_name = 'Réception'
+        verbose_name_plural = 'Réceptions'
+        managed = True
+        ordering = ['-date_reception', '-id_reception']
+
+    def __str__(self):
+        return f"Réception {self.id_reception} - dossier {self.id_dossier_id}"
+
+
+class LigneReception(models.Model):
+    """Quantité reçue pour une ligne de bon de commande, lors d'une réception."""
+
+    id_ligne_reception = models.BigAutoField(primary_key=True)
+    id_reception = models.ForeignKey(
+        Reception,
+        on_delete=models.CASCADE,
+        db_column='id_reception',
+        related_name='lignes',
+    )
+    ligne_bc = models.ForeignKey(
+        LigneBonDeCommande,
+        on_delete=models.PROTECT,
+        db_column='ligne_bc',
+        related_name='receptions',
+    )
+    quantite_recue = models.PositiveIntegerField()
+    reserve = models.CharField(max_length=255, blank=True, default='')
+
+    class Meta:
+        db_table = 'LigneReception'
+        verbose_name = 'Ligne de réception'
+        verbose_name_plural = 'Lignes de réception'
+        managed = True
+
+    def __str__(self):
+        return f"Ligne {self.ligne_bc_id} x{self.quantite_recue}"

@@ -192,3 +192,21 @@ def marquer_vues_par_autres_controleurs(dossier, controleur):
         titre="Dossier à vérifier",
         destinataire__role='controleur',
     ).exclude(destinataire=controleur).update(lu=True)
+
+
+def notifier_reception_partielle(dossier, reception):
+    """Informe l'acheteur qu'une partie de la marchandise a été reçue."""
+    bc = dossier.id_bc
+    if not bc or not bc.id_acheteur:
+        return
+    nb = reception.lignes.count()
+    Notification.objects.create(
+        destinataire=bc.id_acheteur,
+        bon_commande=bc,
+        type=Notification.Type.LIVRAISON,
+        titre="Réception partielle",
+        message=(
+            f"Réception partielle du {bc.reference} : {nb} ligne(s) reçue(s) "
+            f"le {reception.date_reception.strftime('%d/%m/%Y')}."
+        ),
+    )

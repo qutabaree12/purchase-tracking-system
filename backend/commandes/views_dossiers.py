@@ -19,6 +19,7 @@ from notifications.utils import (
 
 from .models import DossierImportation
 from .serializers import DossierImportationSerializer
+from .reception import enregistrer_reception_complete
 from .pieces import masquer_sans_pieces
 
 Statut = DossierImportation.Statut
@@ -339,9 +340,6 @@ class DossierImportationViewSet(
             if dossier.autorisation_necessaire and not dossier.autorisation_obtenue:
                 return _erreur("Une autorisation est nécessaire et n'a pas encore été obtenue.")
 
-            dossier.date_reception_reelle = datetime.date.today()
-            dossier.statut = Statut.LIVRE
-            dossier.save(update_fields=['date_reception_reelle', 'statut'])
-            notifier_reception_validee(dossier)
+            enregistrer_reception_complete(dossier, request.user)
 
         return Response(self.get_serializer(dossier).data, status=status.HTTP_200_OK)
