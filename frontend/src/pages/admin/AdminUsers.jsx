@@ -3,14 +3,6 @@ import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
 
-const mockUsers = [
-  { id_emp: 1, full_name: 'Ahmed Benali', email: 'ahmed.benali@algerietelecom.dz', role: 'admin', etat: 'actif' },
-  { id_emp: 2, full_name: 'Fatima Ouali', email: 'fatima.ouali@algerietelecom.dz', role: 'admin', etat: 'actif' },
-  { id_emp: 3, full_name: 'Sofiane Kadi', email: 'sofiane.kadi@algerietelecom.dz', role: 'demandeur', etat: 'actif' },
-  { id_emp: 4, full_name: 'Rachid Toumi', email: 'rachid.toumi@algerietelecom.dz', role: 'chef département', etat: 'actif' },
-  { id_emp: 5, full_name: 'Ali Mokhtari', email: 'ali.mokhtari@algerietelecom.dz', role: 'acheteur', etat: 'actif' },
-]
-
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -21,13 +13,11 @@ export default function AdminUsers() {
     api
       .get('/users/')
       .then((res) => {
-        if (active) setUsers(res.data.length ? res.data : mockUsers)
+        const items = Array.isArray(res.data) ? res.data : res.data.results || []
+        if (active) setUsers(items)
       })
-      .catch(() => {
-        if (active) {
-          setError('API indisponible — affichage des données de démonstration.')
-          setUsers(mockUsers)
-        }
+      .catch((err) => {
+        if (active) setError(err.response?.data?.detail || 'Erreur lors du chargement des utilisateurs.')
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -49,7 +39,7 @@ export default function AdminUsers() {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
       )}
-      <DataTable columns={columns} data={users} loading={loading} />
+      <DataTable columns={columns} data={users} loading={loading} emptyMessage="Aucun utilisateur enregistré." />
     </div>
   )
 }

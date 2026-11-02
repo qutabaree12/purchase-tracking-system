@@ -2,14 +2,6 @@ import { useState, useEffect } from 'react'
 import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 
-const mockProduits = [
-  { num_produit: 1, nom_produit: 'PC ALFATRON', prix_unit: 85000, fournisseur_nom: 'ALFATRON' },
-  { num_produit: 2, nom_produit: 'Clavier', prix_unit: 2500, fournisseur_nom: 'ALFATRON' },
-  { num_produit: 3, nom_produit: 'Souris', prix_unit: 1500, fournisseur_nom: 'ALFATRON' },
-  { num_produit: 4, nom_produit: 'Climatiseur', prix_unit: 75000, fournisseur_nom: 'Clima Tech' },
-  { num_produit: 5, nom_produit: 'Cahier', prix_unit: 350, fournisseur_nom: 'Paper & Co' },
-]
-
 export default function AdminProduits() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,13 +12,11 @@ export default function AdminProduits() {
     api
       .get('/produits/')
       .then((res) => {
-        if (active) setData(res.data.length ? res.data : mockProduits)
+        const items = Array.isArray(res.data) ? res.data : res.data.results || []
+        if (active) setData(items)
       })
-      .catch(() => {
-        if (active) {
-          setError('API indisponible — affichage des données de démonstration.')
-          setData(mockProduits)
-        }
+      .catch((err) => {
+        if (active) setError(err.response?.data?.detail || 'Erreur lors du chargement des produits.')
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -48,7 +38,7 @@ export default function AdminProduits() {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
       )}
-      <DataTable columns={columns} data={data} loading={loading} />
+      <DataTable columns={columns} data={data} loading={loading} emptyMessage="Aucun produit enregistré." />
     </div>
   )
 }

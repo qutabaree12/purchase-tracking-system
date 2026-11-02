@@ -26,9 +26,6 @@ const TransitaireDashboard = lazy(() => import('./pages/purchases/TransitaireDas
 const DossiersImportation = lazy(() => import('./pages/purchases/DossiersImportation'))
 const Regroupement = lazy(() => import('./pages/purchases/Regroupement'))
 const DemandesApprouvees = lazy(() => import('./pages/purchases/DemandesApprouvees'))
-const DocumentsTransport = lazy(() => import('./pages/purchases/DocumentsTransport'))
-const Assurances = lazy(() => import('./pages/purchases/Assurances'))
-const SuiviTransport = lazy(() => import('./pages/purchases/SuiviTransport'))
 const ReceptionColis = lazy(() => import('./pages/purchases/ReceptionColis'))
 const Historique = lazy(() => import('./pages/purchases/Historique'))
 const ControleurLayout = lazy(() => import('./pages/controleur/ControleurLayout'))
@@ -95,9 +92,6 @@ export default function App() {
             <Route path="purchases/order/:id" element={<PurchaseOrder />} />
             <Route path="purchases/order/:id/fiche" element={<FicheBonCommande />} />
             <Route path="purchases/regroupement" element={<Regroupement />} />
-            <Route path="purchases/documents-transport" element={<DocumentsTransport />} />
-            <Route path="purchases/assurances" element={<Assurances />} />
-            <Route path="purchases/suivi-transport" element={<SuiviTransport />} />
             <Route path="purchases/reception" element={<ReceptionColis />} />
             <Route path="purchases/historique" element={<Historique />} />
             <Route path="purchases/deliveries" element={<SuiviLivraisons />} />

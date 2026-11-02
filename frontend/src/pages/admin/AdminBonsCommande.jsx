@@ -3,11 +3,6 @@ import api from '../../services/api'
 import DataTable from '../../components/common/DataTable'
 import StatusBadge from '../../components/common/StatusBadge'
 
-const mockBons = [
-  { id_bc: 1, reference: 'BC-2026-0001', fournisseur_nom: 'ALFATRON', date_creation: '2026-08-10', montant: 425000, status: 'en cours' },
-  { id_bc: 2, reference: 'BC-2026-0002', fournisseur_nom: 'Paper & Co', date_creation: '2026-08-11', montant: 31000, status: 'en cours' },
-]
-
 export default function AdminBonsCommande() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -18,13 +13,11 @@ export default function AdminBonsCommande() {
     api
       .get('/bons-commande/')
       .then((res) => {
-        if (active) setData(res.data.length ? res.data : mockBons)
+        const items = Array.isArray(res.data) ? res.data : res.data.results || []
+        if (active) setData(items)
       })
-      .catch(() => {
-        if (active) {
-          setError('API indisponible — affichage des données de démonstration.')
-          setData(mockBons)
-        }
+      .catch((err) => {
+        if (active) setError(err.response?.data?.detail || 'Erreur lors du chargement des bons de commande.')
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -47,7 +40,7 @@ export default function AdminBonsCommande() {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
       )}
-      <DataTable columns={columns} data={data} loading={loading} />
+      <DataTable columns={columns} data={data} loading={loading} emptyMessage="Aucun bon de commande enregistré." />
     </div>
   )
 }
