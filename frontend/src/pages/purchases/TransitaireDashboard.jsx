@@ -4,7 +4,6 @@ import api from '../../services/api'
 import StatusBadge from '../../components/common/StatusBadge'
 import DataTable from '../../components/common/DataTable'
 import { formatDate, modeExpeditionLabel } from '../../utils/format'
-import { DOSSIERS } from './DocumentsTransport'
 
 function Kpi({ label, value, tone, onClick }) {
   return (
@@ -34,17 +33,12 @@ const RECENT_COLUMNS = [
   },
 ]
 
-const DOCUMENTS_MANQUANTS = (() => {
-  const list = []
-  DOSSIERS.forEach((d) => {
-    d.docs.forEach((doc) => {
-      if (doc.status === 'manquant') {
-        list.push({ nom: doc.nom, bc: d.id, fournisseur: d.fournisseur })
-      }
-    })
-  })
-  return list
-})()
+const LIBELLES_PIECES = {
+  facture: 'Facture commerciale',
+  colisage: 'Liste de colisage',
+  origine: "Certificat d'origine",
+  transport: 'Titre de transport',
+}
 
 export default function TransitaireDashboard() {
   const navigate = useNavigate()
@@ -87,6 +81,17 @@ export default function TransitaireDashboard() {
     .filter((d) => d.statut !== 'livré')
     .sort((a, b) => new Date(a.date_livraison_prevue || 0) - new Date(b.date_livraison_prevue || 0))
     .slice(0, 5)
+
+  // Pièces obligatoires manquantes : lues sur les vrais dossiers (API), plus de données fictives.
+  const DOCUMENTS_MANQUANTS = dossiers
+    .filter((d) => d.statut !== 'livré' && d.statut_controle !== 'valide')
+    .flatMap((d) =>
+      (d.documents_manquants || []).map((type) => ({
+        nom: LIBELLES_PIECES[type] || type,
+        bc: d.bc_reference || `BC-${d.id_bc}`,
+        fournisseur: d.fournisseur_nom || '-',
+      }))
+    )
 
   return (
     <div className="space-y-6">
@@ -138,7 +143,7 @@ export default function TransitaireDashboard() {
             type="button"
             className="btn-secondary"
             style={{ padding: '6px 12px', fontSize: 13 }}
-            onClick={() => navigate('/purchases/documents-transport')}
+            onClick={() => navigate('/purchases/dossiers')}
           >
             Voir tout
           </button>
