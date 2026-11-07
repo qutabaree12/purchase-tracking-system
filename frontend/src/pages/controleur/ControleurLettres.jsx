@@ -16,7 +16,7 @@ export default function ControleurLettres() {
   const [selected, setSelected] = useState(null)
 
   useEffect(() => {
-    setSubtitle('Lettres générées et transmises à l\'acheteur')
+    setSubtitle('Références des lettres de crédit enregistrées lors de la validation des dossiers')
   }, [setSubtitle])
 
   const q = search.trim().toLowerCase()
@@ -45,13 +45,13 @@ export default function ControleurLettres() {
 
       <div className="card overflow-hidden">
         <div className="card-header">
-          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Lettres de crédit générées</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Lettres de crédit enregistrées</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 dark:bg-gradient-to-b dark:from-[#1a2b4a] dark:to-[#0d1730] dark:border-[#1e293b]">
-                {['N° lettre', 'BC', 'Fournisseur', 'Montant', 'Banque', 'Date'].map((h) => (
+                {['N° lettre', 'BC', 'Fournisseur', 'Montant du BC', 'Banque', 'Date de la lettre'].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-blue-100/70">{h}</th>
                 ))}
               </tr>
@@ -59,7 +59,7 @@ export default function ControleurLettres() {
             <tbody className="divide-y divide-gray-200/60 dark:divide-[#334155]/40">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">Aucune lettre générée</td>
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">Aucune lettre de crédit enregistrée</td>
                 </tr>
               ) : (
                 filtered.map((l) => (
@@ -108,7 +108,7 @@ export default function ControleurLettres() {
                 <span className="font-medium text-gray-800 dark:text-gray-200">{selected.fournisseur}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Montant</span>
+                <span className="text-gray-500">Montant du BC</span>
                 <span className="font-medium text-gray-800 dark:text-gray-200">{selected.montant}</span>
               </div>
               <div className="flex justify-between">
@@ -116,7 +116,7 @@ export default function ControleurLettres() {
                 <span className="font-medium text-gray-800 dark:text-gray-200">{selected.banque}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Date</span>
+                <span className="text-gray-500">Date de la lettre</span>
                 <span className="font-medium text-gray-800 dark:text-gray-200">{selected.date}</span>
               </div>
             </div>

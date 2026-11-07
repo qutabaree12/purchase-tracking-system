@@ -338,6 +338,7 @@ export default function ControleurDossiers() {
 
                 {decision === 'valide' && (
                   <>
+                    <p className="text-xs text-gray-500">Saisissez les références de la lettre de crédit délivrée par la banque. Elles sont enregistrées avec le dossier : l'application ne génère aucun document bancaire.</p>
                     <div>
                       <label className="block text-sm mb-1">
                         Numéro de lettre de crédit

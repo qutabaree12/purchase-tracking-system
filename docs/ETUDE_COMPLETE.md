@@ -2,19 +2,27 @@
 
 ## A. RÉSUMÉ EXÉCUTIF (UNE PAGE MAXIMUM)
 
-L’application doit suivre une demande d’achat depuis sa création jusqu’à la réception des marchandises. Le backend Django/DRF couvre déjà une grande partie du chemin métier : demande d’achat, affectation au chef de département puis à l’acheteur, décision de l’acheteur, génération de bons de commande, affectation du transitaire, contrôle documentaire, lettre de crédit et réception par ligne avec réception partielle. Les 108 tests backend passent avec SQLite en mémoire et le frontend se compile.
+L’application doit suivre une demande d’achat depuis sa création jusqu’à la réception des marchandises. Le backend Django/DRF couvre déjà une grande partie du chemin métier : demande d’achat, affectation au chef de département puis à l’acheteur, décision de l’acheteur, génération de bons de commande, affectation du transitaire, contrôle documentaire, suivi de la lettre de crédit et réception par ligne avec réception partielle. Les 108 tests backend passent avec SQLite en mémoire et le frontend se compile.
 
 Les fonctionnalités réellement présentes sont principalement les écrans reliés aux demandes, bons de commande, dossiers d’importation, contrôleur, documents obligatoires, notifications et réception. Plusieurs écrans de transport, d’assurance et d’historique sont toutefois des maquettes locales : leurs données ne proviennent pas du backend et leurs modifications ne sont pas enregistrées.
 
-Les problèmes les plus importants sont la présence de données fictives dans l’interface, des écrans transitaire supplémentaires sans modèle ni API dédiés, la page historique entièrement statique, ainsi que des incohérences possibles entre la modélisation des acteurs et la validation dans le navigateur. La validation réelle doit rester celle du backend.
+Les principaux risques restant à valider portent sur le parcours réel dans l’interface, les permissions, le stockage documentaire et les informations complémentaires du crédit documentaire. Les écrans Assurance, SuiviTransport et DocumentsTransport ont été retirés; l’historique est désormais alimenté par les dossiers livrés et les réceptions.
 
 Les cinq prochaines actions sont :
 
-1. Corriger ou retirer les écrans statiques qui donnent une fausse impression de fonctionnement : historique, assurances, suivi du transport et documents de transport.
+1. Vérifier le parcours de saisie et d’affichage des informations LC déjà persistées, sans présenter le contrôleur comme émetteur d’un document bancaire officiel.
 2. Vérifier le parcours complet dans l’interface avec des comptes SQLite de test, puis corriger les éventuels blocages frontend/backend.
 3. Finaliser la gestion des documents et la cohérence du statut de contrôle, sans modifier les règles métier déjà codées.
-4. Compléter les données de suivi utiles réellement persistées (au minimum assurance, transport et historique d’expédition) uniquement si elles bloquent le parcours prévu.
+4. Compléter, seulement si validé métierlement, les informations facultatives manquantes du crédit documentaire; ne pas créer de nouveau modèle tant que les données existantes ne sont pas insuffisantes.
 5. Renforcer les tests bout en bout du processus principal, notamment assignation, génération BC, contrôle, réception complète et réception partielle.
+
+### Mise à jour du 2026-11-04
+
+- **[NOUVEAU]** Depuis la création du rapport sur le commit `074a786`, trois commits frontend ont été ajoutés (`d9721ec`, `bffdd31`, `61c00df`). Le dépôt est propre.
+- **[NOUVEAU]** Les écrans Assurance, SuiviTransport et DocumentsTransport ont été supprimés du routage et du dépôt; l’historique utilise désormais les dossiers livrés et les réceptions via API.
+- **[NOUVEAU]** Les fallbacks d’utilisateurs, produits, fournisseurs et bons de commande fictifs ont été retirés des écrans admin concernés.
+- **[NOUVEAU]** Le crédit documentaire est suivi par trois champs persistés sur le dossier: numéro LC, banque émettrice et date LC. Ce suivi couvre seulement une petite partie du modèle illustratif fourni.
+- **[ANCIEN CONSTATS TOUJOURS VALIDES]** Le backend reste DRF/Django, le contrôleur intervient avant expédition, les pièces sont obligatoires avant contrôle, la réception reste par ligne et peut être partielle.
 
 ## B. ANALYSE TECHNIQUE
 
@@ -130,9 +138,9 @@ Les routes sont déclarées dans `frontend/src/App.jsx` et regroupées selon le 
 
 | Page | État | Données |
 |---|---|---|
-| AdminDashboard/AdminDemandes/AdminBC/AdminProduits/AdminFournisseurs/AdminUsers | Partielle/à valider | API principalement, avec fallback démo sur certaines pages admin |
-| AdminUsers | À risque | Fallback local `mockUsers` si API vide ou indisponible (`frontend/src/pages/admin/AdminUsers.jsx`, lignes 5-27) |
-| AdminProduits/AdminFournisseurs/AdminBonsCommande | À risque | Fallback local démonstratif sur API vide ou indisponible |
+| AdminDashboard/AdminDemandes/AdminBC/AdminProduits/AdminFournisseurs/AdminUsers | Partielle/à valider | API principalement; les fallbacks fictifs concernés ont été retirés |
+| AdminUsers | API réelle | Liste vide ou erreur visible; pas de données fictives |
+| AdminProduits/AdminFournisseurs/AdminBonsCommande | API réelle | Liste vide ou erreur visible; pas de données fictives |
 | Login/Profile | Réellement intégrées | Authentification et profil |
 | PurchaseRequest / PurchaseRequestList | Implémentée | API demandes |
 | FicheDemande | Partielle/implémentée | API demande; actions selon rôle |
@@ -144,18 +152,13 @@ Les routes sont déclarées dans `frontend/src/App.jsx` et regroupées selon le 
 | ReceptionColis | Implémentée | API réception par ligne |
 | Notifications | Implémentée | API notifications |
 | Demandeur/Acheteur/Chef dashboards | Majoritairement API | Comptages et listes backend |
-| DocumentsTransport | Visuelle/statique | Export statique `DOSSIERS` |
-| Assurances | Visuelle/statique/localement modifiable | Tableau `INITIAL_ASSURANCES`, aucune API |
-| SuiviTransport | Statique | Tableau `EXPEDITIONS`, aucune API |
-| Historique | Statique | Tableau `HISTORIQUE`, aucune API |
+| DocumentsTransport | Retirée | Page supprimée; route retirée |
+| Assurances | Retirée | Page supprimée; route retirée |
+| SuiviTransport | Retirée | Page supprimée; route retirée |
+| Historique | Implémentée sur API | Dossiers livrés et réceptions `/dossiers-importation/`, `/receptions/` |
 | TransitaireDashboard | Mixte | Partie API dossiers; libellés et aides peuvent rester locaux |
 
-**[CONFIRMÉ]** Quatre écrans transitaire clés donnent actuellement une fausse impression de persistance :
-
-- `frontend/src/pages/purchases/Assurances.jsx`, données initiales locales et modifications uniquement en mémoire React.
-- `frontend/src/pages/purchases/SuiviTransport.jsx`, données d’expédition locales.
-- `frontend/src/pages/purchases/Historique.jsx`, données historiques locales dans `HISTORIQUE`.
-- `frontend/src/pages/purchases/DocumentsTransport.jsx`, dossiers et documents simulés dans `DOSSIERS`.
+**[CONFIRMÉ MIS À JOUR]** Les écrans Assurance, SuiviTransport et DocumentsTransport ne sont plus présents dans le routage ni dans le dépôt. L’historique est connecté aux API dossiers et réceptions et ne repose plus sur une constante locale.
 
 **[CONFIRMÉ]** Certaines pages admin remplacent un backend vide ou indisponible par des données de démonstration. Cela masque une API vide et peut faire croire que des données ont été enregistrées alors qu’elles ne le sont pas.
 
@@ -197,6 +200,16 @@ flowchart TD
 | Réception partielle | Transitaire | Contrôle valide, dossier en cours | Recevoir une partie des lignes | Quantités restantes persistées | Oui, tests réception |
 | Réception complète | Transitaire | Solde atteint | Recevoir le reste | `livré` + date réelle | Oui, tests réception |
 
+#### Crédit documentaire
+
+- **[CONFIRMÉ]** Le dossier persiste uniquement `numero_lc`, `banque_lc` et `date_lc`; ces champs sont réservés au contrôleur côté sérialiseur et sont saisis avec la décision de validation.
+- **[CONFIRMÉ]** Le contrôleur dispose d’un formulaire, d’actions API et d’écrans de consultation. L’API exige numéro, banque et date lors d’une validation, refuse une date future et interdit l’unicité du numéro parmi les dossiers validés.
+- **[CONFIRMÉ]** Le frontend affiche les trois informations et fournit une liste de lettres; les libellés « générées »/« transmises » restent trompeurs si aucune confirmation bancaire n’est enregistrée. Ils doivent désigner des informations suivies, non un document bancaire officiel émis par l’application.
+- **[CONFIRMÉ]** Des pièces sont déjà téléversables et téléchargeables par type de document, notamment facture, colisage, origine et transport. Des pièces supplémentaires peuvent être déposées via le type `autre`.
+- **[À VÉRIFIER]** Montant en chiffres, montant en lettres, devise, objet, pays d’origine/d’expédition, lieu de livraison, dates limites, lieu/date d’expiration, RUU 600, conditions de paiement et liste détaillée des bénéficiaires ne sont pas tous explicitement enregistrés sur le modèle LC. Certaines valeurs peuvent être déduites du BC ou du dossier, mais sans relation/formulaire métier confirmé.
+- **[À VALIDER]** Indispensables par opération: référence LC, banque émettrice, donneur d’ordre/applicabilité, bénéficiaire/fournisseur, objet marchandises, devise/montant, pays et livraison, échéances et documents requis. Facultatives selon l’opération: RUU 600, références commerciales détaillées et documents spécifiques. Validation/confirmation bancaire: à suivre séparément si le processus exige une preuve de confirmation; l’application ne signe et ne valide pas au nom de la banque.
+- **[RECOMMANDATION]** Utiliser les champs et modèles existants en priorité. Étendre le dossier uniquement pour les données réellement absentes et opérationnelles. Proposer un récapitulatif imprimable ou une vue PDF seulement après validation du contenu; ne pas qualifier ce récapitulatif de lettre de crédit bancaire officielle.
+
 ### 4. Acteurs et sécurité métier
 
 | Rôle | Ce qu’il voit | Ce qu’il peut faire | Ce qu’il ne doit pas faire |
@@ -234,7 +247,7 @@ flowchart TD
 | Lettre de crédit | PRÉSENT | Élevée |
 | Contrôle documentaire | PRÉSENT | Élevée |
 | Expédition | PARTIEL | Les champs mode/lieu/date existent, pas un suivi détaillé en plusieurs étapes |
-| Assurance | ABSENT côté backend | Faible tant que ce n’est pas exigé par le contrôle documentaire |
+| Assurance | ABSENT côté backend et écran retiré | Faible tant que ce n’est pas exigé par le contrôle documentaire |
 | Réception par ligne | PRÉSENT | Élevée |
 | Réception partielle | PRÉSENT | Élevée |
 | Rapprochement réception/facture | ABSENT | Faible à moyen, non bloquant pour le processus principal si non décidé |
@@ -249,36 +262,38 @@ flowchart TD
 
 | Élément | Priorité | Problème constaté | Solution proposée | Backend | Frontend | Dépendance | Taille/Risque |
 |---|---|---|---|---|---|---|---|
-| Retirer les fausses données de démo | P0 | `Historique`, `DocumentsTransport`, `Assurances`, `SuiviTransport` utilisent des constantes locales | Montrer soit des données API, soit un état vide explicite; ne pas les présenter comme réalisées | Aucun si hors périmètre temporaire, sinon endpoints documentés | Remplacer les constantes par appels API ou masquer temporairement les routes | Décision métier sur assurance/transport | M / Élevé |
-| Supprimer les fallbacks admin factices | P0 | Les API admin vides ou indisponibles affichent des utilisateurs/fournisseurs/produits/BC fictifs | Afficher une erreur ou une liste vide; aucun fallback de démonstration | Vérifier endpoints admin | Pages admin concernées | Contrat API confirmé | S / Élevé |
+| Finaliser les écrans LC | P0 | Les trois champs LC existent, mais une partie du dossier d’importation demandé manque et les libellés peuvent laisser croire à un document bancaire officiel | Corriger les libellés, puis ajouter uniquement les champs validés et une vue récapitulative; ne pas générer de lettre de crédit officielle | Étendre sérialiseur/API si validation métier | Formulaire contrôleur et consultation acheteur/transitaire | Validation métier des champs obligatoires/facultatifs | M / Élevé |
+| Maquettes transitaire retirées | P0 TERMINÉ | `Assurances`, `SuiviTransport`, `DocumentsTransport` étaient des données locales | Pages et routes retirées; aucun appel fictif conservé | Aucun | Aucun | — | S / Résolu |
+| Historique livré réel | P0 TERMINÉ | L’historique était statique | Branché sur dossiers livrés et réceptions | Endpoint dossiers/réceptions existant | `Historique.jsx` | Aucun | S / Résolu |
+| Supprimer les fallbacks admin factices | P0 TERMINÉ | Les API admin pouvaient afficher des données fictives | Produits, fournisseurs, utilisateurs et BC concernés utilisent maintenant la réponse API ou une liste vide | Vérifier endpoints admin | Pages admin concernées | Contrat API confirmé | S / Résolu |
 | Test bout en bout du chemin principal | P0 | Les tests unitaires existants passent mais le parcours global UI n’est pas automatisé | Ajouter un scénario de validation API ou documenter les appels exacts avec 108 tests | Possibles ajustements mineurs | Corriger bloqueurs navigables | Comptes de test | M / Moyen |
 | Boucler réception/affichage | P0 | Plusieurs écrans de suivi peuvent diverger du statut backend | Réutiliser les données dossiers/réceptions et masquer les données locales | Compléter uniquement le champ nécessaire | `ReceptionColis`, `Historique`, dossiers | Modèle réception | M / Moyen |
 | Vérifier permissions API réellement appliquées | P1 | Les contrôles frontend ne garantissent pas la sécurité | Ajouter/exécuter des tests d’accès directs par rôle | Tests dans applications | Aucune refonte | P0 sécurité | M / Moyen |
 | Sécuriser documents/lifecycle | P1 | Suppression possible selon règles; archive/audit à clarifier | Conserver l’historique des dépôts et empêcher la modification après décision | API documents | `DocumentsPanel`, dossiers | Décision archive/suppression | M / Moyen |
 | Finaliser suivi d’autorisation | P1 | Champs présents, workflow utilisateur incomplet | Utiliser les champs existants avant réception | Pas de nouveau modèle nécessaire | Fiche dossier/transitaire | Règle métier validée | S / Moyen |
-| Compléter suivi d’expédition utile | P1/P2 | Données statiques et pas de backend dédié cohérent | Limiter au minimum : mode, lieu, date prévue, date réelle déjà persistée | Réutiliser `DossierImportation` | Retirer les écrans avancés non persistés ou les connecter | Décision métier | M / Moyen |
-| Historique réel livraisons | P1 | Page entièrement statique | Construire l’écran à partir des dossiers `livré` | Endpoint dossier actuel | `Historique.jsx` | Dossiers backend | S / Faible |
-| Assurance | P2 | Fonction UI locale | Ne pas développer sans besoin documentaire confirmé | Modèle optionnel uniquement si exigé | Masquer/retirer la page en attendant | Décision métier | S/M / Moyen |
+| Compléter suivi d’expédition utile | P1/P2 | Écrans détaillés retirés; seuls les champs minimum du dossier existent | Limiter au minimum : mode, lieu, date prévue, date réelle déjà persistée | Réutiliser `DossierImportation` | Ne pas réintroduire une maquette; étendre uniquement si besoin validé | Décision métier | M / Moyen |
+| Historique réel livraisons | P1 TERMINÉ | Les dossiers livrés et leurs réceptions alimentent désormais l’écran | Maintenir la vue réelle et tester ses filtres/permissions | Endpoint dossier/réception existant | `Historique.jsx` | Aucun | S / Résolu |
+| Assurance | P2 | Aucun modèle ni écran persistant | Ne pas développer sans besoin documentaire confirmé | Aucun | Écran retiré; réutiliser un document `assurance` si un besoin apparaît | Décision métier | S / Faible |
 | Audit détaillé de modifications | P2 | Peu de champs historiques généraux | N’ajouter que si les responsabilités ou litiges l’exigent | Possibilité de modèle audit ultérieure | Audit consultable | Besoin métier validé | L / Moyen |
 | ERP complet (paiement, devis, facture, rapprochement, stock) | Hors périmètre | Absents volontairement | Ne pas développer sans besoin bloquant | Aucun | Aucun | — | L / Élevé |
 
 #### Ordre d’exécution recommandé
 
-1. Supprimer les données mockées administrateur et transitaire qui peuvent tromper l’utilisateur.
-2. Choisir pour les écrans transport/assurance soit un branchement minimal aux données existantes du dossier, soit les masquer.
+1. Valider les champs LC indispensables/facultatifs avec le métier et corriger les libellés trompeurs.
+2. Vérifier si les informations déjà disponibles dans BC/dossier évitent une extension; étendre proprement seulement les données manquantes indispensables.
 3. Exécuter et corriger le parcours complet avec des données SQLite.
 4. Renforcer les permissions API avec des tests par rôle.
-5. Valider et terminer le workflow pièces obligatoires, contrôle, autorisation et réception.
-6. Brancher l’historique réel des dossiers livrés.
+5. Valider et terminer le workflow pièces obligatoires, contrôle, autorisation, suivi bancaire et réception.
+6. Décider puis implémenter ou documenter une vue récapitulative imprimable du dossier LC, sans fonction d’émission bancaire.
 7. Documenter les fonctionnalités intentionally hors périmètre pour éviter qu’elles soient présentées comme terminées.
 8. Ajouter les améliorations optionnelles seulement après validation du parcours principal.
 
 ### 7. Questions de cadrage métier
 
-1. **Les écrans Assurance, Suivi transport, Documents transport et Historique doivent-ils être réellement persistés dès maintenant?**  
-   **Pourquoi:** Ces écrans sont visibles dans le menu transitaire mais utilisent des données locales.  
-   **Conséquences:** Les laisser peut provoquer un traitement fictif ou désynchronisé.  
-   **Recommandation:** Conserver uniquement les champs déjà présents dans `DossierImportation` et masquer les écrans avancés jusqu’à validation.
+1. **Quelles informations du modèle fictif LC sont indispensables à chaque opération, facultatives ou bancaires?**
+   **Pourquoi:** Le modèle fourni contient des données commerciales, financières, documentaires et bancaires.
+   **Conséquences:** Une extension trop large créerait des doublons; une extension trop faible rendrait le suivi incomplet.
+   **Recommandation:** Commencer par une matrice obligatoire/facultative, valider les données bancaires et réutiliser BC/dossier avant toute migration.
 
 2. **La réception doit-elle être déclarée complète automatiquement par la quantité reçue ou doit-elle être aussi validée explicitement par le transitaire?**  
    **Pourquoi:** L’API dispose de réception ligne par ligne et d’un ancien endpoint de validation complète.  
@@ -304,14 +319,15 @@ flowchart TD
 
 | Gravité | Risque | Pourquoi | Correction prioritaire |
 |---|---|---|---|
-| Critique | Données de démonstration présentées comme persistées | Admin et pages transitaire peuvent afficher des données qui ne viennent pas du backend | P0 |
-| Élevée | Divergence front/backend et fausses routes opérationnelles | Certaines fonctionnalités sont accessibles dans le menu alors qu’elles n’ont aucune API | P0/P1 |
+| Critique résiduel réduit | Fausse persistance dans les écrans retirés ou admin | Les fallbacks/mock locaux historiques ont été retirés; validation des autres écrans nécessaire | P0 |
+| Élevée | Crédibilité du suivi LC | Une liste intitulée « lettres générées » peut laisser croire à une émission/validation bancaire | P0 |
+| Élevée | Informations LC incomplètes | Le modèle fictif contient davantage de données que les trois champs persistés | P0/P1 |
 | Élevée | Autorisation métier limitée par le seul frontend | Le routage React doit être doublé de permissions serveur, qui semblent présentes dans les endpoints clés | Tester chaque rôle via API |
 | Moyenne | Traçabilité documentaire limitée | Pas d’historique explicitement confirmé pour la modification/suppression | P1 |
 | Moyenne | Annulation/modification BC insuffisamment définie | Le statut existe mais le cycle UI/API doit être confirmé | P1/P2 |
 | Moyenne | Gestion des fichiers sensible aux migrations de stockage | Les noms sont aléatoires, mais l’hébergement Supabase/PostgreSQL/media doit être vérifié | P1 |
 | Moyenne | Contrôle du directeur/rôle admin | Le rôle directeur existe sans acteur métier clairement utilisé | Documenter ou retirer du chemin |
-| Faible à moyenne | Dette technique de fallback mocks | Plusieurs pages admin et transitaire contiennent des fixtures | Nettoyage ciblé |
+| Faible à moyenne | Dette technique restante | D’autres pages peuvent contenir des simulations locales sans analyse complète de ce rapport ciblé | Nettoyage ciblé |
 
 ### 9. Scénario de validation bout en bout
 
@@ -343,8 +359,8 @@ Ne pas reprendre ni inventer de mots de passe réels. Chaque compte doit être c
 13. Transitaire dépose les pièces obligatoires via l’API multipart.
 14. Résultat : dossier prêt pour contrôle.
 15. Contrôleur prend en charge le dossier.
-16. Contrôleur valide, saisit numéro LC, banque et date.
-17. Résultat : contrôle `valide`, données LC persistées, notifications.
+16. Contrôleur valide, saisit numéro LC, banque et date, et transmet les pièces selon le procédé validé.
+17. Résultat : contrôle `valide`, informations de suivi LC persistées, notifications. La banque n’est pas représentée comme validée par l’application sans confirmation métier explicite.
 18. Transitaire vérifie les soldes et réceptionne une partie des lignes.
 19. Résultat : réception et lignes persistées, dossier reste en cours, soldes et notifications partiels.
 20. Transitaire réceptionne le solde restant.
@@ -379,20 +395,22 @@ Ne pas reprendre ni inventer de mots de passe réels. Chaque compte doit être c
 
 ## C. CE QUI RESTE À FAIRE
 
-1. **Nettoyer les fausses données fictives.** Supprimer les fallbacks `mockUsers`, produits, fournisseurs, BC et les tableaux locaux transitaire. Rendre l’état API vide ou l’erreur visible.
-2. **Décider le périmètre de transport/assurance.** Masquer temporairement les écrans non backend ou ne conserver que les champs réellement persistés dans le dossier.
+1. **État des fausses données fictives.** Les écrans transitaire retirés et les fallbacks admin concernés ont été nettoyés; vérifier les autres écrans avant livraison.
+2. **Finaliser le périmètre LC.** Valider les données indispensables/facultatives, étendre le modèle seulement si nécessaire et corriger les libellés d’émission/validation bancaire.
 3. **Tester le parcours complet UI/API.** Corriger les appels, routes et champs qui empêchent une utilisation bout en bout.
 4. **Finaliser les permissions.** Vérifier chaque endpoint avec chaque rôle par des tests API directs.
-5. **Brancher l’historique réel.** Remplacer l’historique statique par les dossiers backend `livré`.
+5. **Historique réel.** Branché sur les dossiers livrés et leurs réceptions; vérifier le parcours réel avec données.
 6. **Clarifier annulation, autorisation et documents.** Utiliser les champs existants et protéger les transitions.
 7. **Ajouter uniquement les améliorations P2 validées.** Aucun module ERP étendu n’est nécessaire pour finaliser le chemin principal.
 
 ## D. CE QUI N’A PAS PU ÊTRE VÉRIFIÉ
 
-- **[À VÉRIFIER]** L’interface n’a pas été parcourue dans un navigateur partagé avec des comptes et données réelles.
+- **[À VÉRIFIER]** L’interface n’a pas été parcourue dans un navigateur partagé avec des comptes et données réelles depuis la mise à jour.
 - **[À VÉRIFIER]** La base PostgreSQL/Supabase réelle n’a pas été consultée ni modifiée, conformément aux contraintes.
 - **[À VÉRIFIER]** Le stockage et la conservation des fichiers uploadés sur Supabase ou sur le média actuel.
-- **[À VÉRIFIER]** Toutes les pages frontend n’ont pas été ouvertes individuellement, notamment les écrans statiques confirmés par recherche de constantes locales; leur conformité API n’a pas été démontrée au-delà des constats de code.
+- **[À VÉRIFIER]** Toutes les pages frontend n’ont pas été parcourues individuellement dans ce rapport ciblé.
+- **[À VÉRIFIER]** Les informations complémentaires du modèle fictif LC n’ont pas été confirmées comme données obligatoires, facultatives ou bancaires par un responsable métier.
+- **[À VÉRIFIER]** Le mécanisme réel de confirmation bancaire n’est pas connu; aucun workflow bancaire officiel n’a été inferred de l’application.
 - **[À VÉRIFIER]** Le comportement exact de `IsAdminUser` sur le modèle employé personnalisé.
 - **[À VÉRIFIER]** Les données et configurations réelles du backend, notamment la disponibilité PostgreSQL, ne sont pas confirmées dans ce rapport.
 - **[À VÉRIFIER]** Aucun secret, mot de passe, clé ou chaîne de connexion n’a été lu ou écrit dans ce rapport.
@@ -427,18 +445,19 @@ Architecture confirmée :
 État confirmé :
 - 108 tests backend passent avec settings=config.settings_test.
 - Frontend npm run build passe.
-- Pipeline confirmé DA -> affectation -> décision -> BC -> dossier -> transitaire -> pièces -> contrôle/LC -> réception partielle/complète.
+- Pipeline confirmé DA -> affectation -> décision -> BC -> dossier -> transitaire -> pièces -> contrôle/saisie LC -> validation par le contrôleur -> réception partielle/complète.
 - Notifications principales présentes.
-- Plusieurs pages statiques ne sont pas persistées : Historique, Assurances, SuiviTransport, DocumentsTransport.
-- Certaines pages admin utilisent des données mockées si l’API est vide ou en erreur.
+- Les pages Assurance, SuiviTransport et DocumentsTransport ont été retirées; l’historique est connecté aux dossiers livrés et réceptions.
+- Les fallbacks admin fictifs concernés ont été retirés.
+- Le suivi LC actuel ne couvre que numéro, banque émettrice et date.
 
 Bugs/priorités à corriger :
-1. Retirer les fallbacks fictifs des pages admin et le contenu statique trompeur des pages transitaire.
-2. Décider et masquer ou connecter les écrans transport/assurance.
+1. Valider les données LC à suivre; étendre le dossier seulement pour les informations indispensables absentes.
+2. Corriger les libellés LC et ne pas représenter l’application comme émettrice ou approbatrice de la lettre.
 3. Parcourir l’application avec données SQLite réelles et corriger les bloqueurs UI/API.
 4. Vérifier les permissions API par rôle avec tests directs.
-5. Brancher l’historique réel des dossiers livrés.
-6. Clarifier annulation BC, suppression/remplacement de document et autorisation.
+5. Clarifier annulation BC, suppression/remplacement de document et autorisation.
+6. Décider d’une vue récapitulative imprimable, puis l’implémenter sans génération bancaire officielle.
 
 Fichiers à examiner en premier :
 - backend/demandes/views.py
@@ -453,9 +472,8 @@ Fichiers à examiner en premier :
 - frontend/src/layouts/MainLayout.jsx
 - frontend/src/constants/roles.js
 - frontend/src/pages/purchases/Historique.jsx
-- frontend/src/pages/purchases/Assurances.jsx
-- frontend/src/pages/purchases/SuiviTransport.jsx
-- frontend/src/pages/purchases/DocumentsTransport.jsx
+- frontend/src/pages/controleur/ControleurDossiers.jsx
+- frontend/src/pages/controleur/ControleurLettres.jsx
 - frontend/src/pages/admin/*.jsx
 
 Tests :
