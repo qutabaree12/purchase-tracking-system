@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Notifications() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -45,7 +47,9 @@ export default function Notifications() {
     } catch (err) {
       console.error(err)
     }
-    if (notification.demande) {
+    if (notification.type === 'lc_creee' && user?.role === 'acheteur') {
+      navigate('/purchases/lettres-credit')
+    } else if (notification.demande) {
       navigate(`/purchases/request/${notification.demande}/fiche`)
     } else if (notification.bon_commande) {
       navigate(`/purchases/order/${notification.bon_commande}/fiche`)
