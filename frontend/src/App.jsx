@@ -33,6 +33,7 @@ const ControleurDashboard = lazy(() => import('./pages/controleur/ControleurDash
 const ControleurDossiers = lazy(() => import('./pages/controleur/ControleurDossiers'))
 const ControleurVerifies = lazy(() => import('./pages/controleur/ControleurVerifies'))
 const ControleurLettres = lazy(() => import('./pages/controleur/ControleurLettres'))
+const ControleurLettreCredit = lazy(() => import('./pages/controleur/ControleurLettreCredit'))
 const Profile = lazy(() => import('./pages/Profile'))
 const SuiviLivraisons = lazy(() => import('./pages/purchases/SuiviLivraisons'))
 const Notifications = lazy(() => import('./pages/purchases/Notifications'))
@@ -104,6 +105,7 @@ export default function App() {
               <Route path="dossiers" element={<ControleurDossiers />} />
               <Route path="verifies" element={<ControleurVerifies />} />
               <Route path="lettres" element={<ControleurLettres />} />
+              <Route path="lettres/nouvelle" element={<ControleurLettreCredit />} />
             </Route>
           </Route>
         </Routes>

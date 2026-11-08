@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useLayout } from '../../context/LayoutContext'
 import { useControleur } from './ControleurContext'
 
@@ -41,6 +42,9 @@ export default function ControleurLettres() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <Link to="/controleur/lettres/nouvelle" className="btn-primary">
+          Générer une lettre
+        </Link>
       </div>
 
       <div className="card overflow-hidden">
