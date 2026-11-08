@@ -18,3 +18,11 @@ MIGRATION_MODULES = {
 
 # Les anciens tests ne déposent pas de pièces : la règle a ses propres tests.
 EXIGER_PIECES_OBLIGATOIRES = False
+
+REST_FRAMEWORK = {
+    **REST_FRAMEWORK,
+    'DEFAULT_THROTTLE_RATES': {
+        **REST_FRAMEWORK.get('DEFAULT_THROTTLE_RATES', {}),
+        'login': '1000/min',
+    },
+}

@@ -56,9 +56,11 @@ export default function Login() {
       const userData = await login(email, password)
       navigate(getRoleAccess(userData.role).home)
     } catch (err) {
-      const message = err.response?.data?.detail
-        || err.response?.data?.non_field_errors?.[0]
-        || 'Email ou mot de passe incorrect.'
+      const message = err.response?.status === 429
+        ? 'Trop de tentatives. Réessayez dans quelques instants.'
+        : err.response?.data?.detail
+          || err.response?.data?.non_field_errors?.[0]
+          || 'Email ou mot de passe incorrect.'
       setSubmitError(Array.isArray(message) ? message[0] : message)
     } finally {
       setLoading(false)
@@ -170,13 +172,14 @@ export default function Login() {
                   </svg>
                 </div>
                 <input
-                  type="text"
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Identifiant employé"
+                  placeholder="Email"
+                  autoComplete="email"
                   style={{
                     width: '100%', boxSizing: 'border-box',
-                    padding: '14px 14px 14px 48px',
+                    padding: '14px 14px 14px 44px',
                     border: 'none', outline: 'none', fontSize: 14,
                     background: 'transparent', color: NAVY, borderRadius: 10,
                   }}

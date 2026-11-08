@@ -48,7 +48,7 @@ class Employe(models.Model):
     id_emp = models.BigAutoField(primary_key=True)
     nom_emp = models.CharField(max_length=100)
     prenom_emp = models.CharField(max_length=100, db_column='prénom_emp')
-    email_emp = models.EmailField(max_length=255)
+    email_emp = models.EmailField(max_length=255, unique=True)
     mot_de_passe = models.CharField(max_length=255)
     role = models.CharField(max_length=30, choices=Role.choices, default=Role.DEMANDEUR)
     etat = models.CharField(max_length=10, choices=Etat.choices, default=Etat.ACTIF)

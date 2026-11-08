@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -7,6 +7,7 @@ from config.permissions import roles_autorises
 
 from .models import Employe
 from .serializers import EmployeSerializer, LoginSerializer
+from .throttles import LoginRateThrottle
 
 # Qui peut consulter la liste des employés : administration et assignations.
 PeutConsulterEmployes = roles_autorises(
@@ -18,6 +19,7 @@ PeutConsulterEmployes = roles_autorises(
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([LoginRateThrottle])
 def login(request):
     """POST /api/auth/login → { email, mot_de_passe } → { access, refresh, user }"""
     serializer = LoginSerializer(data=request.data)
