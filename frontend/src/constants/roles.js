@@ -39,8 +39,9 @@ export const ROLE_ACCESS = {
       { name: 'Demandes Approuvées', path: '/purchases/approved-requests' },
       { name: 'Regroupement', path: '/purchases/regroupement' },
       { name: 'Bons de commande', path: '/purchases/orders' },
+      { name: 'Lettre de crédit', path: '/purchases/lettres-credit' },
     ],
-    prefixes: ['/purchases/tableau-acheteur', '/purchases/regroupement', '/purchases/order', '/purchases/request', '/purchases/approved-requests'],
+    prefixes: ['/purchases/tableau-acheteur', '/purchases/lettres-credit', '/purchases/regroupement', '/purchases/order', '/purchases/request', '/purchases/approved-requests'],
   },
   transitaire: {
     home: '/purchases/dashboard',

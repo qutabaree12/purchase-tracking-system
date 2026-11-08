@@ -146,7 +146,7 @@ function NavIcon({ path }) {
       </svg>
     )
   }
-  if (path === '/controleur/lettres') {
+  if (path === '/controleur/lettres' || path === '/purchases/lettres-credit') {
     return (
       <svg {...props}>
         <rect x="2" y="4" width="20" height="16" rx="2" />
