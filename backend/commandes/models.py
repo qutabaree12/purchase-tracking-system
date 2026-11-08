@@ -227,6 +227,13 @@ class DossierImportation(models.Model):
         verbose_name = "Dossier d'importation"
         verbose_name_plural = "Dossiers d'importation"
         managed = True
+        constraints = [
+            models.UniqueConstraint(
+                fields=['numero_lc'],
+                condition=~models.Q(numero_lc=''),
+                name='unique_numero_lc_non_vide',
+            ),
+        ]
 
     def __str__(self):
         return f"Dossier importation - {self.id_bc.reference}"
