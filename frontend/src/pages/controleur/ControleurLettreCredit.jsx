@@ -413,9 +413,6 @@ export default function ControleurLettreCredit() {
             <button type="button" className="btn-primary" onClick={telecharger} disabled={downloading}>
               {downloading ? 'Génération...' : 'Télécharger le PDF'}
             </button>
-            <button type="button" className="btn-secondary" onClick={() => setForm(depuisDossier(dossiers.find((d) => String(d.id_dossier) === selectedId), dossiers))}>
-              Réinitialiser depuis le dossier
-            </button>
           </div>
         </div>
 
