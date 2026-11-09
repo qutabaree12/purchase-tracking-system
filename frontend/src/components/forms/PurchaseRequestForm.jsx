@@ -1,5 +1,19 @@
 import FormField from "../common/FormField";
 
+const DOT_VALUES = [
+  "Direction Générale — Alger",
+  "DOT Alger",
+  "DOT Oran",
+  "DOT Constantine",
+  "DOT Annaba",
+  "DOT Blida",
+  "DOT Sétif",
+  "DOT Tlemcen",
+  "DOT Béjaïa",
+  "DOT Ouargla",
+  "DOT Ghardaïa",
+];
+
 const statusOptions = [
   {
     value: "en_cours",
@@ -20,6 +34,13 @@ export default function PurchaseRequestForm({
   onChange,
   errors,
 }) {
+  const dotOptions = [
+    ...(data.dot && !DOT_VALUES.includes(data.dot)
+      ? [{ value: data.dot, label: data.dot }]
+      : []),
+    ...DOT_VALUES.map((value) => ({ value, label: value })),
+  ];
+
   return (
     <div className="space-y-6">
 
@@ -28,8 +49,11 @@ export default function PurchaseRequestForm({
         <FormField
           label="DOT"
           name="dot"
+          type="select"
           value={data.dot}
           onChange={onChange}
+          options={dotOptions}
+          placeholder="Sélectionner une DOT..."
         />
 
         {/*<FormField
